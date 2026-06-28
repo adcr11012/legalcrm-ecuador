@@ -1,17 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Modal } from '@/components/Modal'
 import { createCaso, updateCaso } from '@/features/casos/api'
+import { addPersonaInterna, addPersonaCliente } from '@/features/casos/personasApi'
 import { useAuth } from '@/features/auth/AuthProvider'
+import { MATERIAS, TIPOS_ACCION, TIPOS_NO_CONTENCIOSOS } from '@/features/casos/materias'
+import { ClienteCombobox } from '@/features/casos/ClienteCombobox'
 import type { Caso, Materia } from '@/types/database'
-
-const MATERIAS: { value: Materia; label: string }[] = [
-  { value: 'civil', label: 'Civil' },
-  { value: 'laboral', label: 'Laboral' },
-  { value: 'familia', label: 'Familia' },
-  { value: 'penal', label: 'Penal' },
-  { value: 'mercantil', label: 'Mercantil' },
-  { value: 'otro', label: 'Otro' },
-]
 
 const inputClass =
   'w-full rounded-[8px] border border-border bg-bg px-3 py-2.5 text-[13px] text-ink outline-none transition focus:border-accent'
@@ -34,6 +28,8 @@ export function CasoFormModal({
   const editing = Boolean(caso)
   const [titulo, setTitulo] = useState('')
   const [materia, setMateria] = useState<Materia>('civil')
+  const [tipoAccion, setTipoAccion] = useState('')
+  const [cliente, setCliente] = useState<{ id: string; nombre: string } | null>(null)
   const [numeroCausa, setNumeroCausa] = useState('')
   const [juzgado, setJuzgado] = useState('')
   const [fechaInicio, setFechaInicio] = useState('')
@@ -44,6 +40,8 @@ export function CasoFormModal({
     if (!open) return
     setTitulo(caso?.titulo ?? '')
     setMateria(caso?.materia ?? 'civil')
+    setTipoAccion(caso?.tipo_accion ?? '')
+    setCliente(null)
     setNumeroCausa(caso?.numero_causa ?? '')
     setJuzgado(caso?.juzgado ?? '')
     setFechaInicio(caso?.fecha_inicio ?? '')
@@ -53,6 +51,8 @@ export function CasoFormModal({
   function reset() {
     setTitulo('')
     setMateria('civil')
+    setTipoAccion('')
+    setCliente(null)
     setNumeroCausa('')
     setJuzgado('')
     setFechaInicio('')
@@ -69,21 +69,32 @@ export function CasoFormModal({
         const updated = await updateCaso(caso.id, {
           titulo,
           materia,
+          tipo_accion: tipoAccion || null,
           numero_causa: numeroCausa || null,
           juzgado: juzgado || null,
           fecha_inicio: fechaInicio || null,
         })
         onUpdated?.(updated)
       } else {
+        if (!cliente) {
+          setError('Selecciona o crea un cliente.')
+          setLoading(false)
+          return
+        }
+        const autoNoContencioso = materia === 'asesoria' || TIPOS_NO_CONTENCIOSOS.has(tipoAccion)
         const created = await createCaso({
           workspace_id: profile.workspace_id,
           created_by: profile.id,
           titulo,
           materia,
-          numero_causa: numeroCausa || null,
-          juzgado: juzgado || null,
-          fecha_inicio: fechaInicio || null,
+          tipo_accion: tipoAccion,
+          cliente_id: cliente.id,
+          es_contencioso: !autoNoContencioso,
+          rol_cliente: materia === 'asesoria' ? 'cliente' : autoNoContencioso ? 'solicitante' : null,
         })
+        // Vincula al cliente y al creador (como abogado responsable) — baja fricción.
+        await addPersonaCliente(created.id, cliente.id, cliente.nombre)
+        await addPersonaInterna(created.id, profile.id, 'abogado')
         onCreated?.(created)
         reset()
       }
@@ -94,6 +105,8 @@ export function CasoFormModal({
       setLoading(false)
     }
   }
+
+  const tiposDisponibles = TIPOS_ACCION[materia] ?? []
 
   return (
     <Modal
@@ -118,7 +131,14 @@ export function CasoFormModal({
 
         <div>
           <label className={labelClass}>Materia</label>
-          <select value={materia} onChange={(e) => setMateria(e.target.value as Materia)} className={inputClass}>
+          <select
+            value={materia}
+            onChange={(e) => {
+              setMateria(e.target.value as Materia)
+              setTipoAccion('')
+            }}
+            className={inputClass}
+          >
             {MATERIAS.map((m) => (
               <option key={m.value} value={m.value}>
                 {m.label}
@@ -127,36 +147,55 @@ export function CasoFormModal({
           </select>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className={labelClass}>N° de causa</label>
-            <input
-              value={numeroCausa}
-              onChange={(e) => setNumeroCausa(e.target.value)}
-              className={inputClass}
-              placeholder="Opcional"
-            />
-          </div>
-          <div>
-            <label className={labelClass}>Fecha de inicio</label>
-            <input
-              type="date"
-              value={fechaInicio}
-              onChange={(e) => setFechaInicio(e.target.value)}
-              className={inputClass}
-            />
-          </div>
+        <div>
+          <label className={labelClass}>Tipo de acción</label>
+          <select required value={tipoAccion} onChange={(e) => setTipoAccion(e.target.value)} className={inputClass}>
+            <option value="" disabled>
+              Selecciona…
+            </option>
+            {tiposDisponibles.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
+            ))}
+          </select>
         </div>
 
-        <div>
-          <label className={labelClass}>Juzgado / Tribunal</label>
-          <input
-            value={juzgado}
-            onChange={(e) => setJuzgado(e.target.value)}
-            className={inputClass}
-            placeholder="Opcional"
-          />
-        </div>
+        {!editing && (
+          <div>
+            <label className={labelClass}>Cliente</label>
+            <ClienteCombobox value={cliente} onChange={setCliente} />
+          </div>
+        )}
+
+        {editing && (
+          <>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelClass}>N° de causa</label>
+                <input
+                  value={numeroCausa}
+                  onChange={(e) => setNumeroCausa(e.target.value)}
+                  className={inputClass}
+                  placeholder="Opcional"
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Fecha de inicio</label>
+                <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} className={inputClass} />
+              </div>
+            </div>
+            <div>
+              <label className={labelClass}>Juzgado / Tribunal</label>
+              <input
+                value={juzgado}
+                onChange={(e) => setJuzgado(e.target.value)}
+                className={inputClass}
+                placeholder="Opcional"
+              />
+            </div>
+          </>
+        )}
 
         {error && (
           <div className="rounded-[6px] border border-danger/20 bg-danger-soft px-3 py-2 text-[12px] text-danger">

@@ -6,6 +6,10 @@ export type NuevoCaso = {
   created_by: string
   titulo: string
   materia: Caso['materia']
+  tipo_accion: string
+  cliente_id: string
+  es_contencioso: boolean
+  rol_cliente: string | null
   numero_causa?: string | null
   juzgado?: string | null
   fecha_inicio?: string | null

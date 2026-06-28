@@ -1,4 +1,16 @@
-export type Materia = 'civil' | 'laboral' | 'familia' | 'penal' | 'mercantil' | 'otro'
+export type Materia =
+  | 'civil'
+  | 'mercantil'
+  | 'laboral'
+  | 'familia'
+  | 'penal'
+  | 'transito'
+  | 'inquilinato'
+  | 'contencioso_administrativo'
+  | 'contencioso_tributario'
+  | 'constitucional'
+  | 'asesoria'
+  | 'otro'
 export type EstadoCaso = 'nuevo' | 'activo' | 'en_espera' | 'audiencia_proxima' | 'resuelto' | 'archivado'
 export type RolPersona = 'abogado' | 'cliente' | 'otro'
 export type Visibilidad = 'privado' | 'compartido'
@@ -25,17 +37,35 @@ export type Usuario = {
   created_at: string
 }
 
+export type HonorariosTipo = 'fijo' | 'por_hora' | 'por_exito' | 'mixto'
+export type HonorariosFormaPago = 'inicio' | 'cuotas' | 'al_finalizar'
+
 export type Caso = {
   id: string
   workspace_id: string
   titulo: string
   materia: Materia | null
+  tipo_accion: string | null
+  cliente_id: string | null
   estado: EstadoCaso
   numero_causa: string | null
   juzgado: string | null
   fecha_inicio: string | null
   nota_interna: string | null
   drive_folder_id: string | null
+  es_contencioso: boolean
+  rol_cliente: string | null
+  contraparte_nombre: string | null
+  contraparte_cedula: string | null
+  contraparte_abogado: string | null
+  demanda_presentada: boolean
+  fecha_citacion: string | null
+  cuantia: number | null
+  instancia_actual: string
+  honorarios_tipo: HonorariosTipo | null
+  honorarios_monto: number | null
+  honorarios_forma_pago: HonorariosFormaPago | null
+  honorarios_notas: string | null
   created_by: string
   created_at: string
   updated_at: string

@@ -17,16 +17,8 @@ import { AddPersonaModal } from '@/features/casos/AddPersonaModal'
 import { AddPlazoModal } from '@/features/casos/AddPlazoModal'
 import { AddDocumentoModal } from '@/features/casos/AddDocumentoModal'
 import { CasoFormModal } from '@/features/casos/CasoFormModal'
+import { MATERIA_LABEL } from '@/features/casos/materias'
 import type { Caso, CasoPersona, Documento, EstadoCaso, HistorialEntry, Plazo, Usuario } from '@/types/database'
-
-const MATERIA_LABEL: Record<string, string> = {
-  civil: 'Civil',
-  laboral: 'Laboral',
-  familia: 'Familia',
-  penal: 'Penal',
-  mercantil: 'Mercantil',
-  otro: 'Otro',
-}
 
 const TABS = [
   { key: 'info', label: 'Información', icon: 'ti-info-circle' },
@@ -215,6 +207,9 @@ export function CaseDetail({ casoId, onDeleted }: { casoId: string; onDeleted?: 
             onUpdateCampo={onUpdateCampo}
             onOpenAddPersona={() => setAddPersonaOpen(true)}
             onRemovePersona={onRemovePersona}
+            tienePlazos={plazos.length > 0}
+            tieneDocumentos={documentos.length > 0}
+            onOpenAddPlazo={() => setAddPlazoOpen(true)}
           />
         )}
         {tab === 'docs' && (

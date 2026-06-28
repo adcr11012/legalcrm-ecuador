@@ -2,17 +2,9 @@ import { useState } from 'react'
 import type { Caso, CasoPersona, EstadoCaso, Usuario } from '@/types/database'
 import { ESTADO_LABEL } from '@/features/casos/estado'
 import { nombrePersona, initialsOf } from '@/features/casos/personaDisplay'
+import { MATERIA_LABEL } from '@/features/casos/materias'
 
 const COLUMNS: EstadoCaso[] = ['nuevo', 'activo', 'en_espera', 'audiencia_proxima', 'resuelto', 'archivado']
-
-const MATERIA_LABEL: Record<string, string> = {
-  civil: 'Civil',
-  laboral: 'Laboral',
-  familia: 'Familia',
-  penal: 'Penal',
-  mercantil: 'Mercantil',
-  otro: 'Otro',
-}
 
 export function CasosKanban({
   casos,

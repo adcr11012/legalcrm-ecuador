@@ -55,7 +55,7 @@ export default function Casos() {
   }, [load])
 
   usePageAction(
-    profile?.es_admin
+    profile
       ? {
           label: 'Nuevo caso',
           onClick: () => setModalOpen(true),

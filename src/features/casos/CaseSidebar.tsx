@@ -1,15 +1,7 @@
 import { useState } from 'react'
 import type { Caso } from '@/types/database'
 import { EstadoPill } from '@/features/casos/estado'
-
-const MATERIA_LABEL: Record<string, string> = {
-  civil: 'Civil',
-  laboral: 'Laboral',
-  familia: 'Familia',
-  penal: 'Penal',
-  mercantil: 'Mercantil',
-  otro: 'Otro',
-}
+import { MATERIA_LABEL } from '@/features/casos/materias'
 
 export function CaseSidebar({
   casos,

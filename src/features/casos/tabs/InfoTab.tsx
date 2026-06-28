@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react'
 import type { Caso, CasoPersona, EstadoCaso, Usuario } from '@/types/database'
 import { ESTADO_LABEL } from '@/features/casos/estado'
 import { nombrePersona, initialsOf } from '@/features/casos/personaDisplay'
+import { calcularCompletitud } from '@/features/casos/completitud'
+import { InstanciaStepper } from '@/features/casos/InstanciaStepper'
+import { DatosJudicialesModal } from '@/features/casos/DatosJudicialesModal'
+import { PartesDelProcesoModal } from '@/features/casos/PartesDelProcesoModal'
+import { HonorariosModal } from '@/features/casos/HonorariosModal'
 
 const ROL_LABEL: Record<string, string> = { abogado: 'Abogado', cliente: 'Cliente', otro: 'Otro' }
 
@@ -17,6 +22,9 @@ export function InfoTab({
   onUpdateCampo,
   onOpenAddPersona,
   onRemovePersona,
+  tienePlazos,
+  tieneDocumentos,
+  onOpenAddPlazo,
 }: {
   caso: Caso
   personas: CasoPersona[]
@@ -26,10 +34,16 @@ export function InfoTab({
   onUpdateCampo: (patch: Partial<Caso>) => void
   onOpenAddPersona: () => void
   onRemovePersona: (id: string) => void
+  tienePlazos: boolean
+  tieneDocumentos: boolean
+  onOpenAddPlazo: () => void
 }) {
   const [numeroCausa, setNumeroCausa] = useState(caso.numero_causa ?? '')
   const [juzgado, setJuzgado] = useState(caso.juzgado ?? '')
   const [fechaInicio, setFechaInicio] = useState(caso.fecha_inicio ?? '')
+  const [datosJudicialesOpen, setDatosJudicialesOpen] = useState(false)
+  const [partesOpen, setPartesOpen] = useState(false)
+  const [honorariosOpen, setHonorariosOpen] = useState(false)
 
   // Solo resincroniza cuando cambia el caso seleccionado, no en cada guardado propio.
   useEffect(() => {
@@ -38,8 +52,81 @@ export function InfoTab({
     setFechaInicio(caso.fecha_inicio ?? '')
   }, [caso.id])
 
+  const tieneAbogado = personas.some((p) => p.rol === 'abogado')
+  const { porcentaje, items } = calcularCompletitud(caso, tieneAbogado, tienePlazos, tieneDocumentos)
+  const itemCumplido = (key: string) => items.find((i) => i.key === key)?.cumplido ?? false
+
+  async function guardar(patch: Partial<Caso>) {
+    onUpdateCampo(patch)
+  }
+
   return (
     <div>
+      <div className="mb-4 rounded-[10px] border border-border bg-surface p-3.5">
+        <div className="mb-1.5 flex items-center justify-between">
+          <span className="text-[12px] font-semibold text-ink">Perfil del caso</span>
+          <span className="text-[12px] font-semibold text-accent">{porcentaje}%</span>
+        </div>
+        <div className="h-2 overflow-hidden rounded-full bg-[#f2f1ee]">
+          <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${porcentaje}%` }} />
+        </div>
+        {porcentaje < 100 && (
+          <div className="mt-1.5 text-[11px] text-mute2">
+            Completa la información para tener mejor control y activar funciones automáticas.
+          </div>
+        )}
+      </div>
+
+      {puedeEditar && porcentaje < 100 && (
+        <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {!itemCumplido('numero_causa') && (
+            <TarjetaPendiente
+              icono="ti-clipboard-text"
+              titulo="Datos judiciales"
+              descripcion="Agrega el número de causa para llevar control judicial del caso."
+              onClick={() => setDatosJudicialesOpen(true)}
+            />
+          )}
+          {caso.es_contencioso && !itemCumplido('contraparte') && (
+            <TarjetaPendiente
+              icono="ti-users"
+              titulo="Partes del proceso"
+              descripcion="¿Hay una contraparte en este caso?"
+              onClick={() => setPartesOpen(true)}
+            />
+          )}
+          {!tienePlazos && (
+            <TarjetaPendiente
+              icono="ti-calendar-event"
+              titulo="Plazos y audiencias"
+              descripcion="Registra la primera fecha importante para activar alertas automáticas."
+              onClick={onOpenAddPlazo}
+            />
+          )}
+          {!tieneDocumentos && (
+            <TarjetaPendiente
+              icono="ti-files"
+              titulo="Documentos"
+              descripcion="Sube el primer documento del caso."
+              onClick={() => {}}
+              deshabilitada
+            />
+          )}
+          {!itemCumplido('honorarios') && (
+            <TarjetaPendiente
+              icono="ti-coin"
+              titulo="Honorarios"
+              descripcion="Registra el valor pactado para llevar control de pagos y saldos."
+              onClick={() => setHonorariosOpen(true)}
+            />
+          )}
+        </div>
+      )}
+
+      <div className="mb-4">
+        <InstanciaStepper caso={caso} puedeEditar={puedeEditar} onChange={(instancia) => onUpdateCampo({ instancia_actual: instancia })} />
+      </div>
+
       <div className="grid grid-cols-3 gap-2.5">
         <div className="rounded-[10px] border border-border bg-surface p-3">
           <div className="text-[10px] font-semibold uppercase tracking-wide text-mute2">N° de causa</div>
@@ -111,6 +198,20 @@ export function InfoTab({
             </div>
           )}
         </div>
+        {caso.es_contencioso && caso.contraparte_nombre && (
+          <div className="col-span-3 rounded-[10px] border border-border bg-surface p-3">
+            <div className="text-[10px] font-semibold uppercase tracking-wide text-mute2">Contraparte</div>
+            <div className="mt-1 text-[13px] font-medium text-ink">{caso.contraparte_nombre}</div>
+          </div>
+        )}
+        {caso.honorarios_tipo && (
+          <div className="col-span-3 rounded-[10px] border border-border bg-surface p-3">
+            <div className="text-[10px] font-semibold uppercase tracking-wide text-mute2">Honorarios</div>
+            <div className="mt-1 text-[13px] font-medium text-ink">
+              {caso.honorarios_monto != null ? `$${caso.honorarios_monto}` : '—'} · {caso.honorarios_tipo}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="mt-4 mb-2 text-[11px] font-semibold uppercase tracking-wide text-mute2">Personas asignadas</div>
@@ -146,6 +247,41 @@ export function InfoTab({
             className="flex items-center gap-1.5 rounded-[10px] border border-dashed border-border px-3 py-2 text-[12px] text-muted transition hover:border-accent hover:text-accent"
           >
             <i className="ti ti-plus" /> Añadir persona
+          </button>
+        )}
+      </div>
+
+      <DatosJudicialesModal open={datosJudicialesOpen} onClose={() => setDatosJudicialesOpen(false)} caso={caso} onSave={guardar} />
+      <PartesDelProcesoModal open={partesOpen} onClose={() => setPartesOpen(false)} caso={caso} onSave={guardar} />
+      <HonorariosModal open={honorariosOpen} onClose={() => setHonorariosOpen(false)} caso={caso} onSave={guardar} />
+    </div>
+  )
+}
+
+function TarjetaPendiente({
+  icono,
+  titulo,
+  descripcion,
+  onClick,
+  deshabilitada,
+}: {
+  icono: string
+  titulo: string
+  descripcion: string
+  onClick: () => void
+  deshabilitada?: boolean
+}) {
+  return (
+    <div className="flex items-start gap-3 rounded-[10px] border border-dashed border-border bg-surface p-3">
+      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
+        <i className={`ti ${icono} text-[16px]`} />
+      </div>
+      <div className="flex-1">
+        <div className="text-[12px] font-semibold text-ink">{titulo}</div>
+        <div className="mt-0.5 text-[11px] text-mute2">{descripcion}</div>
+        {!deshabilitada && (
+          <button onClick={onClick} className="mt-1.5 text-[11px] font-medium text-accent hover:underline">
+            Añadir
           </button>
         )}
       </div>
