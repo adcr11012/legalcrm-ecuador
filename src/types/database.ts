@@ -1,0 +1,171 @@
+export type Materia = 'civil' | 'laboral' | 'familia' | 'penal' | 'mercantil' | 'otro'
+export type EstadoCaso = 'nuevo' | 'activo' | 'en_espera' | 'audiencia_proxima' | 'resuelto' | 'archivado'
+export type RolPersona = 'abogado' | 'cliente' | 'otro'
+export type Visibilidad = 'privado' | 'compartido'
+export type TipoPlazo = 'audiencia' | 'plazo' | 'otro'
+export type EstadoCliente = 'activo' | 'inactivo' | 'potencial'
+export type TipoCliente = 'persona_natural' | 'empresa'
+export type RolUsuario = 'admin' | 'abogado' | 'cliente'
+
+export type Workspace = {
+  id: string
+  nombre: string
+  plan: string
+  notif_email: boolean
+  dias_anticipacion: number
+  created_at: string
+}
+
+export type Usuario = {
+  id: string
+  workspace_id: string
+  nombre: string
+  email: string
+  es_admin: boolean
+  created_at: string
+}
+
+export type Caso = {
+  id: string
+  workspace_id: string
+  titulo: string
+  materia: Materia | null
+  estado: EstadoCaso
+  numero_causa: string | null
+  juzgado: string | null
+  fecha_inicio: string | null
+  nota_interna: string | null
+  drive_folder_id: string | null
+  created_by: string
+  created_at: string
+  updated_at: string
+}
+
+export type CasoPersona = {
+  id: string
+  caso_id: string
+  user_id: string | null
+  cliente_id: string | null
+  nombre_externo: string | null
+  email_externo: string | null
+  rol: RolPersona
+  created_at: string
+}
+
+export type Documento = {
+  id: string
+  caso_id: string
+  nombre: string
+  drive_file_id: string | null
+  drive_url: string | null
+  visibilidad: Visibilidad
+  subido_por: string
+  created_at: string
+}
+
+export type Plazo = {
+  id: string
+  caso_id: string
+  titulo: string
+  descripcion: string | null
+  fecha: string
+  tipo: TipoPlazo
+  alertado: boolean
+  created_at: string
+}
+
+export type HistorialEntry = {
+  id: string
+  caso_id: string
+  user_id: string
+  accion: string
+  detalle: string | null
+  created_at: string
+}
+
+export type Cliente = {
+  id: string
+  workspace_id: string
+  nombre: string
+  tipo: TipoCliente
+  email: string | null
+  telefono: string | null
+  estado: EstadoCliente
+  etiquetas: string[]
+  notas: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type ClienteNota = {
+  id: string
+  cliente_id: string
+  user_id: string
+  contenido: string
+  created_at: string
+}
+
+export type Invitacion = {
+  id: string
+  workspace_id: string
+  email: string
+  es_admin: boolean
+  token: string
+  usado: boolean
+  created_at: string
+  expires_at: string
+}
+
+type Table<Row, Insert = Partial<Row>, Update = Partial<Row>> = {
+  Row: Row
+  Insert: Insert
+  Update: Update
+  Relationships: []
+}
+
+export type Database = {
+  public: {
+    Tables: {
+      workspaces: Table<Workspace>
+      users: Table<Usuario>
+      casos: Table<Caso>
+      caso_personas: Table<CasoPersona>
+      documentos: Table<Documento>
+      plazos: Table<Plazo>
+      historial: Table<HistorialEntry>
+      clientes: Table<Cliente>
+      cliente_notas: Table<ClienteNota>
+      invitaciones: Table<Invitacion>
+    }
+    Views: { [_ in never]: never }
+    Functions: {
+      registrar_workspace: {
+        Args: { p_nombre_workspace: string; p_nombre_usuario: string }
+        Returns: string
+      }
+      obtener_invitacion: {
+        Args: { p_token: string }
+        Returns: {
+          workspace_id: string
+          workspace_nombre: string
+          email: string
+          es_admin: boolean
+          usado: boolean
+          expires_at: string
+        }[]
+      }
+      aceptar_invitacion: {
+        Args: { p_token: string; p_nombre: string }
+        Returns: string
+      }
+      drive_estado: {
+        Args: Record<string, never>
+        Returns: { conectado: boolean; email: string | null }[]
+      }
+      drive_desconectar: {
+        Args: Record<string, never>
+        Returns: undefined
+      }
+    }
+  }
+}

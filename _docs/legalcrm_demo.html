@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LegalCRM Ecuador</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;color:#1a1a18;background:#f8f7f4;display:flex;height:100vh}
+
+/* NAV */
+.nav{width:220px;min-width:220px;background:#fff;border-right:1px solid rgba(0,0,0,.09);display:flex;flex-direction:column;height:100vh}
+.nav-logo{padding:18px 16px 14px;border-bottom:1px solid rgba(0,0,0,.09)}
+.logo-mark{font-size:13px;font-weight:700;color:#1a4a8a}
+.logo-sub{font-size:10px;color:#9e9d98;margin-top:1px;text-transform:uppercase;letter-spacing:.04em}
+.nav-body{flex:1;overflow-y:auto;padding:6px 0}
+.ns{padding:10px 8px 4px;font-size:10px;font-weight:600;color:#9e9d98;text-transform:uppercase;letter-spacing:.07em}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:6px;margin:1px 6px;cursor:pointer;color:#6b6a65;font-size:13px;transition:all .12s;user-select:none}
+.ni:hover{background:#f2f1ee;color:#1a1a18}
+.ni.on{background:#eef3fb;color:#1a4a8a;font-weight:500}
+.ni i{font-size:16px;flex-shrink:0}
+.nbadge{margin-left:auto;font-size:10px;background:#1a4a8a;color:#fff;border-radius:99px;padding:1px 6px}
+.nbadge.red{background:#8a1a1a}
+.nav-foot{border-top:1px solid rgba(0,0,0,.09);padding:10px 8px}
+.nav-user{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;cursor:pointer}
+.nav-user:hover{background:#f2f1ee}
+.av{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;flex-shrink:0}
+.un{font-size:12px;font-weight:500}
+.ur{font-size:10px;color:#9e9d98}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;min-width:0}
+
+/* TOPBAR */
+.topbar{background:#fff;border-bottom:1px solid rgba(0,0,0,.09);height:52px;padding:0 20px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.tb-title{font-size:15px;font-weight:600;flex:1}
+.tv{display:flex;gap:2px;background:#f2f1ee;border-radius:6px;padding:3px}
+.vb{padding:5px 10px;border-radius:5px;font-size:12px;cursor:pointer;color:#6b6a65;display:flex;align-items:center;gap:5px;border:none;background:transparent;font-family:inherit;transition:all .12s}
+.vb.on{background:#fff;color:#1a1a18;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:6px;border:1px solid rgba(0,0,0,.16);background:transparent;color:#6b6a65;font-size:12px;cursor:pointer;font-family:inherit;transition:all .12s;white-space:nowrap}
+.btn:hover{background:#f2f1ee;color:#1a1a18}
+.btnp{background:#1a4a8a;color:#fff;border-color:#1a4a8a}
+.btnp:hover{background:#153d76}
+
+/* CONTENT AREA */
+.content{flex:1;overflow:hidden;display:flex;position:relative}
+.view{position:absolute;inset:0;display:flex;overflow:hidden}
+.view.hidden{display:none}
+
+/* PILLS */
+.pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:99px;font-weight:500;white-space:nowrap}
+.p-activo{background:#eef3fb;color:#1a4a8a}
+.p-nuevo{background:#f2f1ee;color:#6b6a65;border:1px solid rgba(0,0,0,.09)}
+.p-espera{background:#fef4e6;color:#8a4f0a}
+.p-audiencia{background:#feeeed;color:#8a1a1a}
+.p-resuelto{background:#eaf5ee;color:#1a6e3c}
+.p-inactivo{background:#f2f1ee;color:#9e9d98;border:1px solid rgba(0,0,0,.09)}
+.p-potencial{background:#f0eafb;color:#6b2fb5}
+.icon-btn{width:28px;height:28px;border-radius:6px;border:1px solid rgba(0,0,0,.09);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6b6a65;font-size:14px;transition:all .12s}
+.icon-btn:hover{background:#f2f1ee}
+
+/* CASOS LISTA */
+.case-sidebar{width:270px;flex-shrink:0;border-right:1px solid rgba(0,0,0,.09);background:#fff;display:flex;flex-direction:column;height:100%}
+.case-search{padding:10px 12px;border-bottom:1px solid rgba(0,0,0,.09)}
+.search-box{display:flex;align-items:center;gap:6px;background:#f2f1ee;border-radius:6px;padding:6px 9px}
+.search-box input{border:none;background:transparent;font-size:12px;color:#1a1a18;outline:none;width:100%;font-family:inherit}
+.search-box i{color:#9e9d98;font-size:14px}
+.case-list{overflow-y:auto;flex:1}
+.case-row{padding:11px 14px;border-bottom:1px solid rgba(0,0,0,.07);cursor:pointer;transition:background .1s}
+.case-row:hover{background:#f8f7f4}
+.case-row.on{background:#eef3fb;border-left:3px solid #1a4a8a}
+.cr-ti{font-size:12px;font-weight:600;color:#1a1a18}
+.cr-me{font-size:11px;color:#6b6a65;margin-top:3px}
+.cr-fo{display:flex;align-items:center;justify-content:space-between;margin-top:5px}
+.cr-al{font-size:10px;color:#8a4f0a;display:flex;align-items:center;gap:3px}
+
+/* CASO DETALLE */
+.case-detail{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#f8f7f4;min-width:0}
+.cdh{background:#fff;border-bottom:1px solid rgba(0,0,0,.09);padding:16px 20px 14px;flex-shrink:0}
+.cdt{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.cd-ti{font-size:19px;font-weight:700;letter-spacing:-.02em}
+.cd-ba{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}
+.cd-ac{display:flex;gap:6px;flex-shrink:0}
+.alert-bar{background:#fef4e6;border:1px solid rgba(138,79,10,.2);border-radius:6px;padding:9px 14px;margin:10px 20px 0;display:flex;align-items:center;gap:9px;font-size:12px;color:#8a4f0a;flex-shrink:0}
+.alert-bar i{font-size:15px;flex-shrink:0}
+.ab-ac{margin-left:auto;display:flex;gap:6px}
+.ab-b{font-size:11px;padding:3px 9px;border-radius:6px;border:1px solid rgba(138,79,10,.3);background:transparent;color:#8a4f0a;cursor:pointer;font-family:inherit}
+.ab-bp{background:#8a4f0a;color:#fff;border-color:#8a4f0a}
+.det-tabs{display:flex;padding:0 20px;background:#fff;border-bottom:1px solid rgba(0,0,0,.09);flex-shrink:0;overflow-x:auto}
+.dt{padding:10px 12px;font-size:13px;color:#6b6a65;cursor:pointer;border-bottom:2px solid transparent;transition:all .12s;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.dt:hover{color:#1a1a18}
+.dt.on{color:#1a4a8a;border-bottom-color:#1a4a8a;font-weight:500}
+.dt .tc{font-size:10px;background:#f2f1ee;border-radius:99px;padding:0 5px;color:#9e9d98}
+.det-body{flex:1;overflow-y:auto;padding:18px 20px}
+.dpanel{display:none}
+.dpanel.on{display:block}
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.ifield{background:#fff;border-radius:10px;padding:12px 14px;border:1px solid rgba(0,0,0,.09)}
+.ifl{font-size:10px;color:#9e9d98;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.ifv{font-size:13px;color:#1a1a18;margin-top:4px;font-weight:500}
+.ifv.mu{color:#6b6a65;font-weight:400;font-style:italic}
+.sec-t{font-size:11px;font-weight:600;color:#9e9d98;text-transform:uppercase;letter-spacing:.07em;margin:16px 0 8px}
+.people-row{display:flex;gap:8px;flex-wrap:wrap}
+.pchip{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:10px;padding:8px 12px;cursor:pointer;transition:all .12s}
+.pchip:hover{border-color:rgba(0,0,0,.2)}
+.pcn{font-size:12px;font-weight:500}
+.pcr{font-size:10px;color:#9e9d98}
+.add-chip{display:flex;align-items:center;gap:6px;background:transparent;border:1px dashed rgba(0,0,0,.2);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:12px;color:#6b6a65;transition:all .12s}
+.add-chip:hover{border-color:#1a4a8a;color:#1a4a8a}
+.doc-list{display:flex;flex-direction:column;gap:6px}
+.doc-item{display:flex;align-items:center;gap:11px;padding:10px 14px;border:1px solid rgba(0,0,0,.09);border-radius:10px;background:#fff;cursor:pointer;transition:all .12s}
+.doc-item:hover{border-color:rgba(0,0,0,.2)}
+.d-icon{width:36px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.d-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.d-meta{font-size:11px;color:#6b6a65;margin-top:2px}
+.d-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.vis-b{font-size:10px;padding:2px 8px;border-radius:99px}
+.vp{background:#f2f1ee;color:#6b6a65;border:1px solid rgba(0,0,0,.09)}
+.vs{background:#eaf5ee;color:#1a6e3c}
+.d-act{display:flex;gap:4px}
+.upload-zone{margin-top:8px;border:1px dashed rgba(0,0,0,.2);border-radius:10px;padding:14px;text-align:center;color:#6b6a65;font-size:12px;cursor:pointer;transition:all .12s}
+.upload-zone:hover{border-color:#1a4a8a;color:#1a4a8a;background:#eef3fb}
+.plazo-list{display:flex;flex-direction:column;gap:8px}
+.plazo-item{display:flex;align-items:center;gap:14px;padding:12px 16px;border:1px solid rgba(0,0,0,.09);border-radius:10px;background:#fff}
+.plazo-item.urgente{border-left:3px solid #8a1a1a}
+.plazo-item.proximo{border-left:3px solid #d4870a}
+.p-date{text-align:center;min-width:42px}
+.p-day{font-size:22px;font-weight:700;line-height:1}
+.p-mon{font-size:10px;color:#9e9d98;text-transform:uppercase}
+.p-ti{font-size:13px;font-weight:500}
+.p-su{font-size:11px;color:#6b6a65;margin-top:2px}
+.p-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.days-b{font-size:11px;padding:3px 9px;border-radius:99px;font-weight:500}
+.dbu{background:#feeeed;color:#8a1a1a}
+.dbp{background:#fef4e6;color:#8a4f0a}
+.dbn{background:#f2f1ee;color:#6b6a65}
+.hist-list{display:flex;flex-direction:column}
+.hitem{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(0,0,0,.07)}
+.hitem:last-child{border-bottom:none}
+.hdot-col{display:flex;flex-direction:column;align-items:center;padding-top:4px}
+.hdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.hline{width:1px;flex:1;background:rgba(0,0,0,.09);margin-top:4px;min-height:12px}
+.hitem:last-child .hline{display:none}
+.ht{font-size:13px;line-height:1.4}
+.hm{font-size:11px;color:#9e9d98;margin-top:3px}
+.nota-area{width:100%;border:1px solid rgba(0,0,0,.09);border-radius:10px;padding:12px 14px;font-size:13px;font-family:inherit;color:#1a1a18;background:#fff;resize:none;outline:none;line-height:1.6;transition:border .12s}
+.nota-area:focus{border-color:#1a4a8a}
+.nota-foot{display:flex;justify-content:flex-end;margin-top:8px}
+
+/* KANBAN */
+.kanban-wrap{flex:1;overflow-x:auto;padding:16px 20px;display:flex;gap:12px;align-items:flex-start;height:100%}
+.kol{flex-shrink:0;width:210px}
+.kol-h{font-size:11px;font-weight:600;color:#6b6a65;text-transform:uppercase;letter-spacing:.06em;padding:0 2px 10px;display:flex;justify-content:space-between;align-items:center}
+.kol-cnt{font-size:10px;background:#f2f1ee;border-radius:99px;padding:1px 7px;color:#9e9d98;border:1px solid rgba(0,0,0,.09)}
+.kol-body{display:flex;flex-direction:column;gap:8px}
+.kcard{background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:10px;padding:11px 13px;cursor:pointer;transition:all .15s}
+.kcard:hover{border-color:#1a4a8a;box-shadow:0 2px 8px rgba(26,74,138,.1);transform:translateY(-1px)}
+.kcard.kal{border-left:3px solid #8a4f0a}
+.kc-ti{font-size:13px;font-weight:600;line-height:1.3}
+.kc-ma{font-size:11px;color:#9e9d98;margin-top:3px}
+.kc-al{font-size:10px;color:#8a4f0a;display:flex;align-items:center;gap:3px;margin-top:6px}
+.kc-fo{margin-top:9px;display:flex;align-items:center;justify-content:space-between}
+.kc-ab{display:flex;align-items:center;gap:5px}
+.mav{width:20px;height:20px;border-radius:50%;font-size:8px;font-weight:600;display:flex;align-items:center;justify-content:center}
+.kc-abn{font-size:11px;color:#6b6a65}
+
+/* PAGE SCROLL */
+.page{flex:1;overflow-y:auto;padding:20px 24px;height:100%}
+
+/* DASHBOARD */
+.dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat-card{background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:10px;padding:16px 18px}
+.sc-l{font-size:11px;color:#9e9d98;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.sc-v{font-size:28px;font-weight:700;margin-top:4px;letter-spacing:-.02em}
+.sc-s{font-size:11px;color:#9e9d98;margin-top:3px}
+.sc-s.up{color:#1a6e3c}
+.sc-s.wn{color:#8a4f0a}
+.dash-row{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+.dash-card{background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:10px;padding:16px 18px}
+.dc-ti{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.dc-ti span{font-size:11px;color:#1a4a8a;font-weight:400;cursor:pointer}
+.act-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.07)}
+.act-item:last-child{border-bottom:none}
+.act-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.act-t{font-size:12px;line-height:1.4}
+.act-m{font-size:11px;color:#9e9d98;margin-top:1px}
+.abog-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.07)}
+.abog-row:last-child{border-bottom:none}
+.abog-n{font-size:12px;font-weight:500}
+.abog-c{font-size:11px;color:#9e9d98}
+.bar-bg{background:#f2f1ee;border-radius:99px;height:6px;flex:1}
+.bar-fill{border-radius:99px;height:6px;background:#1a4a8a}
+
+/* CLIENTES */
+.client-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.cc{background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:10px;padding:16px;cursor:pointer;transition:all .12s}
+.cc:hover{border-color:rgba(0,0,0,.2);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.cc-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.cc-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex-shrink:0}
+.cc-n{font-size:14px;font-weight:600}
+.cc-t{font-size:11px;color:#9e9d98;margin-top:1px}
+.cc-stats{display:flex;gap:14px;margin-bottom:10px}
+.cc-st{text-align:center}
+.sv{font-size:16px;font-weight:700}
+.sl{font-size:10px;color:#9e9d98}
+.cc-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px}
+.tag-c{font-size:10px;padding:2px 7px;border-radius:99px;background:#f2f1ee;color:#6b6a65;border:1px solid rgba(0,0,0,.09)}
+.cc-last{font-size:11px;color:#9e9d98;border-top:1px solid rgba(0,0,0,.07);padding-top:9px;margin-top:6px}
+
+/* AGENDA */
+.ag-wrap{display:flex;flex:1;overflow:hidden;height:100%}
+.ag-cal{width:280px;flex-shrink:0;border-right:1px solid rgba(0,0,0,.09);background:#fff;padding:16px;overflow-y:auto}
+.cal-m{font-size:14px;font-weight:600;text-align:center;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-dl{font-size:10px;color:#9e9d98;text-align:center;padding:4px 0;font-weight:600}
+.cal-d{font-size:12px;text-align:center;padding:6px 4px;border-radius:6px;cursor:pointer;color:#6b6a65;position:relative}
+.cal-d:hover{background:#f2f1ee}
+.cal-d.tod{background:#1a4a8a;color:#fff;font-weight:600}
+.cal-d.he::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:#8a4f0a}
+.cal-d.tod.he::after{background:#fff}
+.ag-events{flex:1;overflow-y:auto;padding:16px 20px}
+.ag-dl{font-size:12px;font-weight:600;color:#9e9d98;text-transform:uppercase;letter-spacing:.07em;margin:16px 0 8px}
+.ag-dl:first-child{margin-top:0}
+.ev{display:flex;gap:14px;background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:10px;padding:12px 16px;margin-bottom:8px;cursor:pointer;transition:all .12s}
+.ev:hover{border-color:rgba(0,0,0,.2)}
+.ev.urg{border-left:3px solid #8a1a1a}
+.ev.nor{border-left:3px solid #1a4a8a}
+.ev-t{font-size:12px;font-weight:600;color:#6b6a65;min-width:52px;padding-top:1px}
+.ev-ti{font-size:13px;font-weight:600}
+.ev-c{font-size:11px;color:#6b6a65;margin-top:2px}
+.ev-b{font-size:10px;padding:2px 8px;border-radius:99px;margin-top:5px;display:inline-block}
+
+/* USUARIOS */
+.users-tbl{background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:10px;overflow:hidden}
+.ut-head{display:grid;grid-template-columns:2fr 1.2fr 1fr 1fr 80px;background:#f2f1ee;border-bottom:1px solid rgba(0,0,0,.09);padding:10px 16px}
+.ut-head span{font-size:11px;font-weight:600;color:#9e9d98;text-transform:uppercase;letter-spacing:.06em}
+.ut-row{display:grid;grid-template-columns:2fr 1.2fr 1fr 1fr 80px;padding:12px 16px;border-bottom:1px solid rgba(0,0,0,.07);align-items:center;transition:background .1s;cursor:pointer}
+.ut-row:last-child{border-bottom:none}
+.ut-row:hover{background:#f8f7f4}
+.ut-u{display:flex;align-items:center;gap:9px}
+.ut-n{font-size:13px;font-weight:500}
+.ut-e{font-size:11px;color:#9e9d98}
+.rb{font-size:10px;padding:3px 9px;border-radius:99px;font-weight:500}
+.rba{background:#eef3fb;color:#1a4a8a}
+.rbb{background:#eaf5ee;color:#1a6e3c}
+.rbc{background:#fef4e6;color:#8a4f0a}
+.ut-c{font-size:12px;color:#6b6a65}
+.ut-a{display:flex;gap:4px}
+
+/* MODAL */
+.modal-over{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .18s}
+.modal-over.on{opacity:1;pointer-events:all}
+.modal{background:#fff;border-radius:14px;width:800px;max-width:96vw;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;transform:scale(.97);transition:transform .18s;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+.modal-over.on .modal{transform:scale(1)}
+.modal-hdr{padding:18px 22px 14px;border-bottom:1px solid rgba(0,0,0,.09);flex-shrink:0}
+.modal-top{display:flex;align-items:flex-start;justify-content:space-between}
+.modal-ti{font-size:18px;font-weight:700;letter-spacing:-.02em}
+.modal-cl{width:32px;height:32px;border-radius:6px;border:1px solid rgba(0,0,0,.09);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#6b6a65;font-size:16px;transition:all .12s}
+.modal-cl:hover{background:#f2f1ee}
+.modal-ba{display:flex;gap:6px;margin-top:8px}
+.modal-ac{display:flex;gap:6px}
+.modal-body{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.modal-tabs{display:flex;padding:0 22px;background:#fff;border-bottom:1px solid rgba(0,0,0,.09);flex-shrink:0;overflow-x:auto}
+.mta{padding:10px 13px;font-size:13px;color:#6b6a65;cursor:pointer;border-bottom:2px solid transparent;transition:all .12s;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.mta.on{color:#1a4a8a;border-bottom-color:#1a4a8a;font-weight:500}
+.modal-con{padding:18px 22px;flex:1;overflow-y:auto}
+.mp{display:none}
+.mp.on{display:block}
+.modal-al{background:#fef4e6;border:1px solid rgba(138,79,10,.2);border-radius:6px;padding:9px 14px;display:flex;align-items:center;gap:9px;font-size:12px;color:#8a4f0a;margin-bottom:14px}
+</style>
+</head>
+<body>
+
+<!-- NAV LATERAL -->
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="logo-mark">LegalCRM Ecuador</div>
+    <div class="logo-sub">Estudio MJC · Workspace</div>
+  </div>
+  <div class="nav-body">
+    <div class="ns">Principal</div>
+    <div class="ni" id="ni-dash" onclick="go('dash',this)"><i class="ti ti-layout-dashboard"></i> Dashboard</div>
+    <div class="ni on" id="ni-casos" onclick="go('casos',this)"><i class="ti ti-briefcase"></i> Casos <span class="nbadge">8</span></div>
+    <div class="ni" id="ni-clientes" onclick="go('clientes',this)"><i class="ti ti-users"></i> Clientes</div>
+    <div class="ni" id="ni-agenda" onclick="go('agenda',this)"><i class="ti ti-calendar"></i> Agenda <span class="nbadge red">3</span></div>
+    <div class="ns">Workspace</div>
+    <div class="ni" id="ni-usuarios" onclick="go('usuarios',this)"><i class="ti ti-user-shield"></i> Usuarios y roles</div>
+    <div class="ni" id="ni-drive" onclick="go('drive',this)"><i class="ti ti-brand-google-drive"></i> Google Drive</div>
+    <div class="ni" id="ni-config" onclick="go('config',this)"><i class="ti ti-settings"></i> Configuración</div>
+  </div>
+  <div class="nav-foot">
+    <div class="nav-user">
+      <div class="av" style="width:30px;height:30px;font-size:11px;background:#eef3fb;color:#1a4a8a">AV</div>
+      <div><div class="un">Andrés Vera</div><div class="ur">Administrador</div></div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="tb-title" id="tbt">Casos</div>
+    <div class="tv" id="tvw">
+      <button class="vb on" onclick="sv('list',this)"><i class="ti ti-list"></i> Lista</button>
+      <button class="vb" onclick="sv('kanban',this)"><i class="ti ti-layout-columns"></i> Kanban</button>
+    </div>
+    <button class="btn" id="btn-filter" style="display:none"><i class="ti ti-filter"></i> Filtrar</button>
+    <button class="btn btnp" id="tba"><i class="ti ti-plus"></i> Nuevo caso</button>
+  </div>
+
+  <div class="content">
+    <!-- CASOS LISTA -->
+    <div class="view" id="v-list">
+      <div class="case-sidebar">
+        <div class="case-search"><div class="search-box"><i class="ti ti-search"></i><input type="text" placeholder="Buscar caso..." oninput="filterCases(this.value)"></div></div>
+        <div class="case-list" id="case-list"></div>
+      </div>
+      <div class="case-detail" id="case-detail"></div>
+    </div>
+
+    <!-- KANBAN -->
+    <div class="view hidden" id="v-kanban">
+      <div class="kanban-wrap" id="kanban-wrap"></div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="view hidden" id="v-dash">
+      <div class="page" id="page-dash"></div>
+    </div>
+
+    <!-- CLIENTES -->
+    <div class="view hidden" id="v-clientes">
+      <div class="page" id="page-cl"></div>
+    </div>
+
+    <!-- AGENDA -->
+    <div class="view hidden" id="v-agenda">
+      <div class="ag-wrap" id="ag-wrap"></div>
+    </div>
+
+    <!-- USUARIOS -->
+    <div class="view hidden" id="v-usuarios">
+      <div class="page" id="page-us"></div>
+    </div>
+
+    <!-- DRIVE -->
+    <div class="view hidden" id="v-drive">
+      <div class="page" id="page-dr"></div>
+    </div>
+
+    <!-- CONFIG -->
+    <div class="view hidden" id="v-config">
+      <div class="page" id="page-cf"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-over" id="modal-over" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-top">
+        <div><div class="modal-ti" id="modal-ti"></div><div class="modal-ba" id="modal-ba"></div></div>
+        <div class="modal-ac">
+          <button class="btn"><i class="ti ti-edit"></i> Editar</button>
+          <button class="btn btnp"><i class="ti ti-upload"></i> Subir</button>
+          <button class="modal-cl" onclick="closeModal()"><i class="ti ti-x"></i></button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div id="modal-aw"></div>
+      <div class="modal-tabs">
+        <div class="mta on" onclick="smt(this,'m-info')"><i class="ti ti-info-circle"></i> Información</div>
+        <div class="mta" onclick="smt(this,'m-docs')"><i class="ti ti-files"></i> Documentos</div>
+        <div class="mta" onclick="smt(this,'m-plazos')"><i class="ti ti-clock"></i> Plazos</div>
+        <div class="mta" onclick="smt(this,'m-hist')"><i class="ti ti-history"></i> Historial</div>
+        <div class="mta" onclick="smt(this,'m-notas')"><i class="ti ti-notes"></i> Notas</div>
+      </div>
+      <div class="modal-con" id="modal-con"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DATOS ───────────────────────────────────────────────────────────────────
+const CASOS=[
+  {id:0,ti:'Laboral ENSA S.A.',es:'Activo',pi:'p-activo',ma:'Laboral',ca:'17294-2024-00183',fe:'12 mar 2024',ju:'Unidad Judicial Laboral Guayaquil',no:'Hoy · SATJE',al:true,
+   pe:[{i:'ET',b:'#eef3fb',c:'#1a4a8a',n:'Esteban Torres',r:'Abogado'},{i:'EN',b:'#fef4e6',c:'#8a4f0a',n:'ENSA S.A.',r:'Cliente'}],
+   do:[{ic:'ti-file-type-pdf',ib:'#feeeed',ic2:'#8a1a1a',n:'Demanda laboral versión final.pdf',m:'12 mar 2024 · 2.4 MB · Abg. Torres',v:'Privado',vc:'vp'},{ic:'ti-file-type-doc',ib:'#eef3fb',ic2:'#1a4a8a',n:'Contrato de trabajo ENSA 2021.docx',m:'15 mar 2024 · 380 KB · Cliente',v:'Compartido',vc:'vs'},{ic:'ti-file-spreadsheet',ib:'#eaf5ee',ic2:'#1a6e3c',n:'Liquidación de haberes.xlsx',m:'2 abr 2024 · 95 KB · Abg. Torres',v:'Compartido',vc:'vs'},{ic:'ti-photo',ib:'#f2f1ee',ic2:'#6b6a65',n:'Evidencia fotográfica acoso.jpg',m:'10 may 2024 · 1.1 MB · Cliente',v:'Privado',vc:'vp'}],
+   pl:[{d:'28',m:'Jun',t:'Audiencia de juzgamiento',s:'10:00 AM · Unidad Judicial Laboral',b:'En 2 días',bc:'dbu',li:'urgente'},{d:'15',m:'Jul',t:'Presentación de pruebas documentales',s:'Plazo máximo · Expediente físico',b:'En 19 días',bc:'dbp',li:'proximo'},{d:'3',m:'Ago',t:'Revisión de honorarios',s:'Nota interna · Abg. Torres',b:'En 38 días',bc:'dbn',li:''}],
+   hi:[{c:'#d4870a',t:'Novedad en SATJE — auto de llamamiento a juicio',m:'Hoy 08:14 · Sistema'},{c:'#1a4a8a',t:'Documento subido: Liquidación de haberes.xlsx',m:'2 abr 2024 · Abg. Torres'},{c:'#6b6a65',t:'Estado: Nuevo → Activo',m:'18 mar 2024 · Admin'},{c:'#1a6e3c',t:'Caso creado. Abg. Torres asignado.',m:'12 mar 2024 · Admin'}],
+   nt:'Cliente ENSA insiste en que el acoso fue documentado por RRHH pero no entregaron el expediente. Solicitar formalmente en próxima audiencia.'},
+  {id:1,ti:'Divorcio García',es:'Audiencia próxima',pi:'p-audiencia',ma:'Familia',ca:'09182-2023-00421',fe:'5 ago 2023',ju:'Unidad Judicial Familia Guayaquil',no:'24 jun 2025',al:false,
+   pe:[{i:'AM',b:'#eef3fb',c:'#1a4a8a',n:'Andrés Moreno',r:'Abogado'},{i:'MG',b:'#fef4e6',c:'#8a4f0a',n:'Manuel García',r:'Cliente'}],
+   do:[{ic:'ti-file-type-pdf',ib:'#feeeed',ic2:'#8a1a1a',n:'Demanda de divorcio.pdf',m:'8 ago 2023 · 1.2 MB · Abg. Moreno',v:'Privado',vc:'vp'},{ic:'ti-file-type-doc',ib:'#eef3fb',ic2:'#1a4a8a',n:'Acta de matrimonio.docx',m:'8 ago 2023 · 200 KB · Cliente',v:'Compartido',vc:'vs'},{ic:'ti-file-type-pdf',ib:'#feeeed',ic2:'#8a1a1a',n:'Inventario de bienes.pdf',m:'15 sep 2023 · 450 KB',v:'Privado',vc:'vp'}],
+   pl:[{d:'27',m:'Jun',t:'Audiencia de conciliación',s:'09:00 AM · Unidad Judicial Familia',b:'Mañana',bc:'dbu',li:'urgente'},{d:'10',m:'Jul',t:'Entrega documentos de bienes',s:'Plazo acordado entre partes',b:'En 14 días',bc:'dbp',li:'proximo'}],
+   hi:[{c:'#1a4a8a',t:'Audiencia de conciliación agendada — 27 de junio',m:'20 jun 2025 · Abg. Moreno'},{c:'#6b6a65',t:'Estado: Activo → Audiencia próxima',m:'15 jun 2025 · Admin'},{c:'#1a6e3c',t:'Caso creado. Abg. Moreno asignado.',m:'5 ago 2023 · Admin'}],
+   nt:'Las partes no han llegado a acuerdo sobre custodia de menores. Preparar argumentos para audiencia del 27.'},
+  {id:2,ti:'Cobranza Suárez',es:'Nuevo',pi:'p-nuevo',ma:'Mercantil',ca:'Sin registrar',fe:'20 jun 2025',ju:'Sin asignar',no:'—',al:false,
+   pe:[],do:[],pl:[],
+   hi:[{c:'#1a6e3c',t:'Caso creado. Pendiente asignación de abogado.',m:'20 jun 2025 · Admin'}],
+   nt:'Referido por ENSA. Deuda comercial $42.000. Evaluar vía monitoria.'},
+  {id:3,ti:'Herencia Romero',es:'Activo',pi:'p-activo',ma:'Civil',ca:'11043-2024-00097',fe:'2 feb 2024',ju:'Unidad Judicial Civil Guayaquil',no:'10 jun 2025',al:false,
+   pe:[{i:'RC',b:'#eef3fb',c:'#1a4a8a',n:'Rosa Castro',r:'Abogado'},{i:'FR',b:'#eaf5ee',c:'#1a6e3c',n:'Familia Romero',r:'Cliente'}],
+   do:[{ic:'ti-file-type-pdf',ib:'#feeeed',ic2:'#8a1a1a',n:'Testamento notariado 2019.pdf',m:'5 feb 2024 · 800 KB · Abg. Castro',v:'Compartido',vc:'vs'},{ic:'ti-file-type-doc',ib:'#eef3fb',ic2:'#1a4a8a',n:'Inventario de bienes inmuebles.docx',m:'12 feb 2024 · 320 KB · Cliente',v:'Compartido',vc:'vs'}],
+   pl:[{d:'20',m:'Jul',t:'Audiencia de posesión efectiva',s:'Juzgado Civil Guayaquil',b:'En 24 días',bc:'dbp',li:'proximo'}],
+   hi:[{c:'#1a4a8a',t:'Audiencia de posesión efectiva — 20 julio',m:'10 jun 2025 · Abg. Castro'},{c:'#1a6e3c',t:'Caso creado. Abg. Castro asignada.',m:'2 feb 2024 · Admin'}],
+   nt:'Tres herederos: dos hijos y cónyuge. Inmueble principal en disputa.'},
+  {id:4,ti:'Tránsito Vega',es:'En espera',pi:'p-espera',ma:'Penal',ca:'08821-2024-00562',fe:'14 abr 2024',ju:'Unidad Penal Guayaquil',no:'—',al:false,
+   pe:[{i:'AM',b:'#eef3fb',c:'#1a4a8a',n:'Andrés Moreno',r:'Abogado'},{i:'JV',b:'#feeeed',c:'#8a1a1a',n:'Juan Vega',r:'Cliente'}],
+   do:[{ic:'ti-file-type-pdf',ib:'#feeeed',ic2:'#8a1a1a',n:'Parte policial accidente.pdf',m:'15 abr 2024 · 500 KB',v:'Privado',vc:'vp'},{ic:'ti-photo',ib:'#f2f1ee',ic2:'#6b6a65',n:'Fotos del accidente.jpg',m:'15 abr 2024 · 3.2 MB',v:'Privado',vc:'vp'}],
+   pl:[{d:'15',m:'Ago',t:'Revisión de peritaje técnico',s:'Esperando informe ANT',b:'En 50 días',bc:'dbn',li:''}],
+   hi:[{c:'#6b6a65',t:'En espera de informe pericial ANT',m:'1 jun 2025 · Abg. Moreno'},{c:'#1a6e3c',t:'Caso creado. Abg. Moreno asignado.',m:'14 abr 2024 · Admin'}],
+   nt:'Esperando informe ANT. El otro conductor tiene seguro activo.'},
+  {id:5,ti:'Pensión alim. López',es:'Audiencia próxima',pi:'p-audiencia',ma:'Familia',ca:'07293-2023-00814',fe:'11 nov 2023',ju:'Unidad Judicial Familia Guayaquil',no:'20 jun 2025',al:false,
+   pe:[{i:'ET',b:'#eef3fb',c:'#1a4a8a',n:'Esteban Torres',r:'Abogado'},{i:'CL',b:'#f0eafb',c:'#6b2fb5',n:'Carmen López',r:'Cliente'}],
+   do:[{ic:'ti-file-type-pdf',ib:'#feeeed',ic2:'#8a1a1a',n:'Demanda pensión alimenticia.pdf',m:'12 nov 2023 · 900 KB',v:'Compartido',vc:'vs'},{ic:'ti-file-spreadsheet',ib:'#eaf5ee',ic2:'#1a6e3c',n:'Tabla de ingresos demandado.xlsx',m:'20 ene 2024 · 120 KB',v:'Privado',vc:'vp'}],
+   pl:[{d:'29',m:'Jun',t:'Audiencia fijación de pensión',s:'11:00 AM · Unidad Judicial Familia',b:'En 3 días',bc:'dbu',li:'urgente'}],
+   hi:[{c:'#1a4a8a',t:'Audiencia fijada — 29 junio 11:00 AM',m:'20 jun 2025 · Sistema'},{c:'#1a6e3c',t:'Caso creado. Abg. Torres asignado.',m:'11 nov 2023 · Admin'}],
+   nt:'Dos menores. Demandado sueldo declarado $1.200. Investigar ingresos reales.'},
+  {id:6,ti:'Inquilinato Pérez',es:'Activo',pi:'p-activo',ma:'Civil',ca:'12901-2025-00033',fe:'3 ene 2025',ju:'Unidad Judicial Civil Guayaquil',no:'—',al:false,
+   pe:[{i:'LP',b:'#f2f1ee',c:'#6b6a65',n:'Luis Pérez',r:'Cliente'}],
+   do:[{ic:'ti-file-type-doc',ib:'#eef3fb',ic2:'#1a4a8a',n:'Contrato de arrendamiento.docx',m:'4 ene 2025 · 320 KB',v:'Compartido',vc:'vs'},{ic:'ti-file-type-pdf',ib:'#feeeed',ic2:'#8a1a1a',n:'Notificación de desahucio.pdf',m:'15 ene 2025 · 210 KB',v:'Compartido',vc:'vs'}],
+   pl:[{d:'10',m:'Jul',t:'Vencimiento plazo desahucio',s:'Término legal 30 días',b:'En 14 días',bc:'dbp',li:'proximo'}],
+   hi:[{c:'#1a4a8a',t:'Notificación de desahucio enviada.',m:'15 ene 2025 · Admin'},{c:'#1a6e3c',t:'Caso creado. Sin abogado asignado.',m:'3 ene 2025 · Admin'}],
+   nt:'Arrendatario en mora desde oct 2024. Tres meses de deuda ($1.800).'},
+  {id:7,ti:'Contrato Molina',es:'Resuelto',pi:'p-resuelto',ma:'Mercantil',ca:'15002-2023-00291',fe:'8 jun 2023',ju:'Unidad Judicial Mercantil Guayaquil',no:'—',al:false,
+   pe:[{i:'ET',b:'#eef3fb',c:'#1a4a8a',n:'Esteban Torres',r:'Abogado'},{i:'PM',b:'#f0eafb',c:'#6b2fb5',n:'Patricia Molina',r:'Cliente'}],
+   do:[{ic:'ti-file-type-pdf',ib:'#feeeed',ic2:'#8a1a1a',n:'Demanda incumplimiento contrato.pdf',m:'10 jun 2023 · 1.5 MB',v:'Privado',vc:'vp'},{ic:'ti-file-type-pdf',ib:'#eaf5ee',ic2:'#1a6e3c',n:'Sentencia favorable ejecutoriada.pdf',m:'2 mar 2024 · 1.8 MB',v:'Compartido',vc:'vs'}],
+   pl:[],
+   hi:[{c:'#1a6e3c',t:'Sentencia ejecutoriada. Caso cerrado.',m:'2 mar 2024 · Admin'},{c:'#1a6e3c',t:'Caso creado. Abg. Torres asignado.',m:'8 jun 2023 · Admin'}],
+   nt:'Caso ganado. Indemnización $18.500. Archivar.'}
+];
+const KCOLS=[{ti:'Nuevo',ids:[2]},{ti:'Activo',ids:[0,3,6]},{ti:'En espera',ids:[4]},{ti:'Audiencia próxima',ids:[1,5]},{ti:'Resuelto',ids:[7]}];
+
+// ─── ESTADO ──────────────────────────────────────────────────────────────────
+let activeCase=0, activeView='list', currentSection='casos';
+const ALL_VIEWS=['v-list','v-kanban','v-dash','v-clientes','v-agenda','v-usuarios','v-drive','v-config'];
+
+// ─── HELPERS HTML ────────────────────────────────────────────────────────────
+const av=(s,bg,co,sz=32)=>`<div class="av" style="width:${sz}px;height:${sz}px;font-size:${Math.round(sz*.35)}px;background:${bg};color:${co}">${s}</div>`;
+
+function hInfo(c){
+  return`<div class="info-grid">
+    <div class="ifield"><div class="ifl">N° de causa</div><div class="ifv${c.ca==='Sin registrar'?' mu':''}">${c.ca}</div></div>
+    <div class="ifield"><div class="ifl">Fecha de inicio</div><div class="ifv">${c.fe}</div></div>
+    <div class="ifield"><div class="ifl">Última novedad</div><div class="ifv" style="color:${c.no!=='—'?'#8a4f0a':'#6b6a65'}">${c.no}</div></div>
+    <div class="ifield" style="grid-column:1/-1"><div class="ifl">Juzgado / Tribunal</div><div class="ifv${c.ju==='Sin asignar'?' mu':''}">${c.ju}</div></div>
+  </div>
+  <div class="sec-t">Personas asignadas</div>
+  <div class="people-row">
+    ${c.pe.map(p=>`<div class="pchip">${av(p.i,p.b,p.c)}<div><div class="pcn">${p.n}</div><div class="pcr">${p.r}</div></div></div>`).join('')}
+    ${c.pe.length===0?'<span style="font-size:12px;color:#9e9d98;font-style:italic">Sin personas asignadas.</span>':''}
+    <div class="add-chip"><i class="ti ti-plus"></i> Añadir persona</div>
+  </div>`;
+}
+function hDocs(c){
+  return`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <span style="font-size:12px;color:#6b6a65">${c.do.length} documentos en Google Drive</span>
+    <button class="btn btnp" style="font-size:11px;padding:5px 10px"><i class="ti ti-upload"></i> Subir</button>
+  </div>
+  <div class="doc-list">
+    ${c.do.map(d=>`<div class="doc-item">
+      <div class="d-icon" style="background:${d.ib};color:${d.ic2}"><i class="ti ${d.ic}"></i></div>
+      <div style="flex:1;min-width:0"><div class="d-name">${d.n}</div><div class="d-meta">${d.m}</div></div>
+      <div class="d-right"><span class="vis-b ${d.vc}">${d.v}</span>
+        <div class="d-act"><button class="icon-btn"><i class="ti ti-eye"></i></button><button class="icon-btn"><i class="ti ti-download"></i></button></div>
+      </div></div>`).join('')}
+    ${c.do.length===0?`<div style="padding:28px;text-align:center;color:#9e9d98;font-size:12px;border:1px dashed rgba(0,0,0,.2);border-radius:10px">Sin documentos cargados.</div>`:''}
+    <div class="upload-zone"><i class="ti ti-upload"></i> Arrastra aquí o haz clic para subir a Drive</div>
+  </div>`;
+}
+function hPlazos(c){
+  return`<div class="plazo-list">
+    ${c.pl.map(p=>`<div class="plazo-item ${p.li}">
+      <div class="p-date"><div class="p-day">${p.d}</div><div class="p-mon">${p.m}</div></div>
+      <div><div class="p-ti">${p.t}</div><div class="p-su">${p.s}</div></div>
+      <div class="p-right"><span class="days-b ${p.bc}">${p.b}</span><button class="icon-btn"><i class="ti ti-bell"></i></button></div>
+    </div>`).join('')}
+    ${c.pl.length===0?`<div style="padding:28px;text-align:center;color:#9e9d98;font-size:12px;border:1px dashed rgba(0,0,0,.2);border-radius:10px">Sin plazos registrados.</div>`:''}
+    <button class="btn" style="margin-top:8px;font-size:12px"><i class="ti ti-plus"></i> Agregar plazo</button>
+  </div>`;
+}
+function hHist(c){
+  return`<div class="hist-list">${c.hi.map(h=>`<div class="hitem">
+    <div class="hdot-col"><div class="hdot" style="background:${h.c}"></div><div class="hline"></div></div>
+    <div><div class="ht">${h.t}</div><div class="hm">${h.m}</div></div>
+  </div>`).join('')}</div>`;
+}
+function hNotas(c){
+  return`<textarea class="nota-area" rows="7" placeholder="Nota interna sobre este caso...">${c.nt}</textarea>
+  <div class="nota-foot"><button class="btn btnp" style="font-size:12px">Guardar nota</button></div>`;
+}
+
+// ─── CASOS LISTA ─────────────────────────────────────────────────────────────
+function buildCaseList(filter=''){
+  const list=CASOS.filter(c=>!filter||c.ti.toLowerCase().includes(filter.toLowerCase())||c.ma.toLowerCase().includes(filter.toLowerCase()));
+  document.getElementById('case-list').innerHTML=list.map(c=>`
+    <div class="case-row${c.id===activeCase?' on':''}" onclick="selCase(${c.id})">
+      <div class="cr-ti">${c.ti}</div>
+      <div class="cr-me">${c.ma}${c.pe[0]?' · '+c.pe[0].n:' · Sin abogado'}</div>
+      <div class="cr-fo"><span class="pill ${c.pi}">${c.es}</span>${c.al?'<span class="cr-al"><i class="ti ti-alert-triangle"></i> SATJE</span>':''}</div>
+    </div>`).join('');
+}
+function filterCases(v){buildCaseList(v);}
+
+function buildDetail(id){
+  const c=CASOS[id];
+  document.getElementById('case-detail').innerHTML=`
+    <div class="cdh">
+      <div class="cdt">
+        <div><div class="cd-ti">${c.ti}</div><div class="cd-ba"><span class="pill ${c.pi}">${c.es}</span><span class="pill p-nuevo">${c.ma}</span></div></div>
+        <div class="cd-ac"><button class="btn"><i class="ti ti-edit"></i> Editar</button><button class="btn btnp"><i class="ti ti-upload"></i> Subir doc</button></div>
+      </div>
+    </div>
+    ${c.al?`<div class="alert-bar"><i class="ti ti-alert-triangle"></i><span>Nueva novedad en SATJE — auto de llamamiento a juicio emitido hoy 08:14.</span><div class="ab-ac"><button class="ab-b">Ver detalle</button><button class="ab-b ab-bp">Actualizar estado</button></div></div>`:''}
+    <div class="det-tabs">
+      <div class="dt on" onclick="sdt(this,'dp-info')"><i class="ti ti-info-circle"></i> Información</div>
+      <div class="dt" onclick="sdt(this,'dp-docs')"><i class="ti ti-files"></i> Documentos <span class="tc">${c.do.length}</span></div>
+      <div class="dt" onclick="sdt(this,'dp-plazos')"><i class="ti ti-clock"></i> Plazos <span class="tc">${c.pl.length}</span></div>
+      <div class="dt" onclick="sdt(this,'dp-hist')"><i class="ti ti-history"></i> Historial</div>
+      <div class="dt" onclick="sdt(this,'dp-notas')"><i class="ti ti-notes"></i> Notas</div>
+    </div>
+    <div class="det-body">
+      <div class="dpanel on" id="dp-info">${hInfo(c)}</div>
+      <div class="dpanel" id="dp-docs">${hDocs(c)}</div>
+      <div class="dpanel" id="dp-plazos">${hPlazos(c)}</div>
+      <div class="dpanel" id="dp-hist">${hHist(c)}</div>
+      <div class="dpanel" id="dp-notas">${hNotas(c)}</div>
+    </div>`;
+}
+
+function selCase(id){
+  activeCase=id;
+  document.querySelectorAll('.case-row').forEach(r=>r.classList.toggle('on',parseInt(r.getAttribute('onclick').match(/\d+/)[0])===id));
+  buildDetail(id);
+}
+
+function sdt(el,tab){
+  const body=document.querySelector('.det-body');
+  body.querySelectorAll('.dt').forEach(t=>t.classList.remove('on'));
+  body.querySelectorAll('.dpanel').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById(tab).classList.add('on');
+}
+
+// ─── KANBAN ───────────────────────────────────────────────────────────────────
+function buildKanban(){
+  document.getElementById('kanban-wrap').innerHTML=KCOLS.map(col=>`
+    <div class="kol">
+      <div class="kol-h">${col.ti} <span class="kol-cnt">${col.ids.length}</span></div>
+      <div class="kol-body">${col.ids.map(id=>{
+        const c=CASOS[id];const ab=c.pe.find(p=>p.r==='Abogado');
+        return`<div class="kcard${c.al?' kal':''}" onclick="openModal(${id})">
+          <div class="kc-ti">${c.ti}</div>
+          <div class="kc-ma">${c.ma}</div>
+          ${c.al?'<div class="kc-al"><i class="ti ti-alert-triangle"></i> Novedad SATJE</div>':''}
+          <div class="kc-fo">
+            ${ab?`<div class="kc-ab"><div class="mav" style="background:${ab.b};color:${ab.c}">${ab.i}</div><span class="kc-abn">${ab.n.split(' ')[0]}</span></div>`:'<span style="font-size:11px;color:#9e9d98">Sin abogado</span>'}
+            <span class="pill ${c.pi}" style="font-size:9px">${c.es}</span>
+          </div></div>`;}).join('')}
+      </div>
+    </div>`).join('');
+}
+
+// ─── MODAL ───────────────────────────────────────────────────────────────────
+function openModal(id){
+  const c=CASOS[id];
+  document.getElementById('modal-ti').textContent=c.ti;
+  document.getElementById('modal-ba').innerHTML=`<span class="pill ${c.pi}">${c.es}</span><span class="pill p-nuevo">${c.ma}</span>`;
+  document.getElementById('modal-aw').innerHTML=c.al?`<div class="modal-al" style="margin:12px 22px 0"><i class="ti ti-alert-triangle" style="flex-shrink:0"></i><span>Novedad SATJE — auto de llamamiento a juicio. Hoy 08:14.</span></div>`:'';
+  document.getElementById('modal-con').innerHTML=`
+    <div class="mp on" id="m-info">${hInfo(c)}</div>
+    <div class="mp" id="m-docs">${hDocs(c)}</div>
+    <div class="mp" id="m-plazos">${hPlazos(c)}</div>
+    <div class="mp" id="m-hist">${hHist(c)}</div>
+    <div class="mp" id="m-notas">${hNotas(c)}</div>`;
+  document.querySelectorAll('.mta').forEach((t,i)=>t.classList.toggle('on',i===0));
+  document.getElementById('modal-over').classList.add('on');
+}
+function closeModal(){document.getElementById('modal-over').classList.remove('on');}
+function smt(el,tab){
+  document.querySelectorAll('.mta').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.mp').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');document.getElementById(tab).classList.add('on');
+}
+
+// ─── VISTAS SECUNDARIAS ───────────────────────────────────────────────────────
+function buildDash(){
+  document.getElementById('page-dash').innerHTML=`
+    <div class="dash-stats">
+      <div class="stat-card"><div class="sc-l">Casos activos</div><div class="sc-v">8</div><div class="sc-s up">↑ 2 este mes</div></div>
+      <div class="stat-card"><div class="sc-l">Audiencias próximas</div><div class="sc-v" style="color:#8a1a1a">3</div><div class="sc-s wn">Esta semana</div></div>
+      <div class="stat-card"><div class="sc-l">Clientes activos</div><div class="sc-v">6</div><div class="sc-s">2 potenciales</div></div>
+      <div class="stat-card"><div class="sc-l">Documentos en Drive</div><div class="sc-v">24</div><div class="sc-s">Última subida hoy</div></div>
+    </div>
+    <div class="dash-row">
+      <div class="dash-card">
+        <div class="dc-ti">Actividad reciente <span>Ver todo</span></div>
+        ${[['#d4870a','Novedad SATJE — caso Laboral ENSA S.A.','Hoy 08:14 · Sistema'],['#1a4a8a','Documento subido: Acta de matrimonio.docx','Ayer 16:30 · Abg. Moreno'],['#1a6e3c','Audiencia agendada: Pensión López — 29 jun','20 jun · Abg. Torres'],['#6b6a65','Caso Cobranza Suárez creado. Sin asignar.','20 jun · Admin'],['#1a4a8a','Expediente Herencia Romero actualizado','10 jun · Abg. Castro']].map(a=>`<div class="act-item"><div class="act-dot" style="background:${a[0]}"></div><div><div class="act-t">${a[1]}</div><div class="act-m">${a[2]}</div></div></div>`).join('')}
+      </div>
+      <div>
+        <div class="dash-card" style="margin-bottom:16px">
+          <div class="dc-ti">Carga por abogado</div>
+          ${[['ET','Esteban Torres','3 casos','75%'],['AM','Andrés Moreno','2 casos','50%'],['RC','Rosa Castro','1 caso','25%']].map(a=>`<div class="abog-row">${av(a[0],'#eef3fb','#1a4a8a')}<div style="flex:1"><div class="abog-n">${a[1]}</div><div class="abog-c">${a[2]}</div></div><div class="bar-bg" style="flex:1"><div class="bar-fill" style="width:${a[3]}"></div></div></div>`).join('')}
+        </div>
+        <div class="dash-card">
+          <div class="dc-ti">Casos por estado</div>
+          <div style="display:flex;gap:8px;text-align:center">
+            ${[['3','Activo','#1a4a8a'],['1','Nuevo','#6b6a65'],['2','Audiencia','#8a1a1a'],['1','Espera','#8a4f0a'],['1','Resuelto','#1a6e3c']].map(x=>`<div style="flex:1"><div style="font-size:20px;font-weight:700;color:${x[2]}">${x[0]}</div><div style="font-size:10px;color:#9e9d98">${x[1]}</div></div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function buildClientes(){
+  const cl=[
+    {i:'EN',b:'#eef3fb',c:'#1a4a8a',n:'ENSA S.A.',t:'Empresa · Industrial',ca:2,ac:1,tags:['Corporativo','VIP','Laboral'],pi:'p-activo',es:'Activo',ul:'Hoy · Novedad SATJE'},
+    {i:'MG',b:'#fef4e6',c:'#8a4f0a',n:'Manuel García',t:'Persona natural',ca:1,ac:1,tags:['Familia','Recurrente'],pi:'p-audiencia',es:'Audiencia próxima',ul:'22 jun · Abg. Moreno'},
+    {i:'FR',b:'#eaf5ee',c:'#1a6e3c',n:'Familia Romero',t:'Persona natural · Herencia',ca:1,ac:1,tags:['Civil'],pi:'p-activo',es:'Activo',ul:'10 jun · Abg. Castro'},
+    {i:'JV',b:'#feeeed',c:'#8a1a1a',n:'Juan Vega',t:'Persona natural',ca:1,ac:0,tags:['Penal','Tránsito'],pi:'p-espera',es:'En espera',ul:'1 jun · Abg. Moreno'},
+    {i:'CL',b:'#f0eafb',c:'#6b2fb5',n:'Carmen López',t:'Persona natural',ca:1,ac:1,tags:['Familia','Pensión'],pi:'p-audiencia',es:'Audiencia próxima',ul:'20 jun · Sistema'},
+    {i:'LP',b:'#f2f1ee',c:'#6b6a65',n:'Luis Pérez',t:'Persona natural',ca:1,ac:1,tags:['Civil','Inquilinato'],pi:'p-activo',es:'Activo',ul:'3 ene · Admin'},
+    {i:'CC',b:'#f2f1ee',c:'#6b6a65',n:'Constructora Colón',t:'Empresa · Construcción',ca:0,ac:0,tags:['En gestión','Corporativo'],pi:'p-inactivo',es:'Inactivo',ul:'Llamada 15 jun. Reunión pendiente.'},
+    {i:'DI',b:'#f0eafb',c:'#6b2fb5',n:'Distribuidora Íntag',t:'Empresa · Comercial',ca:0,ac:0,tags:['Potencial','Referido'],pi:'p-potencial',es:'Potencial',ul:'Referido por ENSA. Sin contacto aún.'},
+  ];
+  document.getElementById('page-cl').innerHTML=`<div class="client-grid">${cl.map(x=>`
+    <div class="cc">
+      <div class="cc-top"><div class="cc-av" style="background:${x.b};color:${x.c}">${x.i}</div><div><div class="cc-n">${x.n}</div><div class="cc-t">${x.t}</div></div></div>
+      <div class="cc-stats"><div class="cc-st"><div class="sv">${x.ca}</div><div class="sl">Casos</div></div><div class="cc-st"><div class="sv">${x.ac}</div><div class="sl">Activos</div></div></div>
+      <div class="cc-tags">${x.tags.map(t=>`<span class="tag-c">${t}</span>`).join('')}</div>
+      <span class="pill ${x.pi}">${x.es}</span>
+      <div class="cc-last">${x.ul}</div>
+    </div>`).join('')}</div>`;
+}
+
+function buildAgenda(){
+  const dias1=['','','','','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25'];
+  const dias2=[26,27,28,29,30];
+  document.getElementById('ag-wrap').innerHTML=`
+    <div class="ag-cal">
+      <div class="cal-m"><button class="icon-btn"><i class="ti ti-chevron-left"></i></button> Junio 2026 <button class="icon-btn"><i class="ti ti-chevron-right"></i></button></div>
+      <div class="cal-grid">
+        ${['L','M','M','J','V','S','D'].map(d=>`<div class="cal-dl">${d}</div>`).join('')}
+        ${dias1.map(d=>d?`<div class="cal-d" style="color:#9e9d98">${d}</div>`:`<div></div>`).join('')}
+        ${dias2.map(d=>`<div class="cal-d${d===26?' tod he':d===28||d===29?' he':''}">${d}</div>`).join('')}
+      </div>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(0,0,0,.09)">
+        <div style="font-size:11px;font-weight:600;color:#9e9d98;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Esta semana</div>
+        ${[['#8a1a1a','28 jun — Audiencia García'],['#8a1a1a','29 jun — Audiencia López'],['#8a4f0a','28 jun — Plazo ENSA']].map(x=>`<div style="font-size:12px;color:${x[0]};margin-bottom:5px;display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:50%;background:${x[0]};display:inline-block;flex-shrink:0"></span>${x[1]}</div>`).join('')}
+      </div>
+    </div>
+    <div class="ag-events">
+      <div class="ag-dl">Hoy — 26 de junio</div>
+      <div class="ev nor"><div class="ev-t">08:14</div><div><div class="ev-ti">Novedad SATJE detectada</div><div class="ev-c">Laboral ENSA S.A. · Abg. Torres</div><span class="ev-b" style="background:#fef4e6;color:#8a4f0a">Alerta sistema</span></div></div>
+      <div class="ag-dl">Sábado 28 de junio</div>
+      <div class="ev urg"><div class="ev-t">10:00</div><div><div class="ev-ti">Audiencia de juzgamiento</div><div class="ev-c">Laboral ENSA S.A. · Unidad Judicial Laboral</div><span class="ev-b dbu">En 2 días</span></div></div>
+      <div class="ev urg"><div class="ev-t">Todo día</div><div><div class="ev-ti">Plazo: presentación de pruebas</div><div class="ev-c">Laboral ENSA S.A.</div><span class="ev-b dbu">En 2 días</span></div></div>
+      <div class="ag-dl">Domingo 29 de junio</div>
+      <div class="ev urg"><div class="ev-t">11:00</div><div><div class="ev-ti">Audiencia fijación de pensión</div><div class="ev-c">Pensión alim. López · Unidad Judicial Familia</div><span class="ev-b dbu">En 3 días</span></div></div>
+      <div class="ag-dl">Martes 15 de julio</div>
+      <div class="ev nor"><div class="ev-t">Todo día</div><div><div class="ev-ti">Plazo: pruebas documentales</div><div class="ev-c">Laboral ENSA S.A.</div><span class="ev-b dbp">En 19 días</span></div></div>
+      <div class="ag-dl">Domingo 20 de julio</div>
+      <div class="ev nor"><div class="ev-t">Todo día</div><div><div class="ev-ti">Audiencia posesión efectiva</div><div class="ev-c">Herencia Romero · Juzgado Civil</div><span class="ev-b dbp">En 24 días</span></div></div>
+    </div>`;
+}
+
+function buildUsuarios(){
+  const users=[
+    ['AV','#eef3fb','#1a4a8a','Andrés Vera','andres@estudiomjc.ec','rba','Administrador','Todos','Ahora',false],
+    ['ET','#eaf5ee','#1a6e3c','Esteban Torres','etorres@estudiomjc.ec','rbb','Abogado','3','Hoy 09:30',true],
+    ['AM','#eaf5ee','#1a6e3c','Andrés Moreno','amoreno@estudiomjc.ec','rbb','Abogado','2','Ayer 17:15',true],
+    ['RC','#eaf5ee','#1a6e3c','Rosa Castro','rcastro@estudiomjc.ec','rbb','Abogado','1','22 jun',true],
+    ['SV','#fef4e6','#8a4f0a','Sandra Vega','sandra@estudiomjc.ec','rba','Administrador','Todos','Hoy 08:00',false],
+    ['PA','#f0eafb','#6b2fb5','Pedro Andrade','pandrade@gmail.com','rbc','Cliente','1 (propio)','20 jun',true],
+  ];
+  document.getElementById('page-us').innerHTML=`
+    <div style="display:flex;justify-content:flex-end;margin-bottom:14px"><button class="btn btnp"><i class="ti ti-user-plus"></i> Invitar usuario</button></div>
+    <div class="users-tbl">
+      <div class="ut-head"><span>Usuario</span><span>Rol workspace</span><span>Casos</span><span>Último acceso</span><span></span></div>
+      ${users.map(u=>`<div class="ut-row"><div class="ut-u">${av(u[0],u[1],u[2])}<div><div class="ut-n">${u[3]}</div><div class="ut-e">${u[4]}</div></div></div><span class="rb ${u[5]}">${u[6]}</span><div class="ut-c">${u[7]}</div><div class="ut-c">${u[8]}</div><div class="ut-a"><button class="icon-btn"><i class="ti ti-settings"></i></button>${u[9]?'<button class="icon-btn"><i class="ti ti-trash"></i></button>':''}</div></div>`).join('')}
+    </div>
+    <div style="margin-top:12px;padding:12px 14px;background:#eef3fb;border-radius:10px;font-size:12px;color:#1a4a8a;border:1px solid rgba(26,74,138,.15)">
+      <i class="ti ti-info-circle"></i> El rol <strong>Administrador</strong> puede otorgarse a cualquier usuario. Siempre debe haber al menos un administrador en el workspace.
+    </div>`;
+}
+
+function buildDrive(){
+  document.getElementById('page-dr').innerHTML=`<div style="text-align:center;padding:60px 20px;color:#6b6a65">
+    <i class="ti ti-brand-google-drive" style="font-size:52px;color:#9e9d98;display:block;margin-bottom:16px"></i>
+    <div style="font-size:16px;font-weight:600;margin-bottom:8px;color:#1a1a18">Google Drive conectado</div>
+    <div style="font-size:13px;color:#9e9d98;max-width:340px;margin:0 auto;line-height:1.6">Los documentos del workspace se almacenan en tu Google Drive. Haz clic en cualquier documento desde un caso para abrirlo directamente.</div>
+    <button class="btn btnp" style="margin-top:20px"><i class="ti ti-external-link"></i> Abrir en Google Drive</button>
+  </div>`;
+}
+
+function buildConfig(){
+  document.getElementById('page-cf').innerHTML=`<div style="max-width:480px">
+    <div style="font-size:11px;font-weight:600;color:#9e9d98;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Workspace</div>
+    ${[['Nombre del workspace','Estudio MJC · Asesoría Documental'],['Plan','Organización · Hasta 15 usuarios'],['Google Drive vinculado','andres@estudiomjc.ec ✓']].map((f,i)=>`<div class="ifield" style="margin-bottom:10px"><div class="ifl">${f[0]}</div><div class="ifv" ${i===2?'style="color:#1a6e3c"':''}>${f[1]}</div></div>`).join('')}
+    <div style="font-size:11px;font-weight:600;color:#9e9d98;text-transform:uppercase;letter-spacing:.06em;margin:20px 0 12px">Notificaciones</div>
+    ${[['Alertas de plazos','Email + Push · 48h antes'],['Vigilancia judicial SATJE','Activa · Consulta cada 24h'],['WhatsApp','No configurado']].map(f=>`<div class="ifield" style="margin-bottom:10px"><div class="ifl">${f[0]}</div><div class="ifv">${f[1]}</div></div>`).join('')}
+  </div>`;
+}
+
+// ─── NAVEGACIÓN ───────────────────────────────────────────────────────────────
+function sv(view, btn){
+  activeView=view;
+  document.querySelectorAll('.vb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('v-list').classList.toggle('hidden',view!=='list');
+  document.getElementById('v-kanban').classList.toggle('hidden',view!=='kanban');
+  if(view==='kanban')buildKanban();
+}
+
+function showOnly(viewId){
+  ALL_VIEWS.forEach(v=>document.getElementById(v).classList.add('hidden'));
+  document.getElementById(viewId).classList.remove('hidden');
+}
+
+function go(sec, el){
+  currentSection=sec;
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  el.classList.add('on');
+  const tvw=document.getElementById('tvw');
+  const tba=document.getElementById('tba');
+  const bfi=document.getElementById('btn-filter');
+  const titles={dash:'Dashboard',casos:'Casos',clientes:'Clientes',agenda:'Agenda',usuarios:'Usuarios y roles',drive:'Google Drive',config:'Configuración'};
+  const actions={casos:'Nuevo caso',clientes:'Nuevo cliente',agenda:'Nuevo evento',usuarios:'Invitar usuario'};
+  document.getElementById('tbt').textContent=titles[sec];
+  tvw.style.display=sec==='casos'?'flex':'none';
+  bfi.style.display=sec==='casos'?'inline-flex':'none';
+  if(actions[sec]){tba.style.display='inline-flex';tba.innerHTML=`<i class="ti ti-plus"></i> ${actions[sec]}`;}
+  else tba.style.display='none';
+  if(sec==='casos'){
+    showOnly(activeView==='kanban'?'v-kanban':'v-list');
+    if(activeView==='kanban')buildKanban();
+  } else if(sec==='dash'){showOnly('v-dash');buildDash();}
+  else if(sec==='clientes'){showOnly('v-clientes');buildClientes();}
+  else if(sec==='agenda'){showOnly('v-agenda');buildAgenda();}
+  else if(sec==='usuarios'){showOnly('v-usuarios');buildUsuarios();}
+  else if(sec==='drive'){showOnly('v-drive');buildDrive();}
+  else if(sec==='config'){showOnly('v-config');buildConfig();}
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+buildCaseList();
+buildDetail(0);
+</script>
+</body>
+</html>

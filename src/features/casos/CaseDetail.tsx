@@ -1,0 +1,264 @@
+import { useCallback, useEffect, useState } from 'react'
+import { useAuth } from '@/features/auth/AuthProvider'
+import { getCaso, updateCaso, updateEstadoCaso, deleteCaso } from '@/features/casos/api'
+import { listPersonas, removePersona } from '@/features/casos/personasApi'
+import { listDocumentos, toggleVisibilidad, deleteDocumento } from '@/features/casos/documentosApi'
+import { renameDriveFile } from '@/features/workspace/driveApi'
+import { listPlazos, deletePlazo } from '@/features/casos/plazosApi'
+import { listHistorial } from '@/features/casos/historialApi'
+import { listWorkspaceUsers } from '@/features/users/api'
+import { EstadoPill } from '@/features/casos/estado'
+import { InfoTab } from '@/features/casos/tabs/InfoTab'
+import { DocumentosTab } from '@/features/casos/tabs/DocumentosTab'
+import { PlazosTab } from '@/features/casos/tabs/PlazosTab'
+import { HistorialTab } from '@/features/casos/tabs/HistorialTab'
+import { NotasTab } from '@/features/casos/tabs/NotasTab'
+import { AddPersonaModal } from '@/features/casos/AddPersonaModal'
+import { AddPlazoModal } from '@/features/casos/AddPlazoModal'
+import { AddDocumentoModal } from '@/features/casos/AddDocumentoModal'
+import { CasoFormModal } from '@/features/casos/CasoFormModal'
+import type { Caso, CasoPersona, Documento, EstadoCaso, HistorialEntry, Plazo, Usuario } from '@/types/database'
+
+const MATERIA_LABEL: Record<string, string> = {
+  civil: 'Civil',
+  laboral: 'Laboral',
+  familia: 'Familia',
+  penal: 'Penal',
+  mercantil: 'Mercantil',
+  otro: 'Otro',
+}
+
+const TABS = [
+  { key: 'info', label: 'Información', icon: 'ti-info-circle' },
+  { key: 'docs', label: 'Documentos', icon: 'ti-files' },
+  { key: 'plazos', label: 'Plazos', icon: 'ti-clock' },
+  { key: 'hist', label: 'Historial', icon: 'ti-history' },
+  { key: 'notas', label: 'Notas', icon: 'ti-notes' },
+] as const
+
+type TabKey = (typeof TABS)[number]['key']
+
+export function CaseDetail({ casoId, onDeleted }: { casoId: string; onDeleted?: () => void }) {
+  const { profile } = useAuth()
+  const [caso, setCaso] = useState<Caso | null>(null)
+  const [personas, setPersonas] = useState<CasoPersona[]>([])
+  const [documentos, setDocumentos] = useState<Documento[]>([])
+  const [plazos, setPlazos] = useState<Plazo[]>([])
+  const [historial, setHistorial] = useState<HistorialEntry[]>([])
+  const [usersById, setUsersById] = useState<Map<string, Usuario>>(new Map())
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [tab, setTab] = useState<TabKey>('info')
+
+  const [addPersonaOpen, setAddPersonaOpen] = useState(false)
+  const [addPlazoOpen, setAddPlazoOpen] = useState(false)
+  const [addDocOpen, setAddDocOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const [campoError, setCampoError] = useState<string | null>(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    setTab('info')
+    try {
+      const [c, p, d, pl, h, u] = await Promise.all([
+        getCaso(casoId),
+        listPersonas(casoId),
+        listDocumentos(casoId),
+        listPlazos(casoId),
+        listHistorial(casoId),
+        listWorkspaceUsers(),
+      ])
+      setCaso(c)
+      setPersonas(p)
+      setDocumentos(d)
+      setPlazos(pl)
+      setHistorial(h)
+      setUsersById(new Map(u.map((x) => [x.id, x])))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo cargar el caso.')
+    } finally {
+      setLoading(false)
+    }
+  }, [casoId])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  if (loading) return <div className="flex-1 p-5 text-[13px] text-muted">Cargando caso…</div>
+  if (error) return <div className="flex-1 p-5 text-[13px] text-danger">{error}</div>
+  if (!caso) return <div className="flex-1 p-5 text-[13px] text-muted">Caso no encontrado.</div>
+
+  const miRol = personas.find((p) => p.user_id === profile?.id)?.rol
+  const puedeEditar = Boolean(profile?.es_admin) || miRol === 'abogado'
+  const puedeSubirDocs = puedeEditar || miRol === 'cliente'
+  const showNotas = puedeEditar
+
+  async function onChangeEstado(estado: EstadoCaso) {
+    const updated = await updateEstadoCaso(caso!.id, estado)
+    setCaso(updated)
+    setHistorial(await listHistorial(caso!.id))
+  }
+
+  async function onSaveNota(nota: string) {
+    const updated = await updateCaso(caso!.id, { nota_interna: nota })
+    setCaso(updated)
+    setHistorial(await listHistorial(caso!.id))
+  }
+
+  async function onUpdateCampo(patch: Partial<Caso>) {
+    try {
+      setCampoError(null)
+      const updated = await updateCaso(caso!.id, patch)
+      setCaso(updated)
+    } catch (err) {
+      setCampoError(err instanceof Error ? err.message : 'No se pudo guardar el cambio.')
+    }
+  }
+
+  async function onRemovePersona(id: string) {
+    await removePersona(id)
+    setPersonas((prev) => prev.filter((p) => p.id !== id))
+  }
+
+  async function onToggleDocVisibilidad(doc: Documento) {
+    const updated = await toggleVisibilidad(doc.id, doc.visibilidad === 'privado' ? 'compartido' : 'privado')
+    setDocumentos((prev) => prev.map((d) => (d.id === updated.id ? updated : d)))
+  }
+
+  async function onRenameDoc(id: string, nuevoNombre: string) {
+    const updated = await renameDriveFile(id, nuevoNombre)
+    setDocumentos((prev) => prev.map((d) => (d.id === updated.id ? updated : d)))
+  }
+
+  async function onDeleteDoc(id: string) {
+    await deleteDocumento(id)
+    setDocumentos((prev) => prev.filter((d) => d.id !== id))
+  }
+
+  async function onDeletePlazo(id: string) {
+    await deletePlazo(id)
+    setPlazos((prev) => prev.filter((p) => p.id !== id))
+  }
+
+  async function onDeleteCaso() {
+    if (!confirm(`¿Eliminar el caso "${caso!.titulo}"? Esta acción no se puede deshacer.`)) return
+    await deleteCaso(caso!.id)
+    onDeleted?.()
+  }
+
+  const visibleTabs = TABS.filter((t) => t.key !== 'notas' || showNotas)
+
+  return (
+    <div className="flex flex-1 flex-col overflow-hidden bg-bg">
+      <div className="flex flex-shrink-0 items-start justify-between gap-3 border-b border-border bg-surface px-5 pb-3.5 pt-4">
+        <div>
+          <div className="text-[19px] font-bold tracking-tight text-ink">{caso.titulo}</div>
+          <div className="mt-1.5 flex gap-1.5">
+            <EstadoPill estado={caso.estado} />
+            <span className="inline-block rounded-full border border-border bg-[#f2f1ee] px-2 py-0.5 text-[10px] font-medium text-muted">
+              {MATERIA_LABEL[caso.materia ?? 'otro']}
+            </span>
+          </div>
+        </div>
+        <div className="flex flex-shrink-0 gap-2">
+          {puedeEditar && (
+            <button
+              onClick={() => setEditOpen(true)}
+              className="flex items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[12px] text-muted transition hover:bg-[#f2f1ee]"
+            >
+              <i className="ti ti-edit" /> Editar
+            </button>
+          )}
+          {profile?.es_admin && (
+            <button
+              onClick={onDeleteCaso}
+              className="flex items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[12px] text-muted transition hover:bg-danger-soft hover:text-danger"
+            >
+              <i className="ti ti-trash" /> Eliminar
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-shrink-0 gap-0 overflow-x-auto border-b border-border bg-surface px-5">
+        {visibleTabs.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2.5 text-[13px] transition ${
+              tab === t.key ? 'border-accent font-medium text-accent' : 'border-transparent text-muted hover:text-ink'
+            }`}
+          >
+            <i className={`ti ${t.icon}`} />
+            {t.label}
+            {t.key === 'docs' && <span className="rounded-full bg-[#f2f1ee] px-1.5 text-[10px] text-mute2">{documentos.length}</span>}
+            {t.key === 'plazos' && <span className="rounded-full bg-[#f2f1ee] px-1.5 text-[10px] text-mute2">{plazos.length}</span>}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-5">
+        {campoError && (
+          <div className="mb-3 rounded-[6px] border border-danger/20 bg-danger-soft px-3 py-2 text-[12px] text-danger">
+            {campoError}
+          </div>
+        )}
+        {tab === 'info' && (
+          <InfoTab
+            caso={caso}
+            personas={personas}
+            usersById={usersById}
+            puedeEditar={puedeEditar}
+            onChangeEstado={onChangeEstado}
+            onUpdateCampo={onUpdateCampo}
+            onOpenAddPersona={() => setAddPersonaOpen(true)}
+            onRemovePersona={onRemovePersona}
+          />
+        )}
+        {tab === 'docs' && (
+          <DocumentosTab
+            documentos={documentos}
+            puedeEditar={puedeEditar}
+            puedeSubir={puedeSubirDocs}
+            onOpenAdd={() => setAddDocOpen(true)}
+            onToggleVisibilidad={onToggleDocVisibilidad}
+            onRename={onRenameDoc}
+            onDelete={onDeleteDoc}
+          />
+        )}
+        {tab === 'plazos' && (
+          <PlazosTab plazos={plazos} puedeEditar={puedeEditar} onOpenAdd={() => setAddPlazoOpen(true)} onDelete={onDeletePlazo} />
+        )}
+        {tab === 'hist' && <HistorialTab historial={historial} />}
+        {tab === 'notas' && showNotas && <NotasTab nota={caso.nota_interna} onSave={onSaveNota} />}
+      </div>
+
+      <AddPersonaModal
+        open={addPersonaOpen}
+        onClose={() => setAddPersonaOpen(false)}
+        casoId={caso.id}
+        onAdded={(p) => setPersonas((prev) => [...prev, p])}
+      />
+      <AddPlazoModal
+        open={addPlazoOpen}
+        onClose={() => setAddPlazoOpen(false)}
+        casoId={caso.id}
+        onAdded={(p) => setPlazos((prev) => [...prev, p].sort((a, b) => a.fecha.localeCompare(b.fecha)))}
+      />
+      <AddDocumentoModal
+        open={addDocOpen}
+        onClose={() => setAddDocOpen(false)}
+        casoId={caso.id}
+        onAdded={(d) => setDocumentos((prev) => [d, ...prev])}
+      />
+      <CasoFormModal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        caso={caso}
+        onUpdated={(updated) => setCaso(updated)}
+      />
+    </div>
+  )
+}
