@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getCliente, deleteCliente, updateCliente } from '@/features/clientes/api'
 import { listNotas, addNota } from '@/features/clientes/notasApi'
-import { listCasosPorCliente } from '@/features/casos/personasApi'
+import { listCasosPorCliente, removePersona } from '@/features/casos/personasApi'
 import { listCasosByIds } from '@/features/casos/api'
 import { listEtapas } from '@/features/casos/etapasApi'
 import { ClienteFormModal } from '@/features/clientes/ClienteFormModal'
+import { VincularCasoModal } from '@/features/clientes/VincularCasoModal'
 import { EtapaPill } from '@/features/casos/etapaDisplay'
 import { useAuth } from '@/features/auth/AuthProvider'
-import type { Caso, Cliente, ClienteNota, EstadoCliente, Etapa } from '@/types/database'
+import type { Caso, CasoPersona, Cliente, ClienteNota, EstadoCliente, Etapa } from '@/types/database'
 
 const ESTADO_LABEL: Record<EstadoCliente, string> = { activo: 'Activo', inactivo: 'Inactivo', potencial: 'Potencial' }
 const TIPO_LABEL: Record<string, string> = { persona_natural: 'Persona natural', empresa: 'Empresa' }
@@ -31,6 +32,7 @@ export function ClienteDetail({
   const { profile } = useAuth()
   const [cliente, setCliente] = useState<Cliente | null>(null)
   const [casos, setCasos] = useState<Caso[]>([])
+  const [personasCliente, setPersonasCliente] = useState<CasoPersona[]>([])
   const [etapas, setEtapas] = useState<Etapa[]>([])
   const [notas, setNotas] = useState<ClienteNota[]>([])
   const [nuevaNota, setNuevaNota] = useState('')
@@ -38,6 +40,7 @@ export function ClienteDetail({
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
+  const [vincularOpen, setVincularOpen] = useState(false)
   const [proximoSeguimiento, setProximoSeguimiento] = useState('')
 
   const load = useCallback(async () => {
@@ -53,6 +56,7 @@ export function ClienteDetail({
       setCliente(c)
       setNotas(n)
       setEtapas(e)
+      setPersonasCliente(personas)
       setProximoSeguimiento(c?.proximo_seguimiento ?? '')
       const casoIds = personas.map((p) => p.caso_id)
       setCasos(await listCasosByIds(casoIds))
@@ -90,6 +94,15 @@ export function ClienteDetail({
     setProximoSeguimiento(value)
     const updated = await updateCliente(clienteId, { proximo_seguimiento: value || null })
     setCliente(updated)
+  }
+
+  async function onDesvincularCaso(casoId: string) {
+    const persona = personasCliente.find((p) => p.caso_id === casoId)
+    if (!persona) return
+    if (!confirm('¿Desvincular este caso del cliente?')) return
+    await removePersona(persona.id)
+    setPersonasCliente((prev) => prev.filter((p) => p.id !== persona.id))
+    setCasos((prev) => prev.filter((c) => c.id !== casoId))
   }
 
   if (loading) return <div className="flex-1 p-5 text-[13px] text-muted">Cargando…</div>
@@ -184,20 +197,37 @@ export function ClienteDetail({
           </div>
         )}
 
-        <div className="mt-6 mb-2 text-[11px] font-semibold uppercase tracking-wide text-mute2">Casos vinculados</div>
+        <div className="mt-6 mb-2 flex items-center justify-between">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-mute2">Casos vinculados</span>
+          <button
+            onClick={() => setVincularOpen(true)}
+            className="flex items-center gap-1 text-[11px] font-medium text-accent hover:underline"
+          >
+            <i className="ti ti-plus" /> Vincular caso
+          </button>
+        </div>
         <div className="flex flex-col gap-2">
           {casos.map((c) => (
             <div
               key={c.id}
-              className="flex items-center justify-between gap-3 rounded-[10px] border border-border bg-surface px-3.5 py-2.5"
+              className="group flex items-center justify-between gap-3 rounded-[10px] border border-border bg-surface px-3.5 py-2.5"
             >
               <span className="text-[13px] font-medium text-ink">{c.titulo}</span>
-              <EtapaPill etapa={c.etapa_id ? etapas.find((e) => e.id === c.etapa_id) : null} />
+              <div className="flex items-center gap-2">
+                <EtapaPill etapa={c.etapa_id ? etapas.find((e) => e.id === c.etapa_id) : null} />
+                <button
+                  onClick={() => onDesvincularCaso(c.id)}
+                  title="Desvincular"
+                  className="flex h-6 w-6 items-center justify-center rounded-full text-mute2 opacity-0 transition group-hover:opacity-100 hover:bg-danger-soft hover:text-danger"
+                >
+                  <i className="ti ti-x text-[12px]" />
+                </button>
+              </div>
             </div>
           ))}
           {casos.length === 0 && (
             <div className="rounded-[10px] border border-dashed border-border p-5 text-center text-[12px] text-mute2">
-              Sin casos vinculados todavía. Añádelo desde la pestaña Información de un caso.
+              Sin casos vinculados todavía.
             </div>
           )}
         </div>
@@ -239,6 +269,14 @@ export function ClienteDetail({
       </div>
 
       <ClienteFormModal open={editOpen} onClose={() => setEditOpen(false)} cliente={cliente} onUpdated={(updated) => setCliente(updated)} />
+      <VincularCasoModal
+        open={vincularOpen}
+        onClose={() => setVincularOpen(false)}
+        clienteId={clienteId}
+        clienteNombre={cliente.nombre}
+        casosVinculadosIds={casos.map((c) => c.id)}
+        onVinculado={(caso) => setCasos((prev) => [...prev, caso])}
+      />
     </div>
   )
 }
