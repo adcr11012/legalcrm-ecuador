@@ -3,6 +3,7 @@ import { useAuth } from '@/features/auth/AuthProvider'
 import { getWorkspace, updateWorkspace } from '@/features/workspace/api'
 import { isGoogleDriveConfigured, buildGoogleConsentUrl, getDriveEstado, desconectarDrive, type DriveEstado } from '@/features/workspace/driveApi'
 import { EtapasSettings } from '@/features/casos/EtapasSettings'
+import { GeminiSettings } from '@/features/workspace/GeminiSettings'
 import { getTema, setTema, type Tema } from '@/lib/theme'
 import type { Workspace } from '@/types/database'
 
@@ -158,6 +159,10 @@ export default function Configuracion() {
               )
             )}
           </div>
+        </div>
+
+        <div className="mt-2.5">
+          <GeminiSettings puedeEditar={puedeEditar} />
         </div>
 
         {puedeEditar && (

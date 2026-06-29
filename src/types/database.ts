@@ -209,6 +209,14 @@ export type Database = {
         Args: Record<string, never>
         Returns: undefined
       }
+      gemini_estado: {
+        Args: Record<string, never>
+        Returns: { conectado: boolean }[]
+      }
+      gemini_desconectar: {
+        Args: Record<string, never>
+        Returns: undefined
+      }
     }
   }
 }
