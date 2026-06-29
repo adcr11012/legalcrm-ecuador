@@ -20,7 +20,57 @@
   --color-purple: #6b2fb5;
   --color-purple-soft: #f0eafb;
 
+  --color-soft: #f0efeb;
+
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Tema oscuro */
+[data-theme='oscuro'] {
+  --color-bg: #15161b;
+  --color-surface: #1e2026;
+  --color-accent: #5b9bff;
+  --color-accent-hover: #7eb0ff;
+  --color-accent-soft: #1f2c42;
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-ink: #f1f1ee;
+  --color-muted: #b7b6b1;
+  --color-mute2: #8c8b86;
+
+  --color-warn: #e7a13d;
+  --color-warn-soft: #332811;
+  --color-danger: #ef6b69;
+  --color-danger-soft: #371a1a;
+  --color-success: #4fc080;
+  --color-success-soft: #163623;
+  --color-purple: #b693f5;
+  --color-purple-soft: #271f3d;
+
+  --color-soft: #262931;
+}
+
+/* Tema moderno: paleta vibrante, fondo frío, acento índigo */
+[data-theme='moderno'] {
+  --color-bg: #f0eefc;
+  --color-surface: #ffffff;
+  --color-accent: #5b3df0;
+  --color-accent-hover: #4a2fd1;
+  --color-accent-soft: #ece6fd;
+  --color-border: rgba(91, 61, 240, 0.18);
+  --color-ink: #14132b;
+  --color-muted: #5c5878;
+  --color-mute2: #84809e;
+
+  --color-warn: #c2670a;
+  --color-warn-soft: #fdebd6;
+  --color-danger: #d23f6d;
+  --color-danger-soft: #fbe3ea;
+  --color-success: #0f9d68;
+  --color-success-soft: #e1f6ec;
+  --color-purple: #5b3df0;
+  --color-purple-soft: #ece6fd;
+
+  --color-soft: #e9e6fa;
 }
 
 html,

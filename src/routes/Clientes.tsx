@@ -8,7 +8,7 @@ import type { Cliente, EstadoCliente } from '@/types/database'
 const ESTADO_LABEL: Record<EstadoCliente, string> = { activo: 'Activo', inactivo: 'Inactivo', potencial: 'Potencial' }
 const ESTADO_CLASS: Record<EstadoCliente, string> = {
   activo: 'bg-accent-soft text-accent',
-  inactivo: 'bg-[#f2f1ee] text-mute2 border border-border',
+  inactivo: 'bg-soft text-mute2 border border-border',
   potencial: 'bg-purple-soft text-purple',
 }
 const TIPO_LABEL: Record<string, string> = { persona_natural: 'Persona natural', empresa: 'Empresa' }
@@ -50,7 +50,7 @@ export default function Clientes() {
 
   return (
     <div className="flex-1 overflow-y-auto p-3 sm:p-5">
-      <div className="mb-4 flex gap-1 rounded-[6px] bg-[#f2f1ee] p-1" style={{ width: 'fit-content' }}>
+      <div className="mb-4 flex gap-1 rounded-[6px] bg-soft p-1" style={{ width: 'fit-content' }}>
         {(['todos', 'activo', 'inactivo', 'potencial'] as const).map((f) => (
           <button
             key={f}
@@ -87,7 +87,7 @@ export default function Clientes() {
               {c.etiquetas.length > 0 && (
                 <div className="mb-3 flex flex-wrap gap-1">
                   {c.etiquetas.map((t) => (
-                    <span key={t} className="rounded-full border border-border bg-[#f2f1ee] px-1.5 py-0.5 text-[10px] text-muted">
+                    <span key={t} className="rounded-full border border-border bg-soft px-1.5 py-0.5 text-[10px] text-muted">
                       {t}
                     </span>
                   ))}

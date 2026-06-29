@@ -98,7 +98,7 @@ export function PartesDelProcesoModal({
         )}
 
         <div className="mt-1 flex justify-end gap-2">
-          <button type="button" onClick={onClose} className="rounded-[8px] border border-border px-4 py-2 text-[13px] text-muted transition hover:bg-[#f2f1ee]">
+          <button type="button" onClick={onClose} className="rounded-[8px] border border-border px-4 py-2 text-[13px] text-muted transition hover:bg-soft">
             Cancelar
           </button>
           <button type="submit" disabled={loading} className="rounded-[8px] bg-accent px-4 py-2 text-[13px] font-medium text-white transition hover:bg-accent-hover disabled:opacity-60">

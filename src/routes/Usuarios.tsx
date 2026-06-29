@@ -69,7 +69,7 @@ export default function Usuarios() {
   return (
     <div className="flex-1 overflow-y-auto p-5">
       <div className="overflow-hidden rounded-[10px] border border-border bg-surface">
-        <div className="grid grid-cols-[2fr_1.2fr_1fr_80px] bg-[#f2f1ee] px-4 py-2.5">
+        <div className="grid grid-cols-[2fr_1.2fr_1fr_80px] bg-soft px-4 py-2.5">
           {['Usuario', 'Rol', 'Casos asignados', ''].map((h) => (
             <span key={h} className="text-[11px] font-semibold uppercase tracking-wide text-mute2">
               {h}
@@ -93,14 +93,14 @@ export default function Usuarios() {
                   onClick={() => onToggleAdmin(u)}
                   disabled={u.id === profile.id}
                   className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium transition disabled:opacity-60 ${
-                    u.es_admin ? 'bg-accent-soft text-accent' : 'border border-border bg-[#f2f1ee] text-muted hover:bg-bg'
+                    u.es_admin ? 'bg-accent-soft text-accent' : 'border border-border bg-soft text-muted hover:bg-bg'
                   }`}
                   title={u.id === profile.id ? 'No puedes cambiar tu propio rol' : 'Cambiar rol'}
                 >
                   {u.es_admin ? 'Administrador' : 'Miembro'}
                 </button>
               ) : (
-                <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${u.es_admin ? 'bg-accent-soft text-accent' : 'border border-border bg-[#f2f1ee] text-muted'}`}>
+                <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${u.es_admin ? 'bg-accent-soft text-accent' : 'border border-border bg-soft text-muted'}`}>
                   {u.es_admin ? 'Administrador' : 'Miembro'}
                 </span>
               )}
@@ -143,7 +143,7 @@ export default function Usuarios() {
                   onClick={() => {
                     navigator.clipboard.writeText(`${window.location.origin}/invite/${inv.token}`)
                   }}
-                  className="rounded-[6px] border border-border px-2.5 py-1 text-[11px] text-muted transition hover:bg-[#f2f1ee]"
+                  className="rounded-[6px] border border-border px-2.5 py-1 text-[11px] text-muted transition hover:bg-soft"
                 >
                   Copiar link
                 </button>

@@ -95,7 +95,7 @@ export default function ClienteDetalle() {
         <div className="flex flex-shrink-0 gap-2">
           <button
             onClick={() => setEditOpen(true)}
-            className="flex items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[12px] text-muted transition hover:bg-[#f2f1ee]"
+            className="flex items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[12px] text-muted transition hover:bg-soft"
           >
             <i className="ti ti-edit" /> Editar
           </button>
@@ -128,7 +128,7 @@ export default function ClienteDetalle() {
       {cliente.etiquetas.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-1.5">
           {cliente.etiquetas.map((t) => (
-            <span key={t} className="rounded-full border border-border bg-[#f2f1ee] px-2 py-0.5 text-[11px] text-muted">
+            <span key={t} className="rounded-full border border-border bg-soft px-2 py-0.5 text-[11px] text-muted">
               {t}
             </span>
           ))}

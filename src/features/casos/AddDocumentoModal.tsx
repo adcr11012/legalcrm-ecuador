@@ -103,7 +103,7 @@ export function AddDocumentoModal({
                 reset()
                 onClose()
               }}
-              className="rounded-[8px] border border-border px-4 py-2 text-[13px] text-muted transition hover:bg-[#f2f1ee]"
+              className="rounded-[8px] border border-border px-4 py-2 text-[13px] text-muted transition hover:bg-soft"
             >
               Cancelar
             </button>

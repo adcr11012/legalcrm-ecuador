@@ -161,7 +161,7 @@ export function CaseDetail({
           {onBack && (
             <button
               onClick={onBack}
-              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[6px] text-muted transition hover:bg-[#f2f1ee] hover:text-ink lg:hidden"
+              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[6px] text-muted transition hover:bg-soft hover:text-ink lg:hidden"
             >
               <i className="ti ti-arrow-left" />
             </button>
@@ -170,7 +170,7 @@ export function CaseDetail({
             <div className="truncate text-[17px] font-bold tracking-tight text-ink sm:text-[19px]">{caso.titulo}</div>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               <EtapaPill etapa={caso.etapa_id ? etapas.find((e) => e.id === caso.etapa_id) : null} />
-              <span className="inline-block rounded-full border border-border bg-[#f2f1ee] px-2 py-0.5 text-[10px] font-medium text-muted">
+              <span className="inline-block rounded-full border border-border bg-soft px-2 py-0.5 text-[10px] font-medium text-muted">
                 {MATERIA_LABEL[caso.materia ?? 'otro']}
               </span>
             </div>
@@ -180,7 +180,7 @@ export function CaseDetail({
           {puedeEditar && (
             <button
               onClick={() => setEditOpen(true)}
-              className="flex items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[12px] text-muted transition hover:bg-[#f2f1ee]"
+              className="flex items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[12px] text-muted transition hover:bg-soft"
             >
               <i className="ti ti-edit" /> <span className="hidden sm:inline">Editar</span>
             </button>
@@ -207,8 +207,8 @@ export function CaseDetail({
           >
             <i className={`ti ${t.icon}`} />
             {t.label}
-            {t.key === 'docs' && <span className="rounded-full bg-[#f2f1ee] px-1.5 text-[10px] text-mute2">{documentos.length}</span>}
-            {t.key === 'plazos' && <span className="rounded-full bg-[#f2f1ee] px-1.5 text-[10px] text-mute2">{plazos.length}</span>}
+            {t.key === 'docs' && <span className="rounded-full bg-soft px-1.5 text-[10px] text-mute2">{documentos.length}</span>}
+            {t.key === 'plazos' && <span className="rounded-full bg-soft px-1.5 text-[10px] text-mute2">{plazos.length}</span>}
           </button>
         ))}
       </div>

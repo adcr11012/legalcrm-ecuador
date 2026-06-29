@@ -71,7 +71,7 @@ export function InvitarUsuarioModal({
                 navigator.clipboard.writeText(link)
                 setCopied(true)
               }}
-              className="flex-shrink-0 rounded-[8px] border border-border px-3 py-2 text-[12px] text-muted transition hover:bg-[#f2f1ee]"
+              className="flex-shrink-0 rounded-[8px] border border-border px-3 py-2 text-[12px] text-muted transition hover:bg-soft"
             >
               {copied ? 'Copiado' : 'Copiar'}
             </button>
@@ -118,7 +118,7 @@ export function InvitarUsuarioModal({
                 reset()
                 onClose()
               }}
-              className="rounded-[8px] border border-border px-4 py-2 text-[13px] text-muted transition hover:bg-[#f2f1ee]"
+              className="rounded-[8px] border border-border px-4 py-2 text-[13px] text-muted transition hover:bg-soft"
             >
               Cancelar
             </button>

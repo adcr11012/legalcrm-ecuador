@@ -83,7 +83,7 @@ export default function Casos() {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="flex flex-shrink-0 items-center gap-1 border-b border-border bg-surface px-3 py-2">
-        <div className="flex gap-0.5 rounded-[6px] bg-[#f2f1ee] p-0.5">
+        <div className="flex gap-0.5 rounded-[6px] bg-soft p-0.5">
           <button
             onClick={() => setView('list')}
             className={`flex items-center gap-1.5 rounded-[5px] px-2.5 py-1 text-[12px] transition ${view === 'list' ? 'bg-surface text-ink shadow-sm' : 'text-muted'}`}

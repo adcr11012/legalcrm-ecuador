@@ -29,7 +29,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
   const navItemClass = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-2.5 rounded-[6px] px-2.5 py-2 mx-1.5 text-[13px] transition-colors ${
       open ? '' : 'justify-center px-0'
-    } ${isActive ? 'bg-accent-soft text-accent font-medium' : 'text-muted hover:bg-[#f2f1ee] hover:text-ink'}`
+    } ${isActive ? 'bg-accent-soft text-accent font-medium' : 'text-muted hover:bg-soft hover:text-ink'}`
 
   return (
     <>
@@ -51,7 +51,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
           {open && (
             <button
               onClick={onClose}
-              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[6px] text-mute2 transition hover:bg-[#f2f1ee] hover:text-ink lg:hidden"
+              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[6px] text-mute2 transition hover:bg-soft hover:text-ink lg:hidden"
             >
               <i className="ti ti-x text-[15px]" />
             </button>
@@ -99,7 +99,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
                   <button
                     onClick={signOut}
                     title="Cerrar sesión"
-                    className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[6px] text-mute2 transition hover:bg-[#f2f1ee] hover:text-ink"
+                    className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[6px] text-mute2 transition hover:bg-soft hover:text-ink"
                   >
                     <i className="ti ti-logout text-[15px]" />
                   </button>

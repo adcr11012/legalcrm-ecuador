@@ -131,7 +131,7 @@ export default function Dashboard() {
                     <div className="truncate text-[12px] font-medium text-ink">{nombrePersona(personas[0], usersById)}</div>
                     <div className="text-[11px] text-mute2">{personas.length} caso{personas.length === 1 ? '' : 's'}</div>
                   </div>
-                  <div className="h-1.5 w-20 flex-shrink-0 rounded-full bg-[#f2f1ee]">
+                  <div className="h-1.5 w-20 flex-shrink-0 rounded-full bg-soft">
                     <div className="h-1.5 rounded-full bg-accent" style={{ width: `${(personas.length / maxCarga) * 100}%` }} />
                   </div>
                 </div>

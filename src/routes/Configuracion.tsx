@@ -3,7 +3,14 @@ import { useAuth } from '@/features/auth/AuthProvider'
 import { getWorkspace, updateWorkspace } from '@/features/workspace/api'
 import { isGoogleDriveConfigured, buildGoogleConsentUrl, getDriveEstado, desconectarDrive, type DriveEstado } from '@/features/workspace/driveApi'
 import { EtapasSettings } from '@/features/casos/EtapasSettings'
+import { getTema, setTema, type Tema } from '@/lib/theme'
 import type { Workspace } from '@/types/database'
+
+const TEMAS: { value: Tema; label: string; icon: string }[] = [
+  { value: 'claro', label: 'Claro', icon: 'ti-sun' },
+  { value: 'oscuro', label: 'Oscuro', icon: 'ti-moon' },
+  { value: 'moderno', label: 'Moderno', icon: 'ti-sparkles' },
+]
 
 const inputClass =
   'w-full rounded-[8px] border border-border bg-bg px-3 py-2.5 text-[13px] text-ink outline-none transition focus:border-accent disabled:opacity-70'
@@ -18,6 +25,16 @@ export default function Configuracion() {
   const [saved, setSaved] = useState<string | null>(null)
   const [driveEstado, setDriveEstado] = useState<DriveEstado>({ conectado: false, email: null })
   const [driveBusy, setDriveBusy] = useState(false)
+  const [tema, setTemaState] = useState<Tema>('claro')
+
+  useEffect(() => {
+    setTemaState(getTema())
+  }, [])
+
+  function onTema(t: Tema) {
+    setTema(t)
+    setTemaState(t)
+  }
 
   const load = useCallback(async () => {
     if (!profile) return
@@ -76,6 +93,22 @@ export default function Configuracion() {
   return (
     <div className="flex-1 overflow-y-auto p-5">
       <div className="max-w-[560px]">
+        <div className="mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-mute2">Apariencia</div>
+        <div className="mb-6 grid grid-cols-3 gap-2">
+          {TEMAS.map((t) => (
+            <button
+              key={t.value}
+              onClick={() => onTema(t.value)}
+              className={`flex flex-col items-center gap-1.5 rounded-[10px] border p-3 transition ${
+                tema === t.value ? 'border-accent bg-accent-soft' : 'border-border bg-surface hover:bg-soft'
+              }`}
+            >
+              <i className={`ti ${t.icon} text-[20px] ${tema === t.value ? 'text-accent' : 'text-muted'}`} />
+              <span className={`text-[12px] font-medium ${tema === t.value ? 'text-accent' : 'text-ink'}`}>{t.label}</span>
+            </button>
+          ))}
+        </div>
+
         <div className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-mute2">Workspace</div>
 
         <div className="mb-2.5 rounded-[10px] border border-border bg-surface p-3">
@@ -145,7 +178,7 @@ export default function Configuracion() {
             disabled={!puedeEditar}
             onClick={() => guardar({ notif_email: !workspace.notif_email })}
             className={`relative h-6 w-11 flex-shrink-0 rounded-full transition disabled:opacity-60 ${
-              workspace.notif_email ? 'bg-accent' : 'bg-[#e3e2de]'
+              workspace.notif_email ? 'bg-accent' : 'bg-soft'
             }`}
           >
             <span

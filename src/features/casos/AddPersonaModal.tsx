@@ -91,7 +91,7 @@ export function AddPersonaModal({
       title="Añadir persona"
     >
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        <div className="flex gap-1 rounded-[6px] bg-[#f2f1ee] p-1">
+        <div className="flex gap-1 rounded-[6px] bg-soft p-1">
           <button
             type="button"
             onClick={() => setTipo('workspace')}
@@ -186,7 +186,7 @@ export function AddPersonaModal({
               reset()
               onClose()
             }}
-            className="rounded-[8px] border border-border px-4 py-2 text-[13px] text-muted transition hover:bg-[#f2f1ee]"
+            className="rounded-[8px] border border-border px-4 py-2 text-[13px] text-muted transition hover:bg-soft"
           >
             Cancelar
           </button>

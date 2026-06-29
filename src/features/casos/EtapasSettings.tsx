@@ -99,14 +99,14 @@ export function EtapasSettings() {
               <button
                 onClick={() => onMove(i, -1)}
                 disabled={i === 0}
-                className="flex h-5 w-5 items-center justify-center rounded text-mute2 transition hover:bg-[#f2f1ee] disabled:opacity-30"
+                className="flex h-5 w-5 items-center justify-center rounded text-mute2 transition hover:bg-soft disabled:opacity-30"
               >
                 <i className="ti ti-chevron-up text-[13px]" />
               </button>
               <button
                 onClick={() => onMove(i, 1)}
                 disabled={i === etapas.length - 1}
-                className="flex h-5 w-5 items-center justify-center rounded text-mute2 transition hover:bg-[#f2f1ee] disabled:opacity-30"
+                className="flex h-5 w-5 items-center justify-center rounded text-mute2 transition hover:bg-soft disabled:opacity-30"
               >
                 <i className="ti ti-chevron-down text-[13px]" />
               </button>
@@ -149,7 +149,7 @@ export function EtapasSettings() {
               onClick={() => onTerminal(etapa)}
               title="Marca si esta etapa cierra el caso (no cuenta como activo)"
               className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition ${
-                etapa.es_terminal ? 'bg-success-soft text-success' : 'border border-border bg-[#f2f1ee] text-muted'
+                etapa.es_terminal ? 'bg-success-soft text-success' : 'border border-border bg-soft text-muted'
               }`}
             >
               {etapa.es_terminal ? 'Cierra el caso' : 'En curso'}

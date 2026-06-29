@@ -68,7 +68,7 @@ export function InfoTab({
           <span className="text-[12px] font-semibold text-ink">Perfil del caso</span>
           <span className="text-[12px] font-semibold text-accent">{porcentaje}%</span>
         </div>
-        <div className="h-2 overflow-hidden rounded-full bg-[#f2f1ee]">
+        <div className="h-2 overflow-hidden rounded-full bg-soft">
           <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${porcentaje}%` }} />
         </div>
         {porcentaje < 100 && (

@@ -80,14 +80,14 @@ export default function Agenda() {
         <div className="mb-3 flex items-center justify-between text-[14px] font-semibold text-ink">
           <button
             onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}
-            className="flex h-7 w-7 items-center justify-center rounded-[6px] text-muted transition hover:bg-[#f2f1ee]"
+            className="flex h-7 w-7 items-center justify-center rounded-[6px] text-muted transition hover:bg-soft"
           >
             <i className="ti ti-chevron-left" />
           </button>
           <span className="capitalize">{month.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' })}</span>
           <button
             onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}
-            className="flex h-7 w-7 items-center justify-center rounded-[6px] text-muted transition hover:bg-[#f2f1ee]"
+            className="flex h-7 w-7 items-center justify-center rounded-[6px] text-muted transition hover:bg-soft"
           >
             <i className="ti ti-chevron-right" />
           </button>
@@ -108,7 +108,7 @@ export default function Agenda() {
               <div
                 key={i}
                 className={`relative rounded-[6px] py-1.5 text-center text-[12px] ${
-                  isToday ? 'bg-accent font-semibold text-white' : 'text-muted hover:bg-[#f2f1ee]'
+                  isToday ? 'bg-accent font-semibold text-white' : 'text-muted hover:bg-soft'
                 }`}
               >
                 {d.getDate()}

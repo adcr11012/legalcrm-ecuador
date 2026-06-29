@@ -25,7 +25,7 @@ export function CaseSidebar({
   return (
     <div className="flex h-full w-full flex-shrink-0 flex-col border-r border-border bg-surface lg:w-[270px]">
       <div className="border-b border-border p-3">
-        <div className="flex items-center gap-1.5 rounded-[6px] bg-[#f2f1ee] px-2.5 py-1.5">
+        <div className="flex items-center gap-1.5 rounded-[6px] bg-soft px-2.5 py-1.5">
           <i className="ti ti-search text-[14px] text-mute2" />
           <input
             value={query}

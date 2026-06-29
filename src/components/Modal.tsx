@@ -41,7 +41,7 @@ export function Modal({
           <div className="text-[16px] font-bold text-ink">{title}</div>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-[#f2f1ee]"
+            className="flex h-8 w-8 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-soft"
           >
             <i className="ti ti-x" />
           </button>

@@ -1,7 +1,7 @@
 import type { Etapa } from '@/types/database'
 
 const COLOR_CLASS: Record<string, string> = {
-  neutral: 'bg-[#f2f1ee] text-muted border border-border',
+  neutral: 'bg-soft text-muted border border-border',
   accent: 'bg-accent-soft text-accent',
   warn: 'bg-warn-soft text-warn',
   danger: 'bg-danger-soft text-danger',
@@ -12,7 +12,7 @@ const COLOR_CLASS: Record<string, string> = {
 export function EtapaPill({ etapa }: { etapa: Etapa | undefined | null }) {
   if (!etapa) {
     return (
-      <span className="inline-block whitespace-nowrap rounded-full border border-border bg-[#f2f1ee] px-2 py-0.5 text-[10px] text-mute2">
+      <span className="inline-block whitespace-nowrap rounded-full border border-border bg-soft px-2 py-0.5 text-[10px] text-mute2">
         Sin etapa
       </span>
     )

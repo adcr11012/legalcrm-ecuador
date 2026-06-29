@@ -6,8 +6,8 @@ function iconFor(nombre: string) {
   if (ext === 'pdf') return { icon: 'ti-file-type-pdf', bg: 'bg-danger-soft', fg: 'text-danger' }
   if (ext === 'doc' || ext === 'docx') return { icon: 'ti-file-type-doc', bg: 'bg-accent-soft', fg: 'text-accent' }
   if (ext === 'xls' || ext === 'xlsx') return { icon: 'ti-file-spreadsheet', bg: 'bg-success-soft', fg: 'text-success' }
-  if (ext === 'jpg' || ext === 'jpeg' || ext === 'png') return { icon: 'ti-photo', bg: 'bg-[#f2f1ee]', fg: 'text-muted' }
-  return { icon: 'ti-file', bg: 'bg-[#f2f1ee]', fg: 'text-muted' }
+  if (ext === 'jpg' || ext === 'jpeg' || ext === 'png') return { icon: 'ti-photo', bg: 'bg-soft', fg: 'text-muted' }
+  return { icon: 'ti-file', bg: 'bg-soft', fg: 'text-muted' }
 }
 
 export function DocumentosTab({
@@ -101,7 +101,7 @@ export function DocumentosTab({
                     <button
                       onClick={() => setEditingId(null)}
                       disabled={saving}
-                      className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-[#f2f1ee]"
+                      className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-soft"
                     >
                       <i className="ti ti-x text-[14px]" />
                     </button>
@@ -111,12 +111,12 @@ export function DocumentosTab({
                     {puedeEditar ? (
                       <button
                         onClick={() => onToggleVisibilidad(d)}
-                        className={`rounded-full px-2 py-0.5 text-[10px] ${d.visibilidad === 'compartido' ? 'bg-success-soft text-success' : 'border border-border bg-[#f2f1ee] text-muted'}`}
+                        className={`rounded-full px-2 py-0.5 text-[10px] ${d.visibilidad === 'compartido' ? 'bg-success-soft text-success' : 'border border-border bg-soft text-muted'}`}
                       >
                         {d.visibilidad === 'compartido' ? 'Compartido' : 'Privado'}
                       </button>
                     ) : (
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] ${d.visibilidad === 'compartido' ? 'bg-success-soft text-success' : 'border border-border bg-[#f2f1ee] text-muted'}`}>
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] ${d.visibilidad === 'compartido' ? 'bg-success-soft text-success' : 'border border-border bg-soft text-muted'}`}>
                         {d.visibilidad === 'compartido' ? 'Compartido' : 'Privado'}
                       </span>
                     )}
@@ -125,7 +125,7 @@ export function DocumentosTab({
                         href={d.drive_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-[#f2f1ee]"
+                        className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-soft"
                       >
                         <i className="ti ti-eye text-[14px]" />
                       </a>
@@ -133,7 +133,7 @@ export function DocumentosTab({
                     {puedeEditar && (
                       <button
                         onClick={() => startEdit(d)}
-                        className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-[#f2f1ee]"
+                        className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-soft"
                       >
                         <i className="ti ti-edit text-[14px]" />
                       </button>

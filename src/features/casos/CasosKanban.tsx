@@ -43,7 +43,7 @@ export function CasosKanban({
           >
             <div className="flex items-center justify-between pb-2.5 text-[11px] font-semibold uppercase tracking-wide text-muted">
               {etapa.nombre}
-              <span className="rounded-full border border-border bg-[#f2f1ee] px-1.5 py-0.5 text-[10px] text-mute2">
+              <span className="rounded-full border border-border bg-soft px-1.5 py-0.5 text-[10px] text-mute2">
                 {items.length}
               </span>
             </div>

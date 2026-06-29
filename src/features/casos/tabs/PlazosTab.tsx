@@ -59,7 +59,7 @@ export function PlazosTab({
       {puedeEditar && (
         <button
           onClick={onOpenAdd}
-          className="mt-1 inline-flex items-center gap-1.5 self-start rounded-[6px] border border-border px-3 py-1.5 text-[12px] text-muted transition hover:bg-[#f2f1ee]"
+          className="mt-1 inline-flex items-center gap-1.5 self-start rounded-[6px] border border-border px-3 py-1.5 text-[12px] text-muted transition hover:bg-soft"
         >
           <i className="ti ti-plus" /> Agregar plazo
         </button>

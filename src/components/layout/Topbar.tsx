@@ -24,7 +24,7 @@ export function Topbar({ action, onMenuClick }: { action: PageAction; onMenuClic
     <div className="flex h-[52px] flex-shrink-0 items-center gap-2.5 border-b border-border bg-surface px-3 sm:px-5">
       <button
         onClick={onMenuClick}
-        className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[6px] text-muted transition hover:bg-[#f2f1ee] hover:text-ink"
+        className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[6px] text-muted transition hover:bg-soft hover:text-ink"
       >
         <i className="ti ti-menu-2 text-[18px]" />
       </button>
