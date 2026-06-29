@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Topbar } from '@/components/layout/Topbar'
@@ -6,7 +6,20 @@ import { PageActionContext, type PageAction } from '@/components/layout/PageActi
 
 export function AppLayout() {
   const [action, setAction] = useState<PageAction>(null)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024)
+
+  useEffect(() => {
+    let wasDesktop = window.innerWidth >= 1024
+    function onResize() {
+      const isDesktop = window.innerWidth >= 1024
+      if (isDesktop !== wasDesktop) {
+        wasDesktop = isDesktop
+        setSidebarOpen(isDesktop)
+      }
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   return (
     <div className="flex h-screen bg-bg">
