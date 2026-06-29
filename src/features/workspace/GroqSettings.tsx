@@ -95,10 +95,16 @@ export function GroqSettings({ puedeEditar }: { puedeEditar: boolean }) {
       </div>
 
       <div className="mt-2 rounded-[8px] border border-accent/20 bg-accent-soft px-3 py-2 text-[11px] text-ink">
-        <i className="ti ti-info-circle text-accent" /> Esta IA es <strong>gratuita</strong> (modelo {GROQ_MODEL_LABEL}, provisto por
-        Groq). El plan gratuito tiene un límite de uso diario generoso para un estudio jurídico normal; si en algún momento
-        se necesita más capacidad, se puede mejorar a un plan de pago directamente en la cuenta de Groq, sin que cambie nada
+        <i className="ti ti-info-circle text-accent" /> Esta IA es <strong>gratuita</strong> (modelo {GROQ_MODEL_LABEL}, provisto por{' '}
+        <a href="https://groq.com" target="_blank" rel="noreferrer" className="font-semibold text-accent hover:underline">
+          Groq
+        </a>
+        ). El plan gratuito tiene un límite de uso diario generoso para un estudio jurídico normal; si en algún momento se
+        necesita más capacidad, se puede mejorar a un plan de pago directamente en la cuenta de Groq, sin que cambie nada
         aquí en la app.
+      </div>
+      <div className="mt-1.5 text-[10px] text-mute2">
+        Groq is a trademark of Groq, Inc. and/or its affiliates.
       </div>
 
       {puedeEditar && !conectado && (
