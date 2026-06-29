@@ -4,6 +4,7 @@ import { getWorkspace, updateWorkspace } from '@/features/workspace/api'
 import { isGoogleDriveConfigured, buildGoogleConsentUrl, getDriveEstado, desconectarDrive, type DriveEstado } from '@/features/workspace/driveApi'
 import { EtapasSettings } from '@/features/casos/EtapasSettings'
 import { GroqSettings } from '@/features/workspace/GroqSettings'
+import { OpenRouterSettings } from '@/features/workspace/OpenRouterSettings'
 import { getTema, setTema, type Tema } from '@/lib/theme'
 import type { Workspace } from '@/types/database'
 
@@ -163,6 +164,10 @@ export default function Configuracion() {
 
         <div className="mt-2.5">
           <GroqSettings puedeEditar={puedeEditar} />
+        </div>
+
+        <div className="mt-2.5">
+          <OpenRouterSettings puedeEditar={puedeEditar} />
         </div>
 
         {puedeEditar && (

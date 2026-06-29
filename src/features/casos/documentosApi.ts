@@ -27,3 +27,15 @@ export async function countDocumentos(): Promise<number> {
   if (error) throw error
   return count ?? 0
 }
+
+export async function leerDocumentoAhora(documentoId: string): Promise<void> {
+  const { data: session } = await supabase.auth.getSession()
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/leer-documento-ahora`
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${session.session?.access_token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ documento_id: documentoId }),
+  })
+  const json = await res.json()
+  if (!res.ok) throw new Error(json.error ?? 'No se pudo leer el documento')
+}

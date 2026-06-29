@@ -92,6 +92,8 @@ export type CasoPersona = {
   created_at: string
 }
 
+export type EstadoLectura = 'no_aplica' | 'pendiente' | 'procesando' | 'listo' | 'error'
+
 export type Documento = {
   id: string
   caso_id: string
@@ -101,6 +103,10 @@ export type Documento = {
   visibilidad: Visibilidad
   subido_por: string
   created_at: string
+  mime_type: string | null
+  estado_lectura: EstadoLectura
+  contenido_texto: string | null
+  error_lectura: string | null
 }
 
 export type Plazo = {
@@ -214,6 +220,14 @@ export type Database = {
         Returns: { conectado: boolean }[]
       }
       groq_desconectar: {
+        Args: Record<string, never>
+        Returns: undefined
+      }
+      openrouter_estado: {
+        Args: Record<string, never>
+        Returns: { conectado: boolean }[]
+      }
+      openrouter_desconectar: {
         Args: Record<string, never>
         Returns: undefined
       }

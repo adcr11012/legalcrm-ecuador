@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { getCaso, updateCaso, updateEtapaCaso, deleteCaso } from '@/features/casos/api'
 import { listPersonas, removePersona } from '@/features/casos/personasApi'
-import { listDocumentos, toggleVisibilidad, deleteDocumento } from '@/features/casos/documentosApi'
+import { listDocumentos, toggleVisibilidad, deleteDocumento, leerDocumentoAhora } from '@/features/casos/documentosApi'
 import { renameDriveFile } from '@/features/workspace/driveApi'
 import { listPlazos, deletePlazo } from '@/features/casos/plazosApi'
 import { listHistorial } from '@/features/casos/historialApi'
@@ -143,6 +143,14 @@ export function CaseDetail({
     setDocumentos((prev) => prev.filter((d) => d.id !== id))
   }
 
+  async function onLeerDocAhora(id: string) {
+    try {
+      await leerDocumentoAhora(id)
+    } finally {
+      setDocumentos(await listDocumentos(caso!.id))
+    }
+  }
+
   async function onDeletePlazo(id: string) {
     await deletePlazo(id)
     setPlazos((prev) => prev.filter((p) => p.id !== id))
@@ -250,6 +258,7 @@ export function CaseDetail({
             onToggleVisibilidad={onToggleDocVisibilidad}
             onRename={onRenameDoc}
             onDelete={onDeleteDoc}
+            onLeerAhora={onLeerDocAhora}
           />
         )}
         {tab === 'plazos' && (

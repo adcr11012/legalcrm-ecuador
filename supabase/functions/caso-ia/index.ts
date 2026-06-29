@@ -1,21 +1,16 @@
 // Edge Function: caso-ia
 // Asistente de IA con contexto de un caso específico: datos del caso,
-// partes, plazos, historial, y el TEXTO real de los documentos PDF
-// subidos a Drive (los demás tipos de archivo solo aportan su nombre).
+// partes, plazos, historial, y el texto de los documentos. El texto de
+// los documentos ya fue extraído de antemano por el worker en segundo
+// plano (procesar-documentos) — aquí solo se lee lo que ya está calculado,
+// sin descargar ni procesar nada en vivo.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
-import { Buffer } from 'node:buffer'
-// @deno-types="npm:@types/pdf-parse@1"
-import pdfParse from 'npm:pdf-parse@1.1.1'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
-const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID')
-const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET')
 const GROQ_MODEL = 'llama-3.3-70b-versatile'
-const MAX_DOCS_CON_TEXTO = 5
-const MAX_CHARS_POR_DOC = 3000
 
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
@@ -29,48 +24,18 @@ function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', ...corsHeaders } })
 }
 
-async function getAccessToken(refreshToken: string): Promise<string | null> {
-  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) return null
-  try {
-    const res = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        client_id: GOOGLE_CLIENT_ID,
-        client_secret: GOOGLE_CLIENT_SECRET,
-        refresh_token: refreshToken,
-        grant_type: 'refresh_token',
-      }),
-    })
-    const j = await res.json()
-    return res.ok ? j.access_token : null
-  } catch {
-    return null
+function descripcionDocumento(doc: { nombre: string; created_at: string; estado_lectura: string; contenido_texto: string | null; error_lectura: string | null }): string {
+  const fecha = doc.created_at.slice(0, 10)
+  if (doc.estado_lectura === 'listo' && doc.contenido_texto) {
+    return `### Documento: "${doc.nombre}" (subido ${fecha})\nTEXTO:\n${doc.contenido_texto}`
   }
-}
-
-async function extraerTextoPdf(fileId: string, accessToken: string): Promise<{ texto: string | null; motivo: string }> {
-  try {
-    const metaRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?fields=mimeType`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
-    const meta = await metaRes.json()
-    if (!metaRes.ok) return { texto: null, motivo: `no se pudo leer metadata (${metaRes.status}: ${meta.error?.message ?? 'sin detalle'})` }
-    if (meta.mimeType !== 'application/pdf') return { texto: null, motivo: `tipo de archivo "${meta.mimeType}", no es PDF` }
-
-    const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
-    if (!fileRes.ok) return { texto: null, motivo: `no se pudo descargar el archivo (${fileRes.status})` }
-    const buffer = Buffer.from(await fileRes.arrayBuffer())
-    const parsed = await pdfParse(buffer)
-    const texto = parsed.text?.trim().slice(0, MAX_CHARS_POR_DOC) || null
-    return texto ? { texto, motivo: 'ok' } : { texto: null, motivo: 'el PDF no tiene texto extraíble (puede ser escaneado/imagen)' }
-  } catch (err) {
-    const mensaje = err instanceof Error ? err.message : String(err)
-    console.error('extraerTextoPdf error', fileId, err)
-    return { texto: null, motivo: `error al procesar el PDF: ${mensaje}` }
+  if (doc.estado_lectura === 'pendiente' || doc.estado_lectura === 'procesando') {
+    return `### Documento: "${doc.nombre}" (subido ${fecha}) — todavía se está procesando, vuelve a preguntar en unos minutos`
   }
+  if (doc.estado_lectura === 'error') {
+    return `### Documento: "${doc.nombre}" (subido ${fecha}) — no se pudo leer su contenido (${doc.error_lectura ?? 'error desconocido'})`
+  }
+  return `### Documento: "${doc.nombre}" (subido ${fecha}) — solo nombre, sin lectura de contenido para este tipo de archivo`
 }
 
 Deno.serve(async (req) => {
@@ -92,7 +57,11 @@ Deno.serve(async (req) => {
         userClient.from('caso_personas').select('*').eq('caso_id', caso_id),
         userClient.from('plazos').select('*').eq('caso_id', caso_id).order('fecha'),
         userClient.from('historial').select('*').eq('caso_id', caso_id).order('created_at', { ascending: false }).limit(12),
-        userClient.from('documentos').select('*').eq('caso_id', caso_id).order('created_at', { ascending: false }),
+        userClient
+          .from('documentos')
+          .select('nombre, created_at, estado_lectura, contenido_texto, error_lectura')
+          .eq('caso_id', caso_id)
+          .order('created_at', { ascending: false }),
       ])
     if (casoError || !caso) return json({ error: 'Caso no encontrado o sin acceso' }, 404)
 
@@ -111,41 +80,7 @@ Deno.serve(async (req) => {
 
     const plazosTexto = (plazos ?? []).map((p) => `- ${p.fecha}: ${p.titulo} (${p.tipo})`).join('\n')
     const historialTexto = (historial ?? []).map((h) => `- ${h.created_at.slice(0, 10)}: ${h.accion}${h.detalle ? ' — ' + h.detalle : ''}`).join('\n')
-
-    // Lectura de texto real de documentos PDF (los más recientes, vía Drive).
-    let documentosTexto = '(sin documentos)'
-    if (documentos && documentos.length > 0) {
-      const { data: driveConexion } = await admin
-        .from('drive_conexion')
-        .select('refresh_token')
-        .eq('workspace_id', perfil.workspace_id)
-        .maybeSingle()
-      const accessToken = driveConexion ? await getAccessToken(driveConexion.refresh_token) : null
-      const sinConexionMotivo = !driveConexion
-        ? 'Google Drive no está conectado en este workspace'
-        : !accessToken
-          ? 'no se pudo obtener un token de acceso de Google (revisa la conexión de Drive)'
-          : null
-
-      const partes: string[] = []
-      let leidos = 0
-      for (const doc of documentos) {
-        if (accessToken && doc.drive_file_id && leidos < MAX_DOCS_CON_TEXTO) {
-          const { texto, motivo } = await extraerTextoPdf(doc.drive_file_id, accessToken)
-          if (texto) leidos++
-          partes.push(
-            texto
-              ? `### Documento: "${doc.nombre}" (subido ${doc.created_at.slice(0, 10)})\nTEXTO:\n${texto}`
-              : `### Documento: "${doc.nombre}" — no se pudo leer su contenido (${motivo})`,
-          )
-        } else {
-          partes.push(
-            `### Documento: "${doc.nombre}" (subido ${doc.created_at.slice(0, 10)}) — solo nombre, sin texto leído${sinConexionMotivo ? ` (${sinConexionMotivo})` : ''}`,
-          )
-        }
-      }
-      documentosTexto = partes.join('\n\n')
-    }
+    const documentosTexto = documentos && documentos.length > 0 ? documentos.map(descripcionDocumento).join('\n\n') : '(sin documentos)'
 
     const { data: groqConexion } = await admin
       .from('groq_conexion')

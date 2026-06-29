@@ -130,6 +130,12 @@ Deno.serve(async (req) => {
       }),
     }).catch((err) => console.error('No se pudo marcar el archivo como solo lectura', err))
 
+    const LEGIBLES = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ]
+    const esLegible = LEGIBLES.includes(file.type) || file.type.startsWith('image/')
+
     const { data: documento, error: docError } = await admin
       .from('documentos')
       .insert({
@@ -139,6 +145,8 @@ Deno.serve(async (req) => {
         drive_url: uploadJson.webViewLink,
         visibilidad,
         subido_por: userData.user.id,
+        mime_type: file.type || null,
+        estado_lectura: esLegible ? 'pendiente' : 'no_aplica',
       })
       .select('*')
       .single()

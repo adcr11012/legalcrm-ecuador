@@ -10,6 +10,14 @@ function iconFor(nombre: string) {
   return { icon: 'ti-file', bg: 'bg-soft', fg: 'text-muted' }
 }
 
+function estadoLecturaBadge(d: Documento) {
+  if (d.estado_lectura === 'listo') return { label: 'Listo para IA', cls: 'bg-success-soft text-success' }
+  if (d.estado_lectura === 'pendiente') return { label: 'En cola para IA', cls: 'bg-soft text-muted' }
+  if (d.estado_lectura === 'procesando') return { label: 'Leyendo…', cls: 'bg-accent-soft text-accent' }
+  if (d.estado_lectura === 'error') return { label: 'No se pudo leer', cls: 'bg-danger-soft text-danger' }
+  return null
+}
+
 export function DocumentosTab({
   documentos,
   puedeEditar,
@@ -18,6 +26,7 @@ export function DocumentosTab({
   onToggleVisibilidad,
   onRename,
   onDelete,
+  onLeerAhora,
 }: {
   documentos: Documento[]
   puedeEditar: boolean
@@ -26,10 +35,21 @@ export function DocumentosTab({
   onToggleVisibilidad: (doc: Documento) => void
   onRename: (id: string, nuevoNombre: string) => Promise<void>
   onDelete: (id: string) => void
+  onLeerAhora: (id: string) => Promise<void>
 }) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingValue, setEditingValue] = useState('')
   const [saving, setSaving] = useState(false)
+  const [leyendoId, setLeyendoId] = useState<string | null>(null)
+
+  async function handleLeerAhora(id: string) {
+    setLeyendoId(id)
+    try {
+      await onLeerAhora(id)
+    } finally {
+      setLeyendoId(null)
+    }
+  }
 
   function startEdit(d: Documento) {
     setEditingId(d.id)
@@ -86,7 +106,23 @@ export function DocumentosTab({
                 ) : (
                   <div className="truncate text-[13px] font-medium text-ink">{d.nombre}</div>
                 )}
-                <div className="mt-0.5 text-[11px] text-muted">{new Date(d.created_at).toLocaleDateString('es-EC')}</div>
+                <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted">
+                  <span>{new Date(d.created_at).toLocaleDateString('es-EC')}</span>
+                  {estadoLecturaBadge(d) && (
+                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${estadoLecturaBadge(d)!.cls}`} title={d.error_lectura ?? undefined}>
+                      {estadoLecturaBadge(d)!.label}
+                    </span>
+                  )}
+                  {(d.estado_lectura === 'pendiente' || d.estado_lectura === 'error') && (
+                    <button
+                      onClick={() => handleLeerAhora(d.id)}
+                      disabled={leyendoId === d.id}
+                      className="text-[10px] text-accent underline-offset-2 hover:underline disabled:opacity-60"
+                    >
+                      {leyendoId === d.id ? 'Leyendo…' : 'Leer ahora'}
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="flex flex-shrink-0 items-center gap-2">
                 {editing ? (
