@@ -177,7 +177,11 @@ export function EtapasSettings() {
         <button
           onClick={onAgregar}
           disabled={!nuevoNombre.trim()}
-          className="rounded-[8px] border border-border px-3 py-2 text-[12px] text-muted transition hover:bg-[#f2f1ee] disabled:opacity-60"
+          className={`rounded-[8px] px-3 py-2 text-[12px] font-medium transition ${
+            nuevoNombre.trim()
+              ? 'bg-accent text-white hover:bg-accent-hover'
+              : 'cursor-not-allowed border border-border text-mute2'
+          }`}
         >
           <i className="ti ti-plus" /> Añadir
         </button>
