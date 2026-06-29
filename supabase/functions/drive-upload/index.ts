@@ -126,7 +126,7 @@ Deno.serve(async (req) => {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contentRestrictions: [{ readOnly: true, reason: 'Gestionado por LegalCRM Ecuador' }],
+        contentRestrictions: [{ readOnly: true, reason: 'Gestionado por TSADOQ' }],
       }),
     }).catch((err) => console.error('No se pudo marcar el archivo como solo lectura', err))
 

@@ -1,6 +1,6 @@
 export type Tema = 'claro' | 'oscuro' | 'moderno'
 
-const STORAGE_KEY = 'legalcrm-theme'
+const STORAGE_KEY = 'tsadoq-theme'
 
 export function getTema(): Tema {
   const v = localStorage.getItem(STORAGE_KEY)

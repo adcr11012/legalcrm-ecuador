@@ -100,7 +100,7 @@ export default function Invite() {
     <div className="flex min-h-screen items-center justify-center bg-bg px-4">
       <div className="w-full max-w-[380px] rounded-[14px] border border-border bg-surface p-8 shadow-sm">
         <div className="mb-6 text-center">
-          <div className="text-[13px] font-bold text-accent">LegalCRM Ecuador</div>
+          <div className="text-[13px] font-bold text-accent">TSADOQ</div>
         </div>
 
         {loadError ? (

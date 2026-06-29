@@ -8,7 +8,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2'
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const FROM_EMAIL = Deno.env.get('ALERTAS_FROM_EMAIL') ?? 'LegalCRM Ecuador <onboarding@resend.dev>'
+const FROM_EMAIL = Deno.env.get('ALERTAS_FROM_EMAIL') ?? 'TSADOQ <onboarding@resend.dev>'
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
@@ -106,7 +106,7 @@ Deno.serve(async () => {
           `Recordatorio: ${plazo.titulo} — ${caso.titulo}`,
           `<p>Tienes un ${plazo.tipo} próximo en <strong>${caso.titulo}</strong>:</p>
            <p><strong>${plazo.titulo}</strong><br>Fecha: ${fechaFmt}</p>
-           <p>— LegalCRM Ecuador</p>`,
+           <p>— TSADOQ</p>`,
         )
         alertados++
       } else {

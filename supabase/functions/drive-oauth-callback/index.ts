@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        name: `LegalCRM Ecuador - ${workspace?.nombre ?? 'Workspace'}`,
+        name: `TSADOQ - ${workspace?.nombre ?? 'Workspace'}`,
         mimeType: 'application/vnd.google-apps.folder',
       }),
     })

@@ -68,7 +68,7 @@ export function GroqSettings({ puedeEditar }: { puedeEditar: boolean }) {
 
   return (
     <div className="rounded-[10px] border border-border bg-surface p-3">
-      <label className={labelClass}>Inteligencia artificial</label>
+      <label className={labelClass}>TSADOQ IA</label>
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 text-[13px] text-muted">
           <span className={`h-1.5 w-1.5 rounded-full ${conectado ? 'bg-success' : 'bg-mute2'}`} />
@@ -95,7 +95,7 @@ export function GroqSettings({ puedeEditar }: { puedeEditar: boolean }) {
       </div>
 
       <div className="mt-2 rounded-[8px] border border-accent/20 bg-accent-soft px-3 py-2 text-[11px] text-ink">
-        <i className="ti ti-info-circle text-accent" /> Esta IA es <strong>gratuita</strong> (modelo {GROQ_MODEL_LABEL}, provisto por{' '}
+        <i className="ti ti-info-circle text-accent" /> <strong>TSADOQ IA</strong> es <strong>gratuita</strong> (modelo {GROQ_MODEL_LABEL}, provisto por{' '}
         <a href="https://groq.com" target="_blank" rel="noreferrer" className="font-semibold text-accent hover:underline">
           Groq
         </a>
@@ -119,7 +119,7 @@ export function GroqSettings({ puedeEditar }: { puedeEditar: boolean }) {
                 </a>{' '}
                 e inicia sesión (puedes usar tu cuenta de Google).
               </li>
-              <li>Haz clic en "Create API Key", ponle un nombre cualquiera (ej. "LegalCRM").</li>
+              <li>Haz clic en "Create API Key", ponle un nombre cualquiera (ej. "TSADOQ").</li>
               <li>Copia la clave que aparece (empieza con "gsk_…") — solo se muestra una vez.</li>
               <li>Pégala abajo y haz clic en "Conectar".</li>
             </ol>
@@ -146,7 +146,7 @@ export function GroqSettings({ puedeEditar }: { puedeEditar: boolean }) {
 
       {respuesta && (
         <div className="mt-3 rounded-[8px] border border-accent/20 bg-accent-soft px-3 py-2 text-[12px] text-ink">
-          <span className="font-semibold text-accent">La IA dice:</span> {respuesta}
+          <span className="font-semibold text-accent">TSADOQ IA dice:</span> {respuesta}
         </div>
       )}
       {error && <p className="mt-2 text-[11px] text-danger">{error}</p>}

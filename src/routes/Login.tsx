@@ -32,7 +32,7 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-bg px-4">
       <div className="w-full max-w-[380px] rounded-[14px] border border-border bg-surface p-8 shadow-sm">
         <div className="mb-7 text-center">
-          <div className="text-[13px] font-bold text-accent">LegalCRM Ecuador</div>
+          <div className="text-[13px] font-bold text-accent">TSADOQ</div>
           <h1 className="mt-3 text-[19px] font-bold text-ink">Iniciar sesión</h1>
         </div>
 
