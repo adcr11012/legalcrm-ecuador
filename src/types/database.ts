@@ -11,7 +11,6 @@ export type Materia =
   | 'constitucional'
   | 'asesoria'
   | 'otro'
-export type EstadoCaso = 'nuevo' | 'activo' | 'en_espera' | 'audiencia_proxima' | 'resuelto' | 'archivado'
 export type EtapaColor = 'neutral' | 'accent' | 'warn' | 'danger' | 'success' | 'purple'
 export type RolPersona = 'abogado' | 'cliente' | 'otro'
 export type Visibilidad = 'privado' | 'compartido'
@@ -58,7 +57,6 @@ export type Caso = {
   materia: Materia | null
   tipo_accion: string | null
   cliente_id: string | null
-  estado: EstadoCaso
   etapa_id: string | null
   numero_causa: string | null
   juzgado: string | null
