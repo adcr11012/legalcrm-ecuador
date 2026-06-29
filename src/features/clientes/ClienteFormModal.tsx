@@ -29,6 +29,8 @@ export function ClienteFormModal({
   const [email, setEmail] = useState('')
   const [telefono, setTelefono] = useState('')
   const [etiquetas, setEtiquetas] = useState('')
+  const [origen, setOrigen] = useState('')
+  const [proximoSeguimiento, setProximoSeguimiento] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -40,6 +42,8 @@ export function ClienteFormModal({
     setEmail(cliente?.email ?? '')
     setTelefono(cliente?.telefono ?? '')
     setEtiquetas(cliente?.etiquetas.join(', ') ?? '')
+    setOrigen(cliente?.origen ?? '')
+    setProximoSeguimiento(cliente?.proximo_seguimiento ?? '')
     setError(null)
   }, [open, cliente])
 
@@ -50,6 +54,8 @@ export function ClienteFormModal({
     setEmail('')
     setTelefono('')
     setEtiquetas('')
+    setOrigen('')
+    setProximoSeguimiento('')
     setError(null)
   }
 
@@ -71,6 +77,8 @@ export function ClienteFormModal({
           email: email || null,
           telefono: telefono || null,
           etiquetas: etiquetasArr,
+          origen: origen || null,
+          proximo_seguimiento: proximoSeguimiento || null,
         })
         onUpdated?.(updated)
       } else {
@@ -81,6 +89,8 @@ export function ClienteFormModal({
           email: email || null,
           telefono: telefono || null,
           etiquetas: etiquetasArr,
+          origen: origen || null,
+          proximo_seguimiento: proximoSeguimiento || null,
         })
         onCreated?.(created)
         reset()
@@ -142,6 +152,17 @@ export function ClienteFormModal({
         <div>
           <label className={labelClass}>Etiquetas (separadas por coma)</label>
           <input value={etiquetas} onChange={(e) => setEtiquetas(e.target.value)} className={inputClass} placeholder="Corporativo, VIP" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={labelClass}>Origen (opcional)</label>
+            <input value={origen} onChange={(e) => setOrigen(e.target.value)} className={inputClass} placeholder="Referido, web, redes…" />
+          </div>
+          <div>
+            <label className={labelClass}>Próximo seguimiento (opcional)</label>
+            <input type="date" value={proximoSeguimiento} onChange={(e) => setProximoSeguimiento(e.target.value)} className={inputClass} />
+          </div>
         </div>
 
         {error && (

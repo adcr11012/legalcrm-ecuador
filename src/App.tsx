@@ -7,7 +7,6 @@ import Register from '@/routes/Register'
 import Dashboard from '@/routes/Dashboard'
 import Casos from '@/routes/Casos'
 import Clientes from '@/routes/Clientes'
-import ClienteDetalle from '@/routes/ClienteDetalle'
 import Agenda from '@/routes/Agenda'
 import Usuarios from '@/routes/Usuarios'
 import Invite from '@/routes/Invite'
@@ -33,7 +32,7 @@ function App() {
               <Route path="/casos" element={<Casos />} />
               <Route path="/casos/:id" element={<Casos />} />
               <Route path="/clientes" element={<Clientes />} />
-              <Route path="/clientes/:id" element={<ClienteDetalle />} />
+              <Route path="/clientes/:id" element={<Clientes />} />
               <Route path="/agenda" element={<Agenda />} />
               <Route path="/usuarios" element={<Usuarios />} />
               <Route path="/drive" element={<Drive />} />

@@ -133,6 +133,8 @@ export type Cliente = {
   estado: EstadoCliente
   etiquetas: string[]
   notas: string | null
+  origen: string | null
+  proximo_seguimiento: string | null
   created_at: string
   updated_at: string
 }

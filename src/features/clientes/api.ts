@@ -8,6 +8,8 @@ export type NuevoCliente = {
   email?: string | null
   telefono?: string | null
   etiquetas?: string[]
+  origen?: string | null
+  proximo_seguimiento?: string | null
 }
 
 export async function listClientes(): Promise<Cliente[]> {
