@@ -16,19 +16,25 @@ function sectionFor(pathname: string): string {
   return match ?? pathname
 }
 
-export function Topbar({ action }: { action: PageAction }) {
+export function Topbar({ action, onMenuClick }: { action: PageAction; onMenuClick: () => void }) {
   const { pathname } = useLocation()
   const title = TITLES[sectionFor(pathname)] ?? ''
 
   return (
-    <div className="flex h-[52px] flex-shrink-0 items-center gap-2.5 border-b border-border bg-surface px-5">
-      <div className="flex-1 text-[15px] font-semibold text-ink">{title}</div>
+    <div className="flex h-[52px] flex-shrink-0 items-center gap-2.5 border-b border-border bg-surface px-3 sm:px-5">
+      <button
+        onClick={onMenuClick}
+        className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[6px] text-muted transition hover:bg-[#f2f1ee] hover:text-ink lg:hidden"
+      >
+        <i className="ti ti-menu-2 text-[18px]" />
+      </button>
+      <div className="min-w-0 flex-1 truncate text-[15px] font-semibold text-ink">{title}</div>
       {action && (
         <button
           onClick={action.onClick}
-          className="inline-flex items-center gap-1.5 rounded-[6px] border border-accent bg-accent px-3 py-1.5 text-[12px] text-white transition hover:bg-accent-hover"
+          className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-[6px] border border-accent bg-accent px-2.5 py-1.5 text-[12px] text-white transition hover:bg-accent-hover sm:px-3"
         >
-          <i className="ti ti-plus" /> {action.label}
+          <i className="ti ti-plus" /> <span className="hidden sm:inline">{action.label}</span>
         </button>
       )}
     </div>

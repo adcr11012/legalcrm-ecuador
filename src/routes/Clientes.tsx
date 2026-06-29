@@ -49,7 +49,7 @@ export default function Clientes() {
   if (error) return <div className="flex-1 p-5 text-[13px] text-danger">{error}</div>
 
   return (
-    <div className="flex-1 overflow-y-auto p-5">
+    <div className="flex-1 overflow-y-auto p-3 sm:p-5">
       <div className="mb-4 flex gap-1 rounded-[6px] bg-[#f2f1ee] p-1" style={{ width: 'fit-content' }}>
         {(['todos', 'activo', 'inactivo', 'potencial'] as const).map((f) => (
           <button

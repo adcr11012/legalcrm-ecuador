@@ -83,15 +83,15 @@ export default function Dashboard() {
   const maxCarga = Math.max(1, ...Array.from(personasByAbogado.values()).map((v) => v.length))
 
   return (
-    <div className="flex-1 overflow-y-auto p-5">
-      <div className="grid grid-cols-4 gap-3">
+    <div className="flex-1 overflow-y-auto p-3 sm:p-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard label="Casos activos" value={stats.casosActivos} />
         <StatCard label="Audiencias próximas" value={stats.audienciasProximas} valueClass="text-danger" hint="Próximos 7 días" />
         <StatCard label="Clientes activos" value={stats.clientesActivos} />
         <StatCard label="Documentos en Drive" value={stats.documentos} />
       </div>
 
-      <div className="mt-4 grid grid-cols-[1.4fr_1fr] gap-4">
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr]">
         <div className="rounded-[10px] border border-border bg-surface p-4">
           <div className="mb-3 text-[13px] font-semibold text-ink">Actividad reciente</div>
           <div className="flex flex-col">

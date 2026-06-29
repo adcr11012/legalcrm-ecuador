@@ -107,18 +107,23 @@ export default function Casos() {
         />
       ) : (
         <div className="flex flex-1 overflow-hidden">
-          <CaseSidebar casos={casos} selectedId={id ?? null} onSelect={(cid) => navigate(`/casos/${cid}`)} />
-          {id ? (
-            <CaseDetail
-              casoId={id}
-              onDeleted={() => {
-                setCasos((prev) => prev.filter((c) => c.id !== id))
-                navigate('/casos')
-              }}
-            />
-          ) : (
-            <div className="flex flex-1 items-center justify-center text-[13px] text-muted">Selecciona un caso.</div>
-          )}
+          <div className={`${id ? 'hidden lg:flex' : 'flex'} w-full lg:w-auto`}>
+            <CaseSidebar casos={casos} selectedId={id ?? null} onSelect={(cid) => navigate(`/casos/${cid}`)} />
+          </div>
+          <div className={`${id ? 'flex' : 'hidden lg:flex'} flex-1`}>
+            {id ? (
+              <CaseDetail
+                casoId={id}
+                onBack={() => navigate('/casos')}
+                onDeleted={() => {
+                  setCasos((prev) => prev.filter((c) => c.id !== id))
+                  navigate('/casos')
+                }}
+              />
+            ) : (
+              <div className="flex flex-1 items-center justify-center text-[13px] text-muted">Selecciona un caso.</div>
+            )}
+          </div>
         </div>
       )}
 

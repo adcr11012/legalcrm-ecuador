@@ -127,7 +127,7 @@ export function InfoTab({
         <InstanciaStepper caso={caso} puedeEditar={puedeEditar} onChange={(instancia) => onUpdateCampo({ instancia_actual: instancia })} />
       </div>
 
-      <div className="grid grid-cols-3 gap-2.5">
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
         <div className="rounded-[10px] border border-border bg-surface p-3">
           <div className="text-[10px] font-semibold uppercase tracking-wide text-mute2">N° de causa</div>
           {puedeEditar ? (

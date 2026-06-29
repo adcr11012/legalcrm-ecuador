@@ -74,18 +74,18 @@ export default function ClienteDetalle() {
   if (!cliente) return <div className="flex-1 p-5 text-[13px] text-muted">Cliente no encontrado.</div>
 
   return (
-    <div className="flex-1 overflow-y-auto p-5">
+    <div className="flex-1 overflow-y-auto p-3 sm:p-5">
       <button onClick={() => navigate('/clientes')} className="mb-4 flex items-center gap-1.5 text-[12px] text-muted hover:text-ink">
         <i className="ti ti-arrow-left" /> Volver a clientes
       </button>
 
-      <div className="flex items-center justify-between gap-3.5">
-        <div className="flex items-center gap-3.5">
+      <div className="flex flex-wrap items-center justify-between gap-3.5">
+        <div className="flex min-w-0 items-center gap-3.5">
           <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-accent-soft text-[18px] font-semibold text-accent">
             {initials(cliente.nombre)}
           </div>
-          <div>
-            <div className="text-[19px] font-bold text-ink">{cliente.nombre}</div>
+          <div className="min-w-0">
+            <div className="truncate text-[19px] font-bold text-ink">{cliente.nombre}</div>
             <div className="text-[12px] text-muted">{TIPO_LABEL[cliente.tipo]}</div>
           </div>
         </div>
@@ -107,7 +107,7 @@ export default function ClienteDetalle() {
         </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-3 gap-2.5">
+      <div className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-3">
         <div className="rounded-[10px] border border-border bg-surface p-3">
           <div className="text-[10px] font-semibold uppercase tracking-wide text-mute2">Estado</div>
           <div className="mt-1 text-[13px] font-medium text-ink">{ESTADO_LABEL[cliente.estado]}</div>

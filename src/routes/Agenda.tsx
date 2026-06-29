@@ -75,8 +75,8 @@ export default function Agenda() {
   if (error) return <div className="flex-1 p-5 text-[13px] text-danger">{error}</div>
 
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <div className="w-[280px] flex-shrink-0 overflow-y-auto border-r border-border bg-surface p-4">
+    <div className="flex flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
+      <div className="w-full flex-shrink-0 overflow-y-auto border-b border-border bg-surface p-4 lg:w-[280px] lg:border-b-0 lg:border-r">
         <div className="mb-3 flex items-center justify-between text-[14px] font-semibold text-ink">
           <button
             onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}
@@ -123,7 +123,7 @@ export default function Agenda() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-5">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-5">
         {Array.from(proximos.entries()).map(([fecha, items]) => (
           <div key={fecha} className="mb-5">
             <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-mute2">{labelFecha(fecha)}</div>
