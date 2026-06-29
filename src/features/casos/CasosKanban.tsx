@@ -22,13 +22,13 @@ export function CasosKanban({
   const [dragOverCol, setDragOverCol] = useState<EstadoCaso | null>(null)
 
   return (
-    <div className="flex flex-1 gap-3 overflow-x-auto p-4">
+    <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-3 sm:p-4 lg:flex-row lg:gap-3 lg:overflow-x-auto lg:overflow-y-hidden">
       {COLUMNS.map((col) => {
         const items = casos.filter((c) => c.estado === col)
         return (
           <div
             key={col}
-            className="w-[210px] flex-shrink-0"
+            className="w-full flex-shrink-0 lg:w-[210px]"
             onDragOver={(e) => {
               e.preventDefault()
               setDragOverCol(col)

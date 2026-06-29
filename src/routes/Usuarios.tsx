@@ -78,13 +78,13 @@ export default function Usuarios() {
         </div>
         {usuarios.map((u) => (
           <div key={u.id} className="grid grid-cols-[2fr_1.2fr_1fr_80px] items-center border-b border-border px-4 py-3 last:border-b-0">
-            <div className="flex items-center gap-2.5">
+            <div className="flex min-w-0 items-center gap-2.5">
               <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent">
                 {initials(u.nombre)}
               </div>
-              <div>
-                <div className="text-[13px] font-medium text-ink">{u.nombre}</div>
-                <div className="text-[11px] text-mute2">{u.email}</div>
+              <div className="min-w-0">
+                <div className="truncate text-[13px] font-medium text-ink">{u.nombre}</div>
+                <div className="truncate text-[11px] text-mute2">{u.email}</div>
               </div>
             </div>
             <div>
