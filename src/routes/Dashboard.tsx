@@ -6,10 +6,10 @@ import { countDocumentos } from '@/features/casos/documentosApi'
 import { countAudienciasProximas } from '@/features/casos/plazosApi'
 import { countClientesActivos } from '@/features/clientes/api'
 import { listWorkspaceUsers } from '@/features/users/api'
+import { listEtapas } from '@/features/casos/etapasApi'
 import { ACCION_COLOR, ACCION_LABEL } from '@/features/casos/historialLabels'
-import { ESTADO_LABEL } from '@/features/casos/estado'
 import { nombrePersona } from '@/features/casos/personaDisplay'
-import type { Caso, CasoPersona, EstadoCaso, HistorialEntry, Usuario } from '@/types/database'
+import type { Caso, CasoPersona, Etapa, HistorialEntry, Usuario } from '@/types/database'
 
 type Stats = {
   casosActivos: number
@@ -24,7 +24,8 @@ export default function Dashboard() {
   const [casosById, setCasosById] = useState<Map<string, Caso>>(new Map())
   const [usersById, setUsersById] = useState<Map<string, Usuario>>(new Map())
   const [personasByAbogado, setPersonasByAbogado] = useState<Map<string, CasoPersona[]>>(new Map())
-  const [distEstado, setDistEstado] = useState<Record<EstadoCaso, number>>({} as Record<EstadoCaso, number>)
+  const [etapas, setEtapas] = useState<Etapa[]>([])
+  const [distEtapa, setDistEtapa] = useState<Map<string, number>>(new Map())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -32,13 +33,14 @@ export default function Dashboard() {
     setLoading(true)
     setError(null)
     try {
-      const [casos, users, hist, audiencias, clientesActivos, documentos] = await Promise.all([
+      const [casos, users, hist, audiencias, clientesActivos, documentos, etapasData] = await Promise.all([
         listCasos(),
         listWorkspaceUsers(),
         listHistorialReciente(10),
         countAudienciasProximas(7),
         countClientesActivos(),
         countDocumentos(),
+        listEtapas(),
       ])
 
       const personas = await listPersonasForCasos(casos.map((c) => c.id))
@@ -46,10 +48,14 @@ export default function Dashboard() {
       setCasosById(new Map(casos.map((c) => [c.id, c])))
       setUsersById(new Map(users.map((u) => [u.id, u])))
       setHistorial(hist)
+      setEtapas(etapasData)
 
-      const dist: Record<string, number> = {}
-      for (const c of casos) dist[c.estado] = (dist[c.estado] ?? 0) + 1
-      setDistEstado(dist as Record<EstadoCaso, number>)
+      const dist = new Map<string, number>()
+      for (const c of casos) {
+        if (!c.etapa_id) continue
+        dist.set(c.etapa_id, (dist.get(c.etapa_id) ?? 0) + 1)
+      }
+      setDistEtapa(dist)
 
       const porAbogado = new Map<string, CasoPersona[]>()
       for (const p of personas) {
@@ -59,8 +65,9 @@ export default function Dashboard() {
       }
       setPersonasByAbogado(porAbogado)
 
+      const etapasTerminalesIds = new Set(etapasData.filter((e) => e.es_terminal).map((e) => e.id))
       setStats({
-        casosActivos: casos.filter((c) => c.estado === 'activo').length,
+        casosActivos: casos.filter((c) => c.etapa_id && !etapasTerminalesIds.has(c.etapa_id)).length,
         audienciasProximas: audiencias,
         clientesActivos,
         documentos,
@@ -134,12 +141,12 @@ export default function Dashboard() {
           </div>
 
           <div className="rounded-[10px] border border-border bg-surface p-4">
-            <div className="mb-3 text-[13px] font-semibold text-ink">Casos por estado</div>
-            <div className="flex gap-2 text-center">
-              {(Object.keys(ESTADO_LABEL) as EstadoCaso[]).map((estado) => (
-                <div key={estado} className="flex-1">
-                  <div className="text-[18px] font-bold text-ink">{distEstado[estado] ?? 0}</div>
-                  <div className="text-[10px] text-mute2">{ESTADO_LABEL[estado]}</div>
+            <div className="mb-3 text-[13px] font-semibold text-ink">Casos por etapa</div>
+            <div className="flex flex-wrap gap-2 text-center">
+              {etapas.map((etapa) => (
+                <div key={etapa.id} className="flex-1">
+                  <div className="text-[18px] font-bold text-ink">{distEtapa.get(etapa.id) ?? 0}</div>
+                  <div className="text-[10px] text-mute2">{etapa.nombre}</div>
                 </div>
               ))}
             </div>

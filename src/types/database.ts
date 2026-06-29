@@ -12,6 +12,7 @@ export type Materia =
   | 'asesoria'
   | 'otro'
 export type EstadoCaso = 'nuevo' | 'activo' | 'en_espera' | 'audiencia_proxima' | 'resuelto' | 'archivado'
+export type EtapaColor = 'neutral' | 'accent' | 'warn' | 'danger' | 'success' | 'purple'
 export type RolPersona = 'abogado' | 'cliente' | 'otro'
 export type Visibilidad = 'privado' | 'compartido'
 export type TipoPlazo = 'audiencia' | 'plazo' | 'otro'
@@ -40,6 +41,16 @@ export type Usuario = {
 export type HonorariosTipo = 'fijo' | 'por_hora' | 'por_exito' | 'mixto'
 export type HonorariosFormaPago = 'inicio' | 'cuotas' | 'al_finalizar'
 
+export type Etapa = {
+  id: string
+  workspace_id: string
+  nombre: string
+  color: EtapaColor
+  es_terminal: boolean
+  posicion: number
+  created_at: string
+}
+
 export type Caso = {
   id: string
   workspace_id: string
@@ -48,6 +59,7 @@ export type Caso = {
   tipo_accion: string | null
   cliente_id: string | null
   estado: EstadoCaso
+  etapa_id: string | null
   numero_causa: string | null
   juzgado: string | null
   fecha_inicio: string | null
@@ -166,6 +178,7 @@ export type Database = {
       clientes: Table<Cliente>
       cliente_notas: Table<ClienteNota>
       invitaciones: Table<Invitacion>
+      etapas: Table<Etapa>
     }
     Views: { [_ in never]: never }
     Functions: {

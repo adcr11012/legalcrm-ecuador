@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { Caso, EstadoCaso } from '@/types/database'
+import type { Caso } from '@/types/database'
 
 export type NuevoCaso = {
   workspace_id: string
@@ -46,8 +46,8 @@ export async function updateCaso(id: string, patch: Partial<Caso>): Promise<Caso
   return data
 }
 
-export async function updateEstadoCaso(id: string, estado: EstadoCaso): Promise<Caso> {
-  return updateCaso(id, { estado })
+export async function updateEtapaCaso(id: string, etapaId: string): Promise<Caso> {
+  return updateCaso(id, { etapa_id: etapaId })
 }
 
 export async function deleteCaso(id: string): Promise<void> {

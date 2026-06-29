@@ -1,14 +1,16 @@
 import { useState } from 'react'
-import type { Caso } from '@/types/database'
-import { EstadoPill } from '@/features/casos/estado'
+import type { Caso, Etapa } from '@/types/database'
+import { EtapaPill } from '@/features/casos/etapaDisplay'
 import { MATERIA_LABEL } from '@/features/casos/materias'
 
 export function CaseSidebar({
   casos,
+  etapasById,
   selectedId,
   onSelect,
 }: {
   casos: Caso[]
+  etapasById: Map<string, Etapa>
   selectedId: string | null
   onSelect: (id: string) => void
 }) {
@@ -46,7 +48,7 @@ export function CaseSidebar({
             <div className="text-[12px] font-semibold text-ink">{c.titulo}</div>
             <div className="mt-0.5 text-[11px] text-muted">{MATERIA_LABEL[c.materia ?? 'otro']}</div>
             <div className="mt-1.5">
-              <EstadoPill estado={c.estado} />
+              <EtapaPill etapa={c.etapa_id ? etapasById.get(c.etapa_id) : null} />
             </div>
           </button>
         ))}

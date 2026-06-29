@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { getWorkspace, updateWorkspace } from '@/features/workspace/api'
 import { isGoogleDriveConfigured, buildGoogleConsentUrl, getDriveEstado, desconectarDrive, type DriveEstado } from '@/features/workspace/driveApi'
+import { EtapasSettings } from '@/features/casos/EtapasSettings'
 import type { Workspace } from '@/types/database'
 
 const inputClass =
@@ -74,7 +75,7 @@ export default function Configuracion() {
 
   return (
     <div className="flex-1 overflow-y-auto p-5">
-      <div className="max-w-[480px]">
+      <div className="max-w-[560px]">
         <div className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-mute2">Workspace</div>
 
         <div className="mb-2.5 rounded-[10px] border border-border bg-surface p-3">
@@ -125,6 +126,13 @@ export default function Configuracion() {
             )}
           </div>
         </div>
+
+        {puedeEditar && (
+          <>
+            <div className="mt-6 mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-mute2">Etapas del Kanban</div>
+            <EtapasSettings />
+          </>
+        )}
 
         <div className="mt-6 mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-mute2">Notificaciones</div>
 

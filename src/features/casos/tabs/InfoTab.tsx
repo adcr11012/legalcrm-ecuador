@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Caso, CasoPersona, EstadoCaso, Usuario } from '@/types/database'
-import { ESTADO_LABEL } from '@/features/casos/estado'
+import type { Caso, CasoPersona, Etapa, Usuario } from '@/types/database'
 import { nombrePersona, initialsOf } from '@/features/casos/personaDisplay'
 import { calcularCompletitud } from '@/features/casos/completitud'
 import { InstanciaStepper } from '@/features/casos/InstanciaStepper'
@@ -17,8 +16,9 @@ export function InfoTab({
   caso,
   personas,
   usersById,
+  etapas,
   puedeEditar,
-  onChangeEstado,
+  onChangeEtapa,
   onUpdateCampo,
   onOpenAddPersona,
   onRemovePersona,
@@ -29,8 +29,9 @@ export function InfoTab({
   caso: Caso
   personas: CasoPersona[]
   usersById: Map<string, Usuario>
+  etapas: Etapa[]
   puedeEditar: boolean
-  onChangeEstado: (estado: EstadoCaso) => void
+  onChangeEtapa: (etapaId: string) => void
   onUpdateCampo: (patch: Partial<Caso>) => void
   onOpenAddPersona: () => void
   onRemovePersona: (id: string) => void
@@ -163,21 +164,19 @@ export function InfoTab({
           )}
         </div>
         <div className="rounded-[10px] border border-border bg-surface p-3">
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-mute2">Estado</div>
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-mute2">Etapa</div>
           {puedeEditar ? (
-            <select
-              value={caso.estado}
-              onChange={(e) => onChangeEstado(e.target.value as EstadoCaso)}
-              className={fieldInputClass}
-            >
-              {Object.entries(ESTADO_LABEL).map(([v, l]) => (
-                <option key={v} value={v}>
-                  {l}
+            <select value={caso.etapa_id ?? ''} onChange={(e) => onChangeEtapa(e.target.value)} className={fieldInputClass}>
+              {etapas.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.nombre}
                 </option>
               ))}
             </select>
           ) : (
-            <div className="mt-1 text-[13px] font-medium text-ink">{ESTADO_LABEL[caso.estado]}</div>
+            <div className="mt-1 text-[13px] font-medium text-ink">
+              {etapas.find((e) => e.id === caso.etapa_id)?.nombre ?? '—'}
+            </div>
           )}
         </div>
         <div className="col-span-3 rounded-[10px] border border-border bg-surface p-3">

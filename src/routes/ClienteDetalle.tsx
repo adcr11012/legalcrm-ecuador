@@ -4,10 +4,11 @@ import { getCliente, deleteCliente } from '@/features/clientes/api'
 import { listNotas, addNota } from '@/features/clientes/notasApi'
 import { listCasosPorCliente } from '@/features/casos/personasApi'
 import { listCasosByIds } from '@/features/casos/api'
+import { listEtapas } from '@/features/casos/etapasApi'
 import { ClienteFormModal } from '@/features/clientes/ClienteFormModal'
-import { EstadoPill } from '@/features/casos/estado'
+import { EtapaPill } from '@/features/casos/etapaDisplay'
 import { useAuth } from '@/features/auth/AuthProvider'
-import type { Caso, Cliente, ClienteNota, EstadoCliente } from '@/types/database'
+import type { Caso, Cliente, ClienteNota, EstadoCliente, Etapa } from '@/types/database'
 
 const ESTADO_LABEL: Record<EstadoCliente, string> = { activo: 'Activo', inactivo: 'Inactivo', potencial: 'Potencial' }
 const TIPO_LABEL: Record<string, string> = { persona_natural: 'Persona natural', empresa: 'Empresa' }
@@ -22,6 +23,7 @@ export default function ClienteDetalle() {
   const { profile } = useAuth()
   const [cliente, setCliente] = useState<Cliente | null>(null)
   const [casos, setCasos] = useState<Caso[]>([])
+  const [etapas, setEtapas] = useState<Etapa[]>([])
   const [notas, setNotas] = useState<ClienteNota[]>([])
   const [nuevaNota, setNuevaNota] = useState('')
   const [loading, setLoading] = useState(true)
@@ -34,9 +36,10 @@ export default function ClienteDetalle() {
     setLoading(true)
     setError(null)
     try {
-      const [c, n, personas] = await Promise.all([getCliente(id), listNotas(id), listCasosPorCliente(id)])
+      const [c, n, personas, e] = await Promise.all([getCliente(id), listNotas(id), listCasosPorCliente(id), listEtapas()])
       setCliente(c)
       setNotas(n)
+      setEtapas(e)
       const casoIds = personas.map((p) => p.caso_id)
       setCasos(await listCasosByIds(casoIds))
     } catch (err) {
@@ -141,7 +144,7 @@ export default function ClienteDetalle() {
             className="flex items-center justify-between gap-3 rounded-[10px] border border-border bg-surface px-3.5 py-2.5 text-left transition hover:border-mute2/40"
           >
             <span className="text-[13px] font-medium text-ink">{c.titulo}</span>
-            <EstadoPill estado={c.estado} />
+            <EtapaPill etapa={c.etapa_id ? etapas.find((e) => e.id === c.etapa_id) : null} />
           </button>
         ))}
         {casos.length === 0 && (

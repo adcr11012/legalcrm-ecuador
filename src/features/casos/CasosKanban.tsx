@@ -1,55 +1,54 @@
 import { useState } from 'react'
-import type { Caso, CasoPersona, EstadoCaso, Usuario } from '@/types/database'
-import { ESTADO_LABEL } from '@/features/casos/estado'
+import type { Caso, CasoPersona, Etapa, Usuario } from '@/types/database'
 import { nombrePersona, initialsOf } from '@/features/casos/personaDisplay'
 import { MATERIA_LABEL } from '@/features/casos/materias'
 
-const COLUMNS: EstadoCaso[] = ['nuevo', 'activo', 'en_espera', 'audiencia_proxima', 'resuelto', 'archivado']
-
 export function CasosKanban({
   casos,
+  etapas,
   personasByCaso,
   usersById,
   onOpen,
-  onEstadoChange,
+  onEtapaChange,
 }: {
   casos: Caso[]
+  etapas: Etapa[]
   personasByCaso: Map<string, CasoPersona[]>
   usersById: Map<string, Usuario>
   onOpen: (id: string) => void
-  onEstadoChange: (id: string, estado: EstadoCaso) => void
+  onEtapaChange: (id: string, etapaId: string) => void
 }) {
-  const [dragOverCol, setDragOverCol] = useState<EstadoCaso | null>(null)
+  const [dragOverCol, setDragOverCol] = useState<string | null>(null)
 
   return (
     <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-3 sm:p-4 lg:flex-row lg:gap-3 lg:overflow-x-auto lg:overflow-y-hidden">
-      {COLUMNS.map((col) => {
-        const items = casos.filter((c) => c.estado === col)
+      {etapas.map((etapa) => {
+        const items = casos.filter((c) => c.etapa_id === etapa.id)
         return (
           <div
-            key={col}
+            key={etapa.id}
             className="w-full flex-shrink-0 lg:w-[210px]"
             onDragOver={(e) => {
               e.preventDefault()
-              setDragOverCol(col)
+              setDragOverCol(etapa.id)
             }}
-            onDragLeave={() => setDragOverCol((c) => (c === col ? null : c))}
+            onDragLeave={() => setDragOverCol((c) => (c === etapa.id ? null : c))}
             onDrop={(e) => {
               e.preventDefault()
               const id = e.dataTransfer.getData('text/caso-id')
-              const fromEstado = e.dataTransfer.getData('text/from-estado')
+              const fromEtapa = e.dataTransfer.getData('text/from-etapa')
               setDragOverCol(null)
-              if (id && fromEstado !== col) onEstadoChange(id, col)
+              if (id && fromEtapa !== etapa.id) onEtapaChange(id, etapa.id)
             }}
           >
             <div className="flex items-center justify-between pb-2.5 text-[11px] font-semibold uppercase tracking-wide text-muted">
-              {ESTADO_LABEL[col]}
+              {etapa.nombre}
               <span className="rounded-full border border-border bg-[#f2f1ee] px-1.5 py-0.5 text-[10px] text-mute2">
                 {items.length}
               </span>
             </div>
 
-            <div className={`flex min-h-[40px] flex-col gap-2 rounded-[8px] p-1 transition ${dragOverCol === col ? 'bg-accent-soft/60' : ''}`}>
+            <div className={`flex min-h-[40px] flex-col gap-2 rounded-[8px] p-1 transition ${dragOverCol === etapa.id ? 'bg-accent-soft/60' : ''}`}>
               {items.map((c) => {
                 const personas = personasByCaso.get(c.id) ?? []
                 const abogado = personas.find((p) => p.rol === 'abogado')
@@ -59,7 +58,7 @@ export function CasosKanban({
                     draggable
                     onDragStart={(e) => {
                       e.dataTransfer.setData('text/caso-id', c.id)
-                      e.dataTransfer.setData('text/from-estado', c.estado)
+                      e.dataTransfer.setData('text/from-etapa', c.etapa_id ?? '')
                     }}
                     onClick={() => onOpen(c.id)}
                     className="cursor-pointer rounded-[10px] border border-border bg-surface p-3 transition hover:-translate-y-px hover:border-accent hover:shadow-md"

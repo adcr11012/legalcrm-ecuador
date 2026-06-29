@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@/features/auth/AuthProvider'
-import { getCaso, updateCaso, updateEstadoCaso, deleteCaso } from '@/features/casos/api'
+import { getCaso, updateCaso, updateEtapaCaso, deleteCaso } from '@/features/casos/api'
 import { listPersonas, removePersona } from '@/features/casos/personasApi'
 import { listDocumentos, toggleVisibilidad, deleteDocumento } from '@/features/casos/documentosApi'
 import { renameDriveFile } from '@/features/workspace/driveApi'
 import { listPlazos, deletePlazo } from '@/features/casos/plazosApi'
 import { listHistorial } from '@/features/casos/historialApi'
 import { listWorkspaceUsers } from '@/features/users/api'
-import { EstadoPill } from '@/features/casos/estado'
+import { listEtapas } from '@/features/casos/etapasApi'
+import { EtapaPill } from '@/features/casos/etapaDisplay'
 import { InfoTab } from '@/features/casos/tabs/InfoTab'
 import { DocumentosTab } from '@/features/casos/tabs/DocumentosTab'
 import { PlazosTab } from '@/features/casos/tabs/PlazosTab'
@@ -18,7 +19,7 @@ import { AddPlazoModal } from '@/features/casos/AddPlazoModal'
 import { AddDocumentoModal } from '@/features/casos/AddDocumentoModal'
 import { CasoFormModal } from '@/features/casos/CasoFormModal'
 import { MATERIA_LABEL } from '@/features/casos/materias'
-import type { Caso, CasoPersona, Documento, EstadoCaso, HistorialEntry, Plazo, Usuario } from '@/types/database'
+import type { Caso, CasoPersona, Documento, Etapa, HistorialEntry, Plazo, Usuario } from '@/types/database'
 
 const TABS = [
   { key: 'info', label: 'Información', icon: 'ti-info-circle' },
@@ -46,6 +47,7 @@ export function CaseDetail({
   const [plazos, setPlazos] = useState<Plazo[]>([])
   const [historial, setHistorial] = useState<HistorialEntry[]>([])
   const [usersById, setUsersById] = useState<Map<string, Usuario>>(new Map())
+  const [etapas, setEtapas] = useState<Etapa[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tab, setTab] = useState<TabKey>('info')
@@ -61,13 +63,14 @@ export function CaseDetail({
     setError(null)
     setTab('info')
     try {
-      const [c, p, d, pl, h, u] = await Promise.all([
+      const [c, p, d, pl, h, u, e] = await Promise.all([
         getCaso(casoId),
         listPersonas(casoId),
         listDocumentos(casoId),
         listPlazos(casoId),
         listHistorial(casoId),
         listWorkspaceUsers(),
+        listEtapas(),
       ])
       setCaso(c)
       setPersonas(p)
@@ -75,6 +78,7 @@ export function CaseDetail({
       setPlazos(pl)
       setHistorial(h)
       setUsersById(new Map(u.map((x) => [x.id, x])))
+      setEtapas(e)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo cargar el caso.')
     } finally {
@@ -95,8 +99,8 @@ export function CaseDetail({
   const puedeSubirDocs = puedeEditar || miRol === 'cliente'
   const showNotas = puedeEditar
 
-  async function onChangeEstado(estado: EstadoCaso) {
-    const updated = await updateEstadoCaso(caso!.id, estado)
+  async function onChangeEtapa(etapaId: string) {
+    const updated = await updateEtapaCaso(caso!.id, etapaId)
     setCaso(updated)
     setHistorial(await listHistorial(caso!.id))
   }
@@ -165,7 +169,7 @@ export function CaseDetail({
           <div className="min-w-0">
             <div className="truncate text-[17px] font-bold tracking-tight text-ink sm:text-[19px]">{caso.titulo}</div>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
-              <EstadoPill estado={caso.estado} />
+              <EtapaPill etapa={caso.etapa_id ? etapas.find((e) => e.id === caso.etapa_id) : null} />
               <span className="inline-block rounded-full border border-border bg-[#f2f1ee] px-2 py-0.5 text-[10px] font-medium text-muted">
                 {MATERIA_LABEL[caso.materia ?? 'otro']}
               </span>
@@ -220,8 +224,9 @@ export function CaseDetail({
             caso={caso}
             personas={personas}
             usersById={usersById}
+            etapas={etapas}
             puedeEditar={puedeEditar}
-            onChangeEstado={onChangeEstado}
+            onChangeEtapa={onChangeEtapa}
             onUpdateCampo={onUpdateCampo}
             onOpenAddPersona={() => setAddPersonaOpen(true)}
             onRemovePersona={onRemovePersona}

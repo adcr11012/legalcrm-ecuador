@@ -2,21 +2,23 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { usePageAction } from '@/components/layout/PageActionContext'
 import { useAuth } from '@/features/auth/AuthProvider'
-import { listCasos, updateEstadoCaso } from '@/features/casos/api'
+import { listCasos, updateEtapaCaso } from '@/features/casos/api'
 import { listPersonasForCasos } from '@/features/casos/personasApi'
+import { listEtapas } from '@/features/casos/etapasApi'
 import { listWorkspaceUsers } from '@/features/users/api'
 import { CasoFormModal } from '@/features/casos/CasoFormModal'
 import { CaseSidebar } from '@/features/casos/CaseSidebar'
 import { CaseDetail } from '@/features/casos/CaseDetail'
 import { CasosKanban } from '@/features/casos/CasosKanban'
 import { Modal } from '@/components/Modal'
-import type { Caso, CasoPersona, EstadoCaso, Usuario } from '@/types/database'
+import type { Caso, CasoPersona, Etapa, Usuario } from '@/types/database'
 
 export default function Casos() {
   const { profile } = useAuth()
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const [casos, setCasos] = useState<Caso[]>([])
+  const [etapas, setEtapas] = useState<Etapa[]>([])
   const [personasByCaso, setPersonasByCaso] = useState<Map<string, CasoPersona[]>>(new Map())
   const [usersById, setUsersById] = useState<Map<string, Usuario>>(new Map())
   const [loading, setLoading] = useState(true)
@@ -24,6 +26,8 @@ export default function Casos() {
   const [modalOpen, setModalOpen] = useState(false)
   const [view, setView] = useState<'list' | 'kanban'>('list')
   const [kanbanModalCasoId, setKanbanModalCasoId] = useState<string | null>(null)
+
+  const etapasById = new Map(etapas.map((e) => [e.id, e]))
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -33,9 +37,10 @@ export default function Casos() {
       setCasos(data)
       if (!id && data[0]) navigate(`/casos/${data[0].id}`, { replace: true })
 
-      const [personas, users] = await Promise.all([
+      const [personas, users, etapasData] = await Promise.all([
         listPersonasForCasos(data.map((c) => c.id)),
         listWorkspaceUsers(),
+        listEtapas(),
       ])
       const pMap = new Map<string, CasoPersona[]>()
       for (const p of personas) {
@@ -43,6 +48,7 @@ export default function Casos() {
       }
       setPersonasByCaso(pMap)
       setUsersById(new Map(users.map((u) => [u.id, u])))
+      setEtapas(etapasData)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudieron cargar los casos.')
     } finally {
@@ -63,8 +69,8 @@ export default function Casos() {
       : null,
   )
 
-  async function onKanbanEstadoChange(casoId: string, estado: EstadoCaso) {
-    const updated = await updateEstadoCaso(casoId, estado)
+  async function onKanbanEtapaChange(casoId: string, etapaId: string) {
+    const updated = await updateEtapaCaso(casoId, etapaId)
     setCasos((prev) => prev.map((c) => (c.id === updated.id ? updated : c)))
   }
 
@@ -100,15 +106,16 @@ export default function Casos() {
       ) : view === 'kanban' ? (
         <CasosKanban
           casos={casos}
+          etapas={etapas}
           personasByCaso={personasByCaso}
           usersById={usersById}
           onOpen={(cid) => setKanbanModalCasoId(cid)}
-          onEstadoChange={onKanbanEstadoChange}
+          onEtapaChange={onKanbanEtapaChange}
         />
       ) : (
         <div className="flex flex-1 overflow-hidden">
           <div className={`${id ? 'hidden lg:flex' : 'flex'} w-full lg:w-auto`}>
-            <CaseSidebar casos={casos} selectedId={id ?? null} onSelect={(cid) => navigate(`/casos/${cid}`)} />
+            <CaseSidebar casos={casos} etapasById={etapasById} selectedId={id ?? null} onSelect={(cid) => navigate(`/casos/${cid}`)} />
           </div>
           <div className={`${id ? 'flex' : 'hidden lg:flex'} flex-1`}>
             {id ? (
