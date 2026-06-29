@@ -14,6 +14,7 @@ import { DocumentosTab } from '@/features/casos/tabs/DocumentosTab'
 import { PlazosTab } from '@/features/casos/tabs/PlazosTab'
 import { HistorialTab } from '@/features/casos/tabs/HistorialTab'
 import { NotasTab } from '@/features/casos/tabs/NotasTab'
+import { IATab } from '@/features/casos/tabs/IATab'
 import { AddPersonaModal } from '@/features/casos/AddPersonaModal'
 import { AddPlazoModal } from '@/features/casos/AddPlazoModal'
 import { AddDocumentoModal } from '@/features/casos/AddDocumentoModal'
@@ -27,6 +28,7 @@ const TABS = [
   { key: 'plazos', label: 'Plazos', icon: 'ti-clock' },
   { key: 'hist', label: 'Historial', icon: 'ti-history' },
   { key: 'notas', label: 'Notas', icon: 'ti-notes' },
+  { key: 'ia', label: 'IA', icon: 'ti-sparkles' },
 ] as const
 
 type TabKey = (typeof TABS)[number]['key']
@@ -255,6 +257,7 @@ export function CaseDetail({
         )}
         {tab === 'hist' && <HistorialTab historial={historial} />}
         {tab === 'notas' && showNotas && <NotasTab nota={caso.nota_interna} onSave={onSaveNota} />}
+        {tab === 'ia' && <IATab casoId={caso.id} />}
       </div>
 
       <AddPersonaModal
