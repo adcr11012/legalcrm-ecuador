@@ -163,7 +163,7 @@ export function ClienteDetail({
               {cliente.origen || 'Sin registrar'}
             </div>
           </div>
-          <div className="col-span-2 rounded-[10px] border border-border bg-surface p-3">
+          <div className="sm:col-span-2 rounded-[10px] border border-border bg-surface p-3">
             <div className="text-[10px] font-semibold uppercase tracking-wide text-mute2">Próximo seguimiento</div>
             <input
               type="date"

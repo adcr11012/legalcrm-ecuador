@@ -179,7 +179,7 @@ export function InfoTab({
             </div>
           )}
         </div>
-        <div className="col-span-3 rounded-[10px] border border-border bg-surface p-3">
+        <div className="sm:col-span-3 rounded-[10px] border border-border bg-surface p-3">
           <div className="text-[10px] font-semibold uppercase tracking-wide text-mute2">Juzgado / Tribunal</div>
           {puedeEditar ? (
             <input
@@ -198,13 +198,13 @@ export function InfoTab({
           )}
         </div>
         {caso.es_contencioso && caso.contraparte_nombre && (
-          <div className="col-span-3 rounded-[10px] border border-border bg-surface p-3">
+          <div className="sm:col-span-3 rounded-[10px] border border-border bg-surface p-3">
             <div className="text-[10px] font-semibold uppercase tracking-wide text-mute2">Contraparte</div>
             <div className="mt-1 text-[13px] font-medium text-ink">{caso.contraparte_nombre}</div>
           </div>
         )}
         {caso.honorarios_tipo && (
-          <div className="col-span-3 rounded-[10px] border border-border bg-surface p-3">
+          <div className="sm:col-span-3 rounded-[10px] border border-border bg-surface p-3">
             <div className="text-[10px] font-semibold uppercase tracking-wide text-mute2">Honorarios</div>
             <div className="mt-1 text-[13px] font-medium text-ink">
               {caso.honorarios_monto != null ? `$${caso.honorarios_monto}` : '—'} · {caso.honorarios_tipo}
