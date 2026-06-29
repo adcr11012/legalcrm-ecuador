@@ -233,6 +233,10 @@ export function CaseDetail({
             tienePlazos={plazos.length > 0}
             tieneDocumentos={documentos.length > 0}
             onOpenAddPlazo={() => setAddPlazoOpen(true)}
+            onOpenAddDoc={() => {
+              setTab('docs')
+              setAddDocOpen(true)
+            }}
           />
         )}
         {tab === 'docs' && (

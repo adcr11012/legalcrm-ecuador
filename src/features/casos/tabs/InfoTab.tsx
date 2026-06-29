@@ -25,6 +25,7 @@ export function InfoTab({
   tienePlazos,
   tieneDocumentos,
   onOpenAddPlazo,
+  onOpenAddDoc,
 }: {
   caso: Caso
   personas: CasoPersona[]
@@ -38,6 +39,7 @@ export function InfoTab({
   tienePlazos: boolean
   tieneDocumentos: boolean
   onOpenAddPlazo: () => void
+  onOpenAddDoc: () => void
 }) {
   const [numeroCausa, setNumeroCausa] = useState(caso.numero_causa ?? '')
   const [juzgado, setJuzgado] = useState(caso.juzgado ?? '')
@@ -109,8 +111,7 @@ export function InfoTab({
               icono="ti-files"
               titulo="Documentos"
               descripcion="Sube el primer documento del caso."
-              onClick={() => {}}
-              deshabilitada
+              onClick={onOpenAddDoc}
             />
           )}
           {!itemCumplido('honorarios') && (
@@ -262,13 +263,11 @@ function TarjetaPendiente({
   titulo,
   descripcion,
   onClick,
-  deshabilitada,
 }: {
   icono: string
   titulo: string
   descripcion: string
   onClick: () => void
-  deshabilitada?: boolean
 }) {
   return (
     <div className="flex items-start gap-3 rounded-[10px] border border-dashed border-border bg-surface p-3">
@@ -278,11 +277,9 @@ function TarjetaPendiente({
       <div className="min-w-0 flex-1">
         <div className="text-[12px] font-semibold text-ink">{titulo}</div>
         <div className="mt-0.5 text-[11px] text-mute2">{descripcion}</div>
-        {!deshabilitada && (
-          <button onClick={onClick} className="mt-1.5 text-[11px] font-medium text-accent hover:underline">
-            Añadir
-          </button>
-        )}
+        <button onClick={onClick} className="mt-1.5 text-[11px] font-medium text-accent hover:underline">
+          Añadir
+        </button>
       </div>
     </div>
   )
