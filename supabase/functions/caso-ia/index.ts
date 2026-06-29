@@ -4,6 +4,7 @@
 // subidos a Drive (los demás tipos de archivo solo aportan su nombre).
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { Buffer } from 'node:buffer'
 // @deno-types="npm:@types/pdf-parse@1"
 import pdfParse from 'npm:pdf-parse@1.1.1'
 
@@ -48,24 +49,27 @@ async function getAccessToken(refreshToken: string): Promise<string | null> {
   }
 }
 
-async function extraerTextoPdf(fileId: string, accessToken: string): Promise<string | null> {
+async function extraerTextoPdf(fileId: string, accessToken: string): Promise<{ texto: string | null; motivo: string }> {
   try {
     const metaRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?fields=mimeType`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     })
     const meta = await metaRes.json()
-    if (!metaRes.ok || meta.mimeType !== 'application/pdf') return null
+    if (!metaRes.ok) return { texto: null, motivo: `no se pudo leer metadata (${metaRes.status}: ${meta.error?.message ?? 'sin detalle'})` }
+    if (meta.mimeType !== 'application/pdf') return { texto: null, motivo: `tipo de archivo "${meta.mimeType}", no es PDF` }
 
     const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     })
-    if (!fileRes.ok) return null
-    const buffer = new Uint8Array(await fileRes.arrayBuffer())
+    if (!fileRes.ok) return { texto: null, motivo: `no se pudo descargar el archivo (${fileRes.status})` }
+    const buffer = Buffer.from(await fileRes.arrayBuffer())
     const parsed = await pdfParse(buffer)
-    return parsed.text?.trim().slice(0, MAX_CHARS_POR_DOC) || null
+    const texto = parsed.text?.trim().slice(0, MAX_CHARS_POR_DOC) || null
+    return texto ? { texto, motivo: 'ok' } : { texto: null, motivo: 'el PDF no tiene texto extraíble (puede ser escaneado/imagen)' }
   } catch (err) {
+    const mensaje = err instanceof Error ? err.message : String(err)
     console.error('extraerTextoPdf error', fileId, err)
-    return null
+    return { texto: null, motivo: `error al procesar el PDF: ${mensaje}` }
   }
 }
 
@@ -117,18 +121,27 @@ Deno.serve(async (req) => {
         .eq('workspace_id', perfil.workspace_id)
         .maybeSingle()
       const accessToken = driveConexion ? await getAccessToken(driveConexion.refresh_token) : null
+      const sinConexionMotivo = !driveConexion
+        ? 'Google Drive no está conectado en este workspace'
+        : !accessToken
+          ? 'no se pudo obtener un token de acceso de Google (revisa la conexión de Drive)'
+          : null
 
       const partes: string[] = []
+      let leidos = 0
       for (const doc of documentos) {
-        if (accessToken && doc.drive_file_id && partes.filter((p) => p.includes('TEXTO:')).length < MAX_DOCS_CON_TEXTO) {
-          const texto = await extraerTextoPdf(doc.drive_file_id, accessToken)
+        if (accessToken && doc.drive_file_id && leidos < MAX_DOCS_CON_TEXTO) {
+          const { texto, motivo } = await extraerTextoPdf(doc.drive_file_id, accessToken)
+          if (texto) leidos++
           partes.push(
             texto
               ? `### Documento: "${doc.nombre}" (subido ${doc.created_at.slice(0, 10)})\nTEXTO:\n${texto}`
-              : `### Documento: "${doc.nombre}" — no se pudo leer su contenido (no es PDF o no disponible)`,
+              : `### Documento: "${doc.nombre}" — no se pudo leer su contenido (${motivo})`,
           )
         } else {
-          partes.push(`### Documento: "${doc.nombre}" (subido ${doc.created_at.slice(0, 10)}) — solo nombre, sin texto leído`)
+          partes.push(
+            `### Documento: "${doc.nombre}" (subido ${doc.created_at.slice(0, 10)}) — solo nombre, sin texto leído${sinConexionMotivo ? ` (${sinConexionMotivo})` : ''}`,
+          )
         }
       }
       documentosTexto = partes.join('\n\n')
