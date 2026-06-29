@@ -48,7 +48,7 @@ export default function Clientes() {
             <ClienteSidebar clientes={clientes} selectedId={id ?? null} onSelect={(cid) => navigate(`/clientes/${cid}`)} />
           </div>
           {id && (
-            <div className="flex flex-1">
+            <div className="min-w-0 flex flex-1">
               <ClienteDetail
                 clienteId={id}
                 onBack={() => navigate('/clientes')}

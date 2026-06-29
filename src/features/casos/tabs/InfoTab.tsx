@@ -275,7 +275,7 @@ function TarjetaPendiente({
       <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
         <i className={`ti ${icono} text-[16px]`} />
       </div>
-      <div className="flex-1">
+      <div className="min-w-0 flex-1">
         <div className="text-[12px] font-semibold text-ink">{titulo}</div>
         <div className="mt-0.5 text-[11px] text-mute2">{descripcion}</div>
         {!deshabilitada && (

@@ -155,7 +155,7 @@ export function CaseDetail({
   const visibleTabs = TABS.filter((t) => t.key !== 'notas' || showNotas)
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden bg-bg">
+    <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-bg">
       <div className="flex flex-shrink-0 flex-wrap items-start justify-between gap-3 border-b border-border bg-surface px-3 pb-3.5 pt-4 sm:px-5">
         <div className="flex min-w-0 items-start gap-2">
           {onBack && (

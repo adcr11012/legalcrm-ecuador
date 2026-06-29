@@ -117,7 +117,7 @@ export default function Casos() {
           <div className={`${id ? 'hidden lg:flex' : 'flex'} w-full lg:w-auto`}>
             <CaseSidebar casos={casos} etapasById={etapasById} selectedId={id ?? null} onSelect={(cid) => navigate(`/casos/${cid}`)} />
           </div>
-          <div className={`${id ? 'flex' : 'hidden lg:flex'} flex-1`}>
+          <div className={`${id ? 'flex' : 'hidden lg:flex'} min-w-0 flex-1`}>
             {id ? (
               <CaseDetail
                 casoId={id}
