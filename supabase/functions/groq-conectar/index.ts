@@ -1,13 +1,14 @@
-// Edge Function: gemini-conectar
-// Recibe una API key de Gemini (Google AI Studio), valida que funcione con
-// una llamada de prueba, y la guarda a nivel de workspace. Solo un admin
-// puede conectar.
+// Edge Function: groq-conectar
+// Recibe una API key de Groq (console.groq.com/keys), valida que funcione
+// con una llamada de prueba, y la guarda a nivel de workspace. Solo un
+// admin puede conectar.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
+const GROQ_MODEL = 'llama-3.3-70b-versatile'
 
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
@@ -46,7 +47,7 @@ Deno.serve(async (req) => {
       return json({ error: 'Perfil no encontrado' }, 404)
     }
     if (!perfil.es_admin) {
-      return json({ error: 'Solo un administrador puede conectar Gemini' }, 403)
+      return json({ error: 'Solo un administrador puede conectar la IA' }, 403)
     }
 
     const { api_key } = await req.json()
@@ -55,21 +56,18 @@ Deno.serve(async (req) => {
     }
 
     // Validar la clave con una llamada mínima antes de guardarla.
-    const testRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${api_key}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: 'Responde solo: OK' }] }] }),
-      },
-    )
+    const testRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${api_key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: GROQ_MODEL, messages: [{ role: 'user', content: 'Responde solo: OK' }] }),
+    })
     const testJson = await testRes.json()
     if (!testRes.ok) {
-      console.error('Gemini key validation failed', testJson)
+      console.error('Groq key validation failed', testJson)
       return json({ error: testJson.error?.message ?? 'La clave no es válida' }, 400)
     }
 
-    const { error: upsertError } = await admin.from('gemini_conexion').upsert({
+    const { error: upsertError } = await admin.from('groq_conexion').upsert({
       workspace_id: perfil.workspace_id,
       api_key,
       connected_by: userData.user.id,
@@ -83,6 +81,6 @@ Deno.serve(async (req) => {
     return json({ ok: true })
   } catch (err) {
     console.error(err)
-    return json({ error: 'Error inesperado conectando Gemini' }, 500)
+    return json({ error: 'Error inesperado conectando la IA' }, 500)
   }
 })

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { getGeminiEstado, conectarGemini, desconectarGemini, probarGemini } from '@/features/workspace/geminiApi'
+import { getGroqEstado, conectarGroq, desconectarGroq, probarGroq, GROQ_MODEL_LABEL } from '@/features/workspace/groqApi'
 
 const labelClass = 'mb-1 block text-[11px] font-semibold uppercase tracking-wide text-mute2'
 const inputClass =
   'w-full rounded-[8px] border border-border bg-bg px-3 py-2.5 text-[13px] text-ink outline-none transition focus:border-accent'
 
-export function GeminiSettings({ puedeEditar }: { puedeEditar: boolean }) {
+export function GroqSettings({ puedeEditar }: { puedeEditar: boolean }) {
   const [conectado, setConectado] = useState(false)
   const [loading, setLoading] = useState(true)
   const [apiKey, setApiKey] = useState('')
@@ -15,7 +15,7 @@ export function GeminiSettings({ puedeEditar }: { puedeEditar: boolean }) {
   const [respuesta, setRespuesta] = useState<string | null>(null)
 
   useEffect(() => {
-    getGeminiEstado()
+    getGroqEstado()
       .then((e) => setConectado(e.conectado))
       .catch(() => {})
       .finally(() => setLoading(false))
@@ -26,22 +26,22 @@ export function GeminiSettings({ puedeEditar }: { puedeEditar: boolean }) {
     setBusy(true)
     setError(null)
     try {
-      await conectarGemini(apiKey.trim())
+      await conectarGroq(apiKey.trim())
       setConectado(true)
       setApiKey('')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo conectar Gemini.')
+      setError(err instanceof Error ? err.message : 'No se pudo conectar la IA.')
     } finally {
       setBusy(false)
     }
   }
 
   async function onDesconectar() {
-    if (!confirm('¿Desconectar Gemini de este workspace?')) return
+    if (!confirm('¿Desconectar la IA de este workspace?')) return
     setBusy(true)
     setError(null)
     try {
-      await desconectarGemini()
+      await desconectarGroq()
       setConectado(false)
       setRespuesta(null)
     } catch (err) {
@@ -56,9 +56,9 @@ export function GeminiSettings({ puedeEditar }: { puedeEditar: boolean }) {
     setError(null)
     setRespuesta(null)
     try {
-      setRespuesta(await probarGemini())
+      setRespuesta(await probarGroq())
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gemini no respondió.')
+      setError(err instanceof Error ? err.message : 'La IA no respondió.')
     } finally {
       setProbando(false)
     }
@@ -68,11 +68,11 @@ export function GeminiSettings({ puedeEditar }: { puedeEditar: boolean }) {
 
   return (
     <div className="rounded-[10px] border border-border bg-surface p-3">
-      <label className={labelClass}>Gemini (IA)</label>
+      <label className={labelClass}>Inteligencia artificial</label>
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 text-[13px] text-muted">
           <span className={`h-1.5 w-1.5 rounded-full ${conectado ? 'bg-success' : 'bg-mute2'}`} />
-          {conectado ? 'Conectado' : 'No conectado'}
+          {conectado ? `Conectado · Modelo: ${GROQ_MODEL_LABEL}` : 'No conectado'}
         </div>
         {puedeEditar && conectado && (
           <div className="flex gap-2">
@@ -94,25 +94,35 @@ export function GeminiSettings({ puedeEditar }: { puedeEditar: boolean }) {
         )}
       </div>
 
+      <div className="mt-2 rounded-[8px] border border-accent/20 bg-accent-soft px-3 py-2 text-[11px] text-ink">
+        <i className="ti ti-info-circle text-accent" /> Esta IA es <strong>gratuita</strong> (modelo {GROQ_MODEL_LABEL}, provisto por
+        Groq). El plan gratuito tiene un límite de uso diario generoso para un estudio jurídico normal; si en algún momento
+        se necesita más capacidad, se puede mejorar a un plan de pago directamente en la cuenta de Groq, sin que cambie nada
+        aquí en la app.
+      </div>
+
       {puedeEditar && !conectado && (
         <div className="mt-3 flex flex-col gap-2">
-          <p className="text-[11px] text-mute2">
-            Genera una clave gratuita con la cuenta de Google de este workspace y pégala aquí. Cada workspace usa su propia
-            clave, sin compartir cupo con otros.
-          </p>
-          <a
-            href="https://aistudio.google.com/apikey"
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex w-fit items-center gap-1.5 rounded-[6px] border border-border px-2.5 py-1.5 text-[11px] text-accent transition hover:bg-accent-soft"
-          >
-            <i className="ti ti-external-link" /> Generar mi clave en Google AI Studio
-          </a>
+          <div className="rounded-[8px] border border-dashed border-border p-3">
+            <div className="mb-1.5 text-[11px] font-semibold text-ink">Cómo obtener tu clave gratuita:</div>
+            <ol className="list-decimal space-y-1 pl-4 text-[11px] text-muted">
+              <li>
+                Entra a{' '}
+                <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" className="text-accent hover:underline">
+                  console.groq.com/keys
+                </a>{' '}
+                e inicia sesión (puedes usar tu cuenta de Google).
+              </li>
+              <li>Haz clic en "Create API Key", ponle un nombre cualquiera (ej. "LegalCRM").</li>
+              <li>Copia la clave que aparece (empieza con "gsk_…") — solo se muestra una vez.</li>
+              <li>Pégala abajo y haz clic en "Conectar".</li>
+            </ol>
+          </div>
           <div className="flex gap-2">
             <input
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Pega aquí tu clave de Gemini…"
+              placeholder="Pega aquí tu clave (gsk_…)"
               className={inputClass}
             />
             <button
@@ -130,7 +140,7 @@ export function GeminiSettings({ puedeEditar }: { puedeEditar: boolean }) {
 
       {respuesta && (
         <div className="mt-3 rounded-[8px] border border-accent/20 bg-accent-soft px-3 py-2 text-[12px] text-ink">
-          <span className="font-semibold text-accent">Gemini dice:</span> {respuesta}
+          <span className="font-semibold text-accent">La IA dice:</span> {respuesta}
         </div>
       )}
       {error && <p className="mt-2 text-[11px] text-danger">{error}</p>}
