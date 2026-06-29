@@ -39,7 +39,7 @@ export function useNotifications() {
           id: `plazo-${p.id}`,
           tipo: 'plazo' as const,
           titulo: p.titulo,
-          subtitulo: `${casosById.get(p.caso_id)?.titulo ?? 'Caso'} · ${labelDias(dias)}`,
+          subtitulo: `Caso: ${casosById.get(p.caso_id)?.titulo ?? 'no disponible'} · ${labelDias(dias)}`,
           urgente: dias <= 1,
           to: `/casos/${p.caso_id}`,
         }))
@@ -50,8 +50,8 @@ export function useNotifications() {
         .map((c) => ({
           id: `cliente-${c.id}`,
           tipo: 'cliente' as const,
-          titulo: `Seguimiento: ${c.nombre}`,
-          subtitulo: c.proximo_seguimiento === hoy ? 'Hoy' : 'Vencido',
+          titulo: 'Seguimiento pendiente',
+          subtitulo: `Cliente: ${c.nombre} · ${c.proximo_seguimiento === hoy ? 'Hoy' : 'Vencido'}`,
           urgente: true,
           to: `/clientes/${c.id}`,
         }))

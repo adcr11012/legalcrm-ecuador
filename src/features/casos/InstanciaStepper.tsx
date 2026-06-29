@@ -18,39 +18,39 @@ export function InstanciaStepper({
   return (
     <div className="rounded-[10px] border border-border bg-surface p-3">
       <div className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-mute2">Instancia procesal</div>
-      <div className="flex items-center">
-        {pasos.map((p, i) => {
-          const completada = idxActual >= 0 && i < idxActual
-          const actual = i === idxActual
-          return (
-            <div key={p.value} className="flex flex-1 items-center last:flex-none">
-              <button
-                type="button"
-                disabled={!puedeEditar}
-                onClick={() => onChange(p.value)}
-                className={`flex flex-shrink-0 flex-col items-center gap-1 ${puedeEditar ? 'cursor-pointer' : 'cursor-default'}`}
-              >
-                <div
-                  className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold transition ${
-                    actual
-                      ? 'bg-accent text-white'
-                      : completada
-                        ? 'bg-accent-soft text-accent'
-                        : 'border border-border bg-bg text-mute2'
-                  }`}
+      <div className="overflow-x-auto">
+        <div className="flex items-center" style={{ minWidth: 'max-content' }}>
+          {pasos.map((p, i) => {
+            const completada = idxActual >= 0 && i < idxActual
+            const actual = i === idxActual
+            return (
+              <div key={p.value} className="flex flex-shrink-0 items-center">
+                <button
+                  type="button"
+                  disabled={!puedeEditar}
+                  onClick={() => onChange(p.value)}
+                  className={`flex w-[78px] flex-shrink-0 flex-col items-center gap-1 ${puedeEditar ? 'cursor-pointer' : 'cursor-default'}`}
                 >
-                  {completada ? <i className="ti ti-check text-[12px]" /> : i + 1}
-                </div>
-                <span className={`max-w-[90px] text-center text-[10px] ${actual ? 'font-semibold text-ink' : 'text-mute2'}`}>
-                  {p.label}
-                </span>
-              </button>
-              {i < pasos.length - 1 && (
-                <div className={`mx-1 h-[2px] flex-1 ${completada ? 'bg-accent-soft' : 'bg-border'}`} />
-              )}
-            </div>
-          )
-        })}
+                  <div
+                    className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold transition ${
+                      actual
+                        ? 'bg-accent text-white'
+                        : completada
+                          ? 'bg-accent-soft text-accent'
+                          : 'border border-border bg-bg text-mute2'
+                    }`}
+                  >
+                    {completada ? <i className="ti ti-check text-[12px]" /> : i + 1}
+                  </div>
+                  <span className={`text-center text-[10px] leading-tight ${actual ? 'font-semibold text-ink' : 'text-mute2'}`}>
+                    {p.label}
+                  </span>
+                </button>
+                {i < pasos.length - 1 && <div className={`h-[2px] w-6 flex-shrink-0 ${completada ? 'bg-accent-soft' : 'bg-border'}`} />}
+              </div>
+            )
+          })}
+        </div>
       </div>
     </div>
   )
