@@ -1,5 +1,6 @@
 import { useLocation } from 'react-router-dom'
 import type { PageAction } from '@/components/layout/PageActionContext'
+import { NotificationsBell } from '@/features/notifications/NotificationsBell'
 
 const TITLES: Record<string, string> = {
   '/dashboard': 'Dashboard',
@@ -29,6 +30,7 @@ export function Topbar({ action, onMenuClick }: { action: PageAction; onMenuClic
         <i className="ti ti-menu-2 text-[18px]" />
       </button>
       <div className="min-w-0 flex-1 truncate text-[15px] font-semibold text-ink">{title}</div>
+      <NotificationsBell />
       {action && (
         <button
           onClick={action.onClick}
