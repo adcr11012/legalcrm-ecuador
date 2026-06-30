@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { getWorkspace, updateWorkspace } from '@/features/workspace/api'
 import { isGoogleDriveConfigured, buildGoogleConsentUrl, getDriveEstado, desconectarDrive, type DriveEstado } from '@/features/workspace/driveApi'
@@ -75,6 +76,8 @@ export default function Configuracion() {
   if (loading) return <div className="flex-1 p-5 text-[13px] text-muted">Cargando configuración…</div>
   if (error && !workspace) return <div className="flex-1 p-5 text-[13px] text-danger">{error}</div>
   if (!workspace) return null
+
+  if (profile && profile.rol !== 'administrador') return <Navigate to="/dashboard" replace />
 
   const puedeEditar = profile?.rol === 'administrador'
 

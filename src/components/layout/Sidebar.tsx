@@ -11,7 +11,7 @@ const PRINCIPAL = [
 const WORKSPACE = [
   { to: '/usuarios', icon: 'ti-user-shield', label: 'Usuarios y roles' },
   { to: '/drive', icon: 'ti-brand-google-drive', label: 'Google Drive' },
-  { to: '/configuracion', icon: 'ti-settings', label: 'Configuración' },
+  { to: '/configuracion', icon: 'ti-settings', label: 'Configuración', soloAdmin: true },
 ]
 
 function initials(name: string) {
@@ -70,7 +70,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
             <div className="px-2 pb-1 pt-2.5 text-[10px] font-semibold uppercase tracking-wide text-mute2">Workspace</div>
           )}
           {!open && <div className="my-2 border-t border-border" />}
-          {WORKSPACE.map((item) => (
+          {WORKSPACE.filter((item) => !item.soloAdmin || profile?.rol === 'administrador').map((item) => (
             <NavLink key={item.to} to={item.to} title={item.label} className={navItemClass} onClick={() => onClose()}>
               <i className={`ti ${item.icon} flex-shrink-0 text-[16px]`} />
               {open && <span className="truncate">{item.label}</span>}
