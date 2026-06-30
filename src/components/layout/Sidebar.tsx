@@ -1,5 +1,9 @@
 import { NavLink } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import { useAuth } from '@/features/auth/AuthProvider'
+import { getDriveEstado } from '@/features/workspace/driveApi'
+import { getGroqEstado } from '@/features/workspace/groqApi'
+import { getOpenRouterEstado } from '@/features/workspace/openrouterApi'
 
 const PRINCIPAL = [
   { to: '/dashboard', icon: 'ti-layout-dashboard', label: 'Dashboard' },
@@ -10,7 +14,6 @@ const PRINCIPAL = [
 
 const WORKSPACE = [
   { to: '/usuarios', icon: 'ti-user-shield', label: 'Usuarios y roles', soloAdmin: true },
-  { to: '/drive', icon: 'ti-brand-google-drive', label: 'Google Drive' },
   { to: '/configuracion', icon: 'ti-settings', label: 'Configuración', soloAdmin: true },
 ]
 
@@ -23,8 +26,23 @@ function initials(name: string) {
     .join('')
 }
 
+function useServiciosEstado() {
+  const [drive, setDrive] = useState<boolean | null>(null)
+  const [groq, setGroq] = useState<boolean | null>(null)
+  const [openrouter, setOpenRouter] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    getDriveEstado().then((e) => setDrive(e.conectado)).catch(() => setDrive(false))
+    getGroqEstado().then((e) => setGroq(e.conectado)).catch(() => setGroq(false))
+    getOpenRouterEstado().then((e) => setOpenRouter(e.conectado)).catch(() => setOpenRouter(false))
+  }, [])
+
+  return { drive, groq, openrouter }
+}
+
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { profile, signOut } = useAuth()
+  const servicios = useServiciosEstado()
 
   const navItemClass = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-2.5 rounded-[6px] px-2.5 py-2 mx-1.5 text-[13px] transition-colors ${
@@ -75,6 +93,28 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
               <i className={`ti ${item.icon} flex-shrink-0 text-[16px]`} />
               {open && <span className="truncate">{item.label}</span>}
             </NavLink>
+          ))}
+        </div>
+
+        <div className={`border-t border-border px-3 py-2 ${open ? 'flex items-center gap-3' : 'flex flex-col items-center gap-2'}`}>
+          {[
+            { key: 'drive', icon: 'ti-brand-google-drive', label: 'Drive', estado: servicios.drive },
+            { key: 'groq', icon: 'ti-brain', label: 'IA', estado: servicios.groq },
+            { key: 'openrouter', icon: 'ti-eye', label: 'Visión', estado: servicios.openrouter },
+          ].map(({ key, icon, label, estado }) => (
+            <div
+              key={key}
+              title={`${label}: ${estado === null ? 'verificando…' : estado ? 'Conectado' : 'No conectado'}`}
+              className="relative flex items-center justify-center"
+            >
+              <i className={`ti ${icon} text-[16px] ${estado ? 'text-mute2' : 'text-mute2/50'}`} />
+              <span
+                className={`absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full border border-surface ${
+                  estado === null ? 'bg-mute2' : estado ? 'bg-success' : 'bg-danger'
+                }`}
+              />
+              {open && <span className="ml-1.5 text-[11px] text-mute2">{label}</span>}
+            </div>
           ))}
         </div>
 
