@@ -215,25 +215,34 @@ export function CaseDetail({
       </div>
 
       <div className="flex flex-shrink-0 gap-0 overflow-x-auto border-b border-border bg-surface px-3 sm:px-5">
-        {visibleTabs.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2.5 text-[13px] transition ${
-              tab === t.key ? 'border-accent font-medium text-accent' : 'border-transparent text-muted hover:text-ink'
-            }`}
-          >
-            <i className={`ti ${t.icon}`} />
-            {t.label}
-            {t.key === 'tareas' && tareas.filter((t) => t.estado !== 'completada').length > 0 && (
-              <span className="rounded-full bg-accent-soft px-1.5 text-[10px] text-accent">
-                {tareas.filter((t) => t.estado !== 'completada').length}
-              </span>
-            )}
-            {t.key === 'docs' && <span className="rounded-full bg-soft px-1.5 text-[10px] text-mute2">{documentos.length}</span>}
-            {t.key === 'plazos' && <span className="rounded-full bg-soft px-1.5 text-[10px] text-mute2">{plazos.length}</span>}
-          </button>
-        ))}
+        {visibleTabs.map((t) => {
+          const isActive = tab === t.key
+          const tareasCount = t.key === 'tareas' ? tareas.filter((x) => x.estado !== 'completada').length : 0
+          return (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              title={t.label}
+              className={`relative flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2.5 text-[13px] transition ${
+                isActive ? 'border-accent font-medium text-accent' : 'border-transparent text-muted hover:text-ink'
+              }`}
+            >
+              <i className={`ti ${t.icon} text-[16px]`} />
+              {isActive && <span>{t.label}</span>}
+              {t.key === 'tareas' && tareasCount > 0 && (
+                <span className={`rounded-full px-1.5 text-[10px] ${isActive ? 'bg-accent/20 text-accent' : 'bg-accent-soft text-accent'}`}>
+                  {tareasCount}
+                </span>
+              )}
+              {t.key === 'docs' && documentos.length > 0 && !isActive && (
+                <span className="rounded-full bg-soft px-1.5 text-[10px] text-mute2">{documentos.length}</span>
+              )}
+              {t.key === 'plazos' && plazos.length > 0 && !isActive && (
+                <span className="rounded-full bg-soft px-1.5 text-[10px] text-mute2">{plazos.length}</span>
+              )}
+            </button>
+          )
+        })}
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 sm:p-5">
