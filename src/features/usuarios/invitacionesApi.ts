@@ -38,7 +38,7 @@ export type InvitacionInfo = {
 export async function obtenerInvitacion(token: string): Promise<InvitacionInfo | null> {
   const { data, error } = await supabase.rpc('obtener_invitacion', { p_token: token })
   if (error) throw error
-  return data?.[0] ?? null
+  return data?.[0] ? { ...data[0], rol: data[0].rol as RolUsuario } : null
 }
 
 export async function aceptarInvitacion(token: string, nombre: string): Promise<string> {
