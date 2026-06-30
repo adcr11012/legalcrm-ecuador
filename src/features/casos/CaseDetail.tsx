@@ -5,6 +5,7 @@ import { listPersonas, removePersona } from '@/features/casos/personasApi'
 import { listDocumentos, toggleVisibilidad, deleteDocumento, leerDocumentoAhora } from '@/features/casos/documentosApi'
 import { renameDriveFile } from '@/features/workspace/driveApi'
 import { listPlazos, deletePlazo } from '@/features/casos/plazosApi'
+import { listTareas } from '@/features/casos/tareasApi'
 import { listHistorial } from '@/features/casos/historialApi'
 import { listWorkspaceUsers } from '@/features/users/api'
 import { listEtapas } from '@/features/casos/etapasApi'
@@ -12,6 +13,7 @@ import { EtapaPill } from '@/features/casos/etapaDisplay'
 import { InfoTab } from '@/features/casos/tabs/InfoTab'
 import { DocumentosTab } from '@/features/casos/tabs/DocumentosTab'
 import { PlazosTab } from '@/features/casos/tabs/PlazosTab'
+import { TareasTab } from '@/features/casos/tabs/TareasTab'
 import { HistorialTab } from '@/features/casos/tabs/HistorialTab'
 import { NotasTab } from '@/features/casos/tabs/NotasTab'
 import { IATab } from '@/features/casos/tabs/IATab'
@@ -20,10 +22,11 @@ import { AddPlazoModal } from '@/features/casos/AddPlazoModal'
 import { AddDocumentoModal } from '@/features/casos/AddDocumentoModal'
 import { CasoFormModal } from '@/features/casos/CasoFormModal'
 import { MATERIA_LABEL } from '@/features/casos/materias'
-import type { Caso, CasoPersona, Documento, Etapa, HistorialEntry, Plazo, Usuario } from '@/types/database'
+import type { Caso, CasoPersona, Documento, Etapa, HistorialEntry, Plazo, Tarea, Usuario } from '@/types/database'
 
 const TABS = [
   { key: 'info', label: 'Información', icon: 'ti-info-circle' },
+  { key: 'tareas', label: 'Tareas', icon: 'ti-checkbox' },
   { key: 'docs', label: 'Documentos', icon: 'ti-files' },
   { key: 'plazos', label: 'Plazos', icon: 'ti-clock' },
   { key: 'hist', label: 'Historial', icon: 'ti-history' },
@@ -47,6 +50,7 @@ export function CaseDetail({
   const [personas, setPersonas] = useState<CasoPersona[]>([])
   const [documentos, setDocumentos] = useState<Documento[]>([])
   const [plazos, setPlazos] = useState<Plazo[]>([])
+  const [tareas, setTareas] = useState<Tarea[]>([])
   const [historial, setHistorial] = useState<HistorialEntry[]>([])
   const [usersById, setUsersById] = useState<Map<string, Usuario>>(new Map())
   const [etapas, setEtapas] = useState<Etapa[]>([])
@@ -65,7 +69,7 @@ export function CaseDetail({
     setError(null)
     setTab('info')
     try {
-      const [c, p, d, pl, h, u, e] = await Promise.all([
+      const [c, p, d, pl, h, u, e, tr] = await Promise.all([
         getCaso(casoId),
         listPersonas(casoId),
         listDocumentos(casoId),
@@ -73,12 +77,14 @@ export function CaseDetail({
         listHistorial(casoId),
         listWorkspaceUsers(),
         listEtapas(),
+        listTareas(casoId),
       ])
       setCaso(c)
       setPersonas(p)
       setDocumentos(d)
       setPlazos(pl)
       setHistorial(h)
+      setTareas(tr)
       setUsersById(new Map(u.map((x) => [x.id, x])))
       setEtapas(e)
     } catch (err) {
@@ -219,6 +225,11 @@ export function CaseDetail({
           >
             <i className={`ti ${t.icon}`} />
             {t.label}
+            {t.key === 'tareas' && tareas.filter((t) => t.estado !== 'completada').length > 0 && (
+              <span className="rounded-full bg-accent-soft px-1.5 text-[10px] text-accent">
+                {tareas.filter((t) => t.estado !== 'completada').length}
+              </span>
+            )}
             {t.key === 'docs' && <span className="rounded-full bg-soft px-1.5 text-[10px] text-mute2">{documentos.length}</span>}
             {t.key === 'plazos' && <span className="rounded-full bg-soft px-1.5 text-[10px] text-mute2">{plazos.length}</span>}
           </button>
@@ -249,6 +260,16 @@ export function CaseDetail({
               setTab('docs')
               setAddDocOpen(true)
             }}
+          />
+        )}
+        {tab === 'tareas' && (
+          <TareasTab
+            tareas={tareas}
+            casoId={caso.id}
+            workspaceId={caso.workspace_id}
+            puedeEditar={puedeEditar}
+            usersById={usersById}
+            onTareasChange={setTareas}
           />
         )}
         {tab === 'docs' && (

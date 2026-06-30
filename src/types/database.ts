@@ -18,6 +18,7 @@ export type TipoPlazo = 'audiencia' | 'plazo' | 'otro'
 export type EstadoCliente = 'activo' | 'inactivo' | 'potencial'
 export type TipoCliente = 'persona_natural' | 'empresa'
 export type RolUsuario = 'administrador' | 'master' | 'limitado'
+export type EstadoTarea = 'pendiente' | 'en_progreso' | 'completada'
 
 export type Workspace = {
   id: string
@@ -121,6 +122,19 @@ export type Plazo = {
   created_at: string
 }
 
+export type Tarea = {
+  id: string
+  workspace_id: string
+  caso_id: string
+  titulo: string
+  descripcion: string | null
+  asignado_a: string | null
+  fecha_limite: string | null
+  estado: EstadoTarea
+  created_by: string | null
+  created_at: string
+}
+
 export type HistorialEntry = {
   id: string
   caso_id: string
@@ -186,6 +200,7 @@ export type Database = {
       cliente_notas: Table<ClienteNota>
       invitaciones: Table<Invitacion>
       etapas: Table<Etapa>
+      tareas: Table<Tarea>
     }
     Views: { [_ in never]: never }
     Functions: {
