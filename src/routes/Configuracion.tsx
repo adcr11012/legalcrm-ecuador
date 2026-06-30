@@ -145,22 +145,23 @@ export default function Configuracion() {
               {driveEstado.conectado ? `Conectado · ${driveEstado.email}` : 'No conectado'}
             </div>
             {puedeEditar && isGoogleDriveConfigured() && (
-              driveEstado.conectado ? (
-                <button
-                  onClick={onDesconectarDrive}
-                  disabled={driveBusy}
-                  className="rounded-[6px] border border-border px-2.5 py-1 text-[11px] text-muted transition hover:bg-danger-soft hover:text-danger disabled:opacity-60"
-                >
-                  Desconectar
-                </button>
-              ) : (
+              <div className="flex gap-2">
+                {driveEstado.conectado && (
+                  <button
+                    onClick={onDesconectarDrive}
+                    disabled={driveBusy}
+                    className="rounded-[6px] border border-border px-2.5 py-1 text-[11px] text-muted transition hover:bg-danger-soft hover:text-danger disabled:opacity-60"
+                  >
+                    Desconectar
+                  </button>
+                )}
                 <a
                   href={buildGoogleConsentUrl()}
                   className="rounded-[6px] bg-accent px-2.5 py-1 text-[11px] font-medium text-white transition hover:bg-accent-hover"
                 >
-                  Conectar
+                  {driveEstado.conectado ? 'Reconectar' : 'Conectar'}
                 </a>
-              )
+              </div>
             )}
           </div>
         </div>
