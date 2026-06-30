@@ -41,12 +41,9 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
       >
         <div className={`flex items-center border-b border-border pb-3.5 pt-4.5 ${open ? 'justify-between px-4' : 'justify-center px-1'}`}>
           {open ? (
-            <div>
-              <div className="text-[13px] font-bold text-accent">TSADOQ</div>
-              <div className="mt-0.5 text-[10px] uppercase tracking-wide text-mute2">Workspace</div>
-            </div>
+            <img src="/LOGO.png" alt="TSADOQ" className="h-10 w-auto" />
           ) : (
-            <i className="ti ti-scale text-[20px] text-accent" />
+            <img src="/LOGO.png" alt="TSADOQ" className="h-8 w-auto" />
           )}
           {open && (
             <button
