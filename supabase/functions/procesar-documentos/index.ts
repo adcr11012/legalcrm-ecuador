@@ -161,8 +161,26 @@ Deno.serve(async (req) => {
 
         if (mime === 'application/pdf') {
           const { texto: textoPdf, escaneado } = await leerPdf(Buffer.from(bytes))
-          if (escaneado) throw new Error('PDF escaneado: la lectura de PDFs sin texto (imagen) todavía no está soportada')
-          texto = textoPdf
+          if (escaneado) {
+            // PDF sin texto (escaneado/imagen) → obtener thumbnail de Drive y leer con visión
+            const apiKey = await visionKeyParaWorkspace(workspaceId)
+            if (!apiKey) throw new Error('PDF escaneado: conecta OpenRouter (Visión) para leer este tipo de archivo')
+            const thumbRes = await fetch(
+              `https://www.googleapis.com/drive/v3/files/${doc.drive_file_id}?fields=thumbnailLink`,
+              { headers: { Authorization: `Bearer ${accessToken}` } }
+            )
+            const thumbData = await thumbRes.json()
+            const thumbUrl: string | undefined = thumbData.thumbnailLink
+            if (!thumbUrl) throw new Error('PDF escaneado: Drive no generó miniatura para este archivo')
+            // Obtener imagen más grande (reemplazar tamaño en la URL)
+            const thumbUrlHd = thumbUrl.replace(/=s\d+$/, '=s1600')
+            const imgRes = await fetch(thumbUrlHd, { headers: { Authorization: `Bearer ${accessToken}` } })
+            if (!imgRes.ok) throw new Error('No se pudo descargar la miniatura del PDF')
+            const imgBytes = await imgRes.arrayBuffer()
+            texto = await leerImagenConVision(imgBytes, 'image/jpeg', apiKey)
+          } else {
+            texto = textoPdf
+          }
         } else if (mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
           texto = await leerDocx(Buffer.from(bytes))
         } else if (mime.startsWith('image/')) {
