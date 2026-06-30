@@ -206,10 +206,43 @@ export function InfoTab({
         )}
         {caso.honorarios_tipo && (
           <div className="sm:col-span-3 rounded-[10px] border border-border bg-surface p-3">
-            <div className="text-[10px] font-semibold uppercase tracking-wide text-mute2">Honorarios</div>
-            <div className="mt-1 text-[13px] font-medium text-ink">
-              {caso.honorarios_monto != null ? `$${caso.honorarios_monto}` : '—'} · {caso.honorarios_tipo}
+            <div className="mb-2 flex items-center justify-between">
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-mute2">Honorarios</div>
+              {puedeEditar && (
+                <button
+                  onClick={() => setHonorariosOpen(true)}
+                  className="text-[11px] text-accent hover:underline"
+                >
+                  Editar
+                </button>
+              )}
             </div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
+              <div>
+                <div className="text-[10px] text-mute2">Tipo</div>
+                <div className="text-[13px] font-medium text-ink capitalize">{caso.honorarios_tipo.replace('_', ' ')}</div>
+              </div>
+              <div>
+                <div className="text-[10px] text-mute2">Monto pactado</div>
+                <div className="text-[13px] font-medium text-ink">
+                  {caso.honorarios_monto != null ? `$${Number(caso.honorarios_monto).toLocaleString('es-EC', { minimumFractionDigits: 2 })}` : '—'}
+                </div>
+              </div>
+              {caso.honorarios_forma_pago && (
+                <div>
+                  <div className="text-[10px] text-mute2">Forma de pago</div>
+                  <div className="text-[13px] font-medium text-ink">
+                    {{ inicio: 'Al inicio', cuotas: 'Por cuotas', al_finalizar: 'Al finalizar' }[caso.honorarios_forma_pago] ?? caso.honorarios_forma_pago}
+                  </div>
+                </div>
+              )}
+            </div>
+            {caso.honorarios_notas && (
+              <div className="mt-2.5 border-t border-border pt-2.5">
+                <div className="text-[10px] text-mute2">Notas</div>
+                <div className="mt-0.5 whitespace-pre-wrap text-[12px] text-ink">{caso.honorarios_notas}</div>
+              </div>
+            )}
           </div>
         )}
       </div>
