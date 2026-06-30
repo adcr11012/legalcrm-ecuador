@@ -77,7 +77,6 @@ export default function Configuracion() {
   if (!workspace) return null
 
   const puedeEditar = profile?.rol === 'administrador'
-  const puedeEditarIntegraciones = profile?.rol === 'administrador' || profile?.rol === 'master'
 
   async function onDesconectarDrive() {
     if (!confirm('¿Desconectar Google Drive? Los documentos ya subidos seguirán existiendo en ese Drive, pero no se podrán subir nuevos hasta reconectar.')) return
@@ -142,7 +141,7 @@ export default function Configuracion() {
               <span className={`h-1.5 w-1.5 rounded-full ${driveEstado.conectado ? 'bg-success' : 'bg-mute2'}`} />
               {driveEstado.conectado ? `Conectado · ${driveEstado.email}` : 'No conectado'}
             </div>
-            {puedeEditarIntegraciones && isGoogleDriveConfigured() && (
+            {puedeEditar && isGoogleDriveConfigured() && (
               driveEstado.conectado ? (
                 <button
                   onClick={onDesconectarDrive}
@@ -164,11 +163,11 @@ export default function Configuracion() {
         </div>
 
         <div className="mt-2.5">
-          <GroqSettings puedeEditar={puedeEditarIntegraciones} />
+          <GroqSettings puedeEditar={puedeEditar} />
         </div>
 
         <div className="mt-2.5">
-          <OpenRouterSettings puedeEditar={puedeEditarIntegraciones} />
+          <OpenRouterSettings puedeEditar={puedeEditar} />
         </div>
 
         {puedeEditar && (
@@ -220,7 +219,7 @@ export default function Configuracion() {
         </div>
 
         {!puedeEditar && (
-          <p className="mt-3 text-[11px] text-mute2">Solo el Administrador puede modificar el nombre del workspace, notificaciones y etapas.</p>
+          <p className="mt-3 text-[11px] text-mute2">Solo un administrador puede modificar esta configuración.</p>
         )}
         {saved && <p className="mt-3 text-[11px] text-success">{saved}</p>}
         {error && <p className="mt-3 text-[11px] text-danger">{error}</p>}
