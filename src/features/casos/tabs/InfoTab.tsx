@@ -42,7 +42,6 @@ export function InfoTab({
   onOpenAddDoc: () => void
 }) {
   const [numeroCausa, setNumeroCausa] = useState(caso.numero_causa ?? '')
-  const [juzgado, setJuzgado] = useState(caso.juzgado ?? '')
   const [fechaInicio, setFechaInicio] = useState(caso.fecha_inicio ?? '')
   const [datosJudicialesOpen, setDatosJudicialesOpen] = useState(false)
   const [partesOpen, setPartesOpen] = useState(false)
@@ -51,7 +50,6 @@ export function InfoTab({
   // Solo resincroniza cuando cambia el caso seleccionado, no en cada guardado propio.
   useEffect(() => {
     setNumeroCausa(caso.numero_causa ?? '')
-    setJuzgado(caso.juzgado ?? '')
     setFechaInicio(caso.fecha_inicio ?? '')
   }, [caso.id])
 
@@ -182,21 +180,9 @@ export function InfoTab({
         </div>
         <div className="sm:col-span-3 rounded-[10px] border border-border bg-surface p-3">
           <div className="text-[10px] font-semibold uppercase tracking-wide text-mute2">Juzgado / Tribunal</div>
-          {puedeEditar ? (
-            <input
-              value={juzgado}
-              onChange={(e) => setJuzgado(e.target.value)}
-              onBlur={() => {
-                if (juzgado !== (caso.juzgado ?? '')) onUpdateCampo({ juzgado: juzgado || null })
-              }}
-              placeholder="Sin asignar"
-              className={fieldInputClass}
-            />
-          ) : (
-            <div className={`mt-1 text-[13px] font-medium ${caso.juzgado ? 'text-ink' : 'italic text-muted'}`}>
-              {caso.juzgado || 'Sin asignar'}
-            </div>
-          )}
+          <div className={`mt-1 text-[13px] font-medium ${caso.juzgado ? 'text-ink' : 'italic text-muted'}`}>
+            {caso.juzgado || 'Sin asignar'}
+          </div>
         </div>
         {caso.es_contencioso && caso.contraparte_nombre && (
           <div className="sm:col-span-3 rounded-[10px] border border-border bg-surface p-3">
