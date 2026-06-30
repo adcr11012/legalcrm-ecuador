@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { Usuario } from '@/types/database'
+import type { RolUsuario, Usuario } from '@/types/database'
 
 export async function listWorkspaceUsers(): Promise<Usuario[]> {
   const { data, error } = await supabase.from('users').select('*').order('nombre')
@@ -7,8 +7,8 @@ export async function listWorkspaceUsers(): Promise<Usuario[]> {
   return data
 }
 
-export async function setEsAdmin(userId: string, esAdmin: boolean): Promise<Usuario> {
-  const { data, error } = await supabase.from('users').update({ es_admin: esAdmin }).eq('id', userId).select('*').single()
+export async function setRolUsuario(userId: string, rol: RolUsuario): Promise<Usuario> {
+  const { data, error } = await supabase.from('users').update({ rol }).eq('id', userId).select('*').single()
   if (error) throw error
   return data
 }
@@ -16,4 +16,10 @@ export async function setEsAdmin(userId: string, esAdmin: boolean): Promise<Usua
 export async function removeUsuario(userId: string): Promise<void> {
   const { error } = await supabase.from('users').delete().eq('id', userId)
   if (error) throw error
+}
+
+export async function updateLastSeen(): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+  await supabase.from('users').update({ last_seen_at: new Date().toISOString() }).eq('id', user.id)
 }

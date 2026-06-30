@@ -109,7 +109,7 @@ export default function Invite() {
           <>
             <h1 className="mb-1 text-center text-[17px] font-bold text-ink">Te invitaron a {info.workspace_nombre}</h1>
             <p className="mb-6 text-center text-[12px] text-muted">
-              Como {info.es_admin ? 'administrador' : 'miembro'} · {info.email}
+              Como {info.rol === 'administrador' ? 'Administrador' : info.rol === 'master' ? 'Master' : 'Limitado'} · {info.email}
             </p>
 
             {info2 ? (

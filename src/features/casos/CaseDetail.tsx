@@ -97,7 +97,9 @@ export function CaseDetail({
   if (!caso) return <div className="flex-1 p-5 text-[13px] text-muted">Caso no encontrado.</div>
 
   const miRol = personas.find((p) => p.user_id === profile?.id)?.rol
-  const puedeEditar = Boolean(profile?.es_admin) || miRol === 'abogado'
+  const esAdmin = profile?.rol === 'administrador'
+  const esMaster = profile?.rol === 'master'
+  const puedeEditar = esAdmin || esMaster || miRol === 'abogado'
   const puedeSubirDocs = puedeEditar || miRol === 'cliente'
   const showNotas = puedeEditar
 
@@ -195,7 +197,7 @@ export function CaseDetail({
               <i className="ti ti-edit" /> <span className="hidden sm:inline">Editar</span>
             </button>
           )}
-          {profile?.es_admin && (
+          {esAdmin && (
             <button
               onClick={onDeleteCaso}
               className="flex items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[12px] text-muted transition hover:bg-danger-soft hover:text-danger"

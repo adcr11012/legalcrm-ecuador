@@ -76,7 +76,7 @@ export default function Configuracion() {
   if (error && !workspace) return <div className="flex-1 p-5 text-[13px] text-danger">{error}</div>
   if (!workspace) return null
 
-  const puedeEditar = Boolean(profile?.es_admin)
+  const puedeEditar = profile?.rol === 'administrador'
 
   async function onDesconectarDrive() {
     if (!confirm('¿Desconectar Google Drive? Los documentos ya subidos seguirán existiendo en ese Drive, pero no se podrán subir nuevos hasta reconectar.')) return

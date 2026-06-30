@@ -134,7 +134,7 @@ export function ClienteDetail({
           >
             <i className="ti ti-edit" /> <span className="hidden sm:inline">Editar</span>
           </button>
-          {profile?.es_admin && (
+          {profile?.rol === 'administrador' && (
             <button
               onClick={onDelete}
               className="flex items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[12px] text-muted transition hover:bg-danger-soft hover:text-danger"

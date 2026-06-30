@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { Invitacion } from '@/types/database'
+import type { Invitacion, RolUsuario } from '@/types/database'
 
 export async function listInvitacionesPendientes(): Promise<Invitacion[]> {
   const { data, error } = await supabase
@@ -11,10 +11,10 @@ export async function listInvitacionesPendientes(): Promise<Invitacion[]> {
   return data
 }
 
-export async function createInvitacion(workspaceId: string, email: string, esAdmin: boolean): Promise<Invitacion> {
+export async function createInvitacion(workspaceId: string, email: string, rol: RolUsuario): Promise<Invitacion> {
   const { data, error } = await supabase
     .from('invitaciones')
-    .insert({ workspace_id: workspaceId, email, es_admin: esAdmin })
+    .insert({ workspace_id: workspaceId, email, rol })
     .select('*')
     .single()
   if (error) throw error
@@ -30,7 +30,7 @@ export type InvitacionInfo = {
   workspace_id: string
   workspace_nombre: string
   email: string
-  es_admin: boolean
+  rol: RolUsuario
   usado: boolean
   expires_at: string
 }

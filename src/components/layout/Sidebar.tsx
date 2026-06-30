@@ -91,7 +91,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
                 <>
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-[12px] font-medium text-ink">{profile.nombre}</div>
-                    <div className="text-[10px] text-mute2">{profile.es_admin ? 'Administrador' : 'Miembro'}</div>
+                    <div className="text-[10px] text-mute2 capitalize">{profile.rol}</div>
                   </div>
                   <button
                     onClick={signOut}

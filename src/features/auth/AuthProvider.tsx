@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import type { Usuario } from '@/types/database'
+import { updateLastSeen } from '@/features/users/api'
 
 interface AuthState {
   session: Session | null
@@ -34,6 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const p = await fetchProfile(currentSession.user.id)
     setProfile(p)
+    if (p) updateLastSeen()
   }
 
   useEffect(() => {

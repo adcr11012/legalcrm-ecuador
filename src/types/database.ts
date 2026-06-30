@@ -17,7 +17,7 @@ export type Visibilidad = 'privado' | 'compartido'
 export type TipoPlazo = 'audiencia' | 'plazo' | 'otro'
 export type EstadoCliente = 'activo' | 'inactivo' | 'potencial'
 export type TipoCliente = 'persona_natural' | 'empresa'
-export type RolUsuario = 'admin' | 'abogado' | 'cliente'
+export type RolUsuario = 'administrador' | 'master' | 'limitado'
 
 export type Workspace = {
   id: string
@@ -33,7 +33,8 @@ export type Usuario = {
   workspace_id: string
   nombre: string
   email: string
-  es_admin: boolean
+  rol: RolUsuario
+  last_seen_at: string | null
   created_at: string
 }
 
@@ -157,7 +158,7 @@ export type Invitacion = {
   id: string
   workspace_id: string
   email: string
-  es_admin: boolean
+  rol: RolUsuario
   token: string
   usado: boolean
   created_at: string
@@ -198,7 +199,7 @@ export type Database = {
           workspace_id: string
           workspace_nombre: string
           email: string
-          es_admin: boolean
+          rol: string
           usado: boolean
           expires_at: string
         }[]

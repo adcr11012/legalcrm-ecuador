@@ -28,7 +28,7 @@ export function useNotifications() {
         listAllPlazos(),
         listCasos(),
         listClientes(),
-        profile.es_admin ? listInvitacionesPendientes() : Promise.resolve([]),
+        profile.rol === 'administrador' ? listInvitacionesPendientes() : Promise.resolve([]),
       ])
       const casosById = new Map(casos.map((c) => [c.id, c]))
 
