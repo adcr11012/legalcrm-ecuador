@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Modal } from '@/components/Modal'
-import { addPersonaInterna, addPersonaExterna, addPersonaCliente } from '@/features/casos/personasApi'
+import { addPersonaInterna, addPersonaCliente } from '@/features/casos/personasApi'
 import { listWorkspaceUsers } from '@/features/users/api'
 import { listClientes } from '@/features/clientes/api'
 import type { CasoPersona, Cliente, RolPersona, Usuario } from '@/types/database'
@@ -9,7 +9,7 @@ const inputClass =
   'w-full rounded-[8px] border border-border bg-bg px-3 py-2.5 text-[13px] text-ink outline-none transition focus:border-accent'
 const labelClass = 'mb-1 block text-[11px] font-semibold uppercase tracking-wide text-mute2'
 
-type Tipo = 'workspace' | 'cliente' | 'externo'
+type Tipo = 'workspace' | 'cliente'
 
 export function AddPersonaModal({
   open,
@@ -27,8 +27,6 @@ export function AddPersonaModal({
   const [userId, setUserId] = useState('')
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [clienteId, setClienteId] = useState('')
-  const [nombreExterno, setNombreExterno] = useState('')
-  const [emailExterno, setEmailExterno] = useState('')
   const [rol, setRol] = useState<RolPersona>('abogado')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -51,8 +49,6 @@ export function AddPersonaModal({
 
   function reset() {
     setTipo('workspace')
-    setNombreExterno('')
-    setEmailExterno('')
     setRol('abogado')
     setError(null)
   }
@@ -65,11 +61,9 @@ export function AddPersonaModal({
       let persona: CasoPersona
       if (tipo === 'workspace') {
         persona = await addPersonaInterna(casoId, userId, rol)
-      } else if (tipo === 'cliente') {
+      } else {
         const cliente = clientes.find((c) => c.id === clienteId)
         persona = await addPersonaCliente(casoId, clienteId, cliente?.nombre ?? '')
-      } else {
-        persona = await addPersonaExterna(casoId, nombreExterno, emailExterno || null, rol)
       }
       onAdded(persona)
       reset()
@@ -106,13 +100,6 @@ export function AddPersonaModal({
           >
             <i className="ti ti-users mr-1 text-[11px]" />Cliente
           </button>
-          <button
-            type="button"
-            onClick={() => setTipo('externo')}
-            className={`flex-1 rounded-[5px] py-1.5 text-[12px] transition ${tipo === 'externo' ? 'bg-surface text-ink shadow-sm' : 'text-muted'}`}
-          >
-            <i className="ti ti-user-plus mr-1 text-[11px]" />Externo
-          </button>
         </div>
 
         {tipo === 'workspace' && (
@@ -146,24 +133,6 @@ export function AddPersonaModal({
           </div>
         )}
 
-        {tipo === 'externo' && (
-          <>
-            <div>
-              <label className={labelClass}>Nombre</label>
-              <input required value={nombreExterno} onChange={(e) => setNombreExterno(e.target.value)} className={inputClass} />
-            </div>
-            <div>
-              <label className={labelClass}>Correo (opcional)</label>
-              <input
-                type="email"
-                value={emailExterno}
-                onChange={(e) => setEmailExterno(e.target.value)}
-                className={inputClass}
-              />
-            </div>
-          </>
-        )}
-
         {tipo !== 'cliente' && (
           <div>
             <label className={labelClass}>Rol en el caso</label>
@@ -193,9 +162,7 @@ export function AddPersonaModal({
           <button
             type="submit"
             disabled={
-              loading ||
-              (tipo === 'workspace' && !userId) ||
-              (tipo === 'cliente' && !clienteId)
+              loading || (tipo === 'workspace' && !userId) || (tipo === 'cliente' && !clienteId)
             }
             className="rounded-[8px] bg-accent px-4 py-2 text-[13px] font-medium text-white transition hover:bg-accent-hover disabled:opacity-60"
           >

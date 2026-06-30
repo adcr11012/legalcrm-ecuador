@@ -236,17 +236,7 @@ export function InfoTab({
             onRemove={puedeEditar ? () => onRemovePersona(p.id) : undefined}
           />
         ))}
-        {personas.filter((p) => p.nombre_externo && !p.cliente_id).map((p) => (
-          <PersonaChip
-            key={p.id}
-            nombre={p.nombre_externo!}
-            sub={`${ROL_LABEL[p.rol]} · externo`}
-            color="neutral"
-            onRemove={puedeEditar ? () => onRemovePersona(p.id) : undefined}
-          />
-        ))}
-        {personas.filter((p) => p.user_id).length === 0 &&
-          personas.filter((p) => p.nombre_externo && !p.cliente_id).length === 0 && (
+        {personas.filter((p) => p.user_id).length === 0 && (
           <span className="text-[12px] italic text-mute2">Sin usuarios asignados.</span>
         )}
       </div>
