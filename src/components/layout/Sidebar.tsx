@@ -9,7 +9,7 @@ const PRINCIPAL = [
 ]
 
 const WORKSPACE = [
-  { to: '/usuarios', icon: 'ti-user-shield', label: 'Usuarios y roles' },
+  { to: '/usuarios', icon: 'ti-user-shield', label: 'Usuarios y roles', soloAdmin: true },
   { to: '/drive', icon: 'ti-brand-google-drive', label: 'Google Drive' },
   { to: '/configuracion', icon: 'ti-settings', label: 'Configuración', soloAdmin: true },
 ]

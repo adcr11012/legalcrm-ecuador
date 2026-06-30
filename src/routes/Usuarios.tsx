@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Navigate } from 'react-router-dom'
 import { usePageAction } from '@/components/layout/PageActionContext'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { listWorkspaceUsers, setRolUsuario, removeUsuario } from '@/features/users/api'
@@ -99,11 +100,28 @@ export default function Usuarios() {
     setInvitaciones((prev) => prev.filter((i) => i.id !== id))
   }
 
+  if (profile && !esAdmin) return <Navigate to="/dashboard" replace />
+
   if (loading) return <div className="flex-1 p-5 text-[13px] text-muted">Cargando usuarios…</div>
   if (error) return <div className="flex-1 p-5 text-[13px] text-danger">{error}</div>
 
   return (
     <div className="flex-1 overflow-y-auto p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <div className="text-[15px] font-semibold text-ink">Usuarios del workspace</div>
+          <div className="text-[12px] text-muted">{usuarios.length} usuario{usuarios.length === 1 ? '' : 's'}</div>
+        </div>
+        {esAdmin && (
+          <button
+            onClick={() => setModalOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-[8px] bg-accent px-3 py-2 text-[12px] font-medium text-white transition hover:bg-accent-hover"
+          >
+            <i className="ti ti-user-plus" /> Invitar usuario
+          </button>
+        )}
+      </div>
+
       <div className="overflow-hidden rounded-[10px] border border-border bg-surface">
         <div className="grid grid-cols-[2fr_1.4fr_1fr_90px_48px] bg-soft px-4 py-2.5">
           {['Usuario', 'Rol', 'Casos', 'Última vez', ''].map((h) => (
