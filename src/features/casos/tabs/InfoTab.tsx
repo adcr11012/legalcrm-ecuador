@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Caso, CasoPersona, Etapa, Usuario } from '@/types/database'
-import { nombrePersona, initialsOf } from '@/features/casos/personaDisplay'
+import { nombrePersona } from '@/features/casos/personaDisplay'
 import { calcularCompletitud } from '@/features/casos/completitud'
 import { InstanciaStepper } from '@/features/casos/InstanciaStepper'
 import { DatosJudicialesModal } from '@/features/casos/DatosJudicialesModal'
@@ -214,46 +214,101 @@ export function InfoTab({
         )}
       </div>
 
-      <div className="mt-4 mb-2 text-[11px] font-semibold uppercase tracking-wide text-mute2">Personas asignadas</div>
-      <div className="flex flex-wrap gap-2">
-        {personas.map((p) => (
-          <div
-            key={p.id}
-            className="group flex items-center gap-2 rounded-[10px] border border-border bg-surface px-3 py-2"
-          >
-            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent">
-              {initialsOf(nombrePersona(p, usersById))}
-            </div>
-            <div>
-              <div className="text-[12px] font-medium text-ink">{nombrePersona(p, usersById)}</div>
-              <div className="text-[10px] text-mute2">{ROL_LABEL[p.rol]}</div>
-            </div>
-            {puedeEditar && (
-              <button
-                onClick={() => onRemovePersona(p.id)}
-                className="ml-1 flex h-5 w-5 items-center justify-center rounded-full text-mute2 opacity-0 transition group-hover:opacity-100 hover:bg-danger-soft hover:text-danger"
-              >
-                <i className="ti ti-x text-[12px]" />
-              </button>
-            )}
-          </div>
-        ))}
-        {personas.length === 0 && (
-          <span className="text-[12px] italic text-mute2">Sin personas asignadas.</span>
-        )}
+      {/* ── Usuarios del workspace ── */}
+      <div className="mt-4 mb-2 flex items-center justify-between">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-mute2">Usuarios asignados</span>
         {puedeEditar && (
           <button
             onClick={onOpenAddPersona}
-            className="flex items-center gap-1.5 rounded-[10px] border border-dashed border-border px-3 py-2 text-[12px] text-muted transition hover:border-accent hover:text-accent"
+            className="flex items-center gap-1 text-[11px] text-accent transition hover:underline"
           >
-            <i className="ti ti-plus" /> Añadir persona
+            <i className="ti ti-plus text-[12px]" /> Añadir
           </button>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {personas.filter((p) => p.user_id).map((p) => (
+          <PersonaChip
+            key={p.id}
+            nombre={nombrePersona(p, usersById)}
+            sub={ROL_LABEL[p.rol]}
+            color="accent"
+            onRemove={puedeEditar ? () => onRemovePersona(p.id) : undefined}
+          />
+        ))}
+        {personas.filter((p) => p.nombre_externo && !p.cliente_id).map((p) => (
+          <PersonaChip
+            key={p.id}
+            nombre={p.nombre_externo!}
+            sub={`${ROL_LABEL[p.rol]} · externo`}
+            color="neutral"
+            onRemove={puedeEditar ? () => onRemovePersona(p.id) : undefined}
+          />
+        ))}
+        {personas.filter((p) => p.user_id).length === 0 &&
+          personas.filter((p) => p.nombre_externo && !p.cliente_id).length === 0 && (
+          <span className="text-[12px] italic text-mute2">Sin usuarios asignados.</span>
+        )}
+      </div>
+
+      {/* ── Clientes del caso ── */}
+      <div className="mt-4 mb-2 text-[11px] font-semibold uppercase tracking-wide text-mute2">Clientes</div>
+      <div className="flex flex-wrap gap-2">
+        {personas.filter((p) => p.cliente_id).map((p) => (
+          <PersonaChip
+            key={p.id}
+            nombre={p.nombre_externo ?? 'Cliente'}
+            sub="Cliente registrado"
+            color="success"
+            onRemove={puedeEditar ? () => onRemovePersona(p.id) : undefined}
+          />
+        ))}
+        {personas.filter((p) => p.cliente_id).length === 0 && (
+          <span className="text-[12px] italic text-mute2">Sin clientes asignados.</span>
         )}
       </div>
 
       <DatosJudicialesModal open={datosJudicialesOpen} onClose={() => setDatosJudicialesOpen(false)} caso={caso} onSave={guardar} />
       <PartesDelProcesoModal open={partesOpen} onClose={() => setPartesOpen(false)} caso={caso} onSave={guardar} />
       <HonorariosModal open={honorariosOpen} onClose={() => setHonorariosOpen(false)} caso={caso} onSave={guardar} />
+    </div>
+  )
+}
+
+function PersonaChip({
+  nombre,
+  sub,
+  color,
+  onRemove,
+}: {
+  nombre: string
+  sub: string
+  color: 'accent' | 'success' | 'neutral'
+  onRemove?: () => void
+}) {
+  const avatarClass =
+    color === 'accent'
+      ? 'bg-accent-soft text-accent'
+      : color === 'success'
+        ? 'bg-success-soft text-success'
+        : 'bg-soft text-muted'
+  return (
+    <div className="group flex items-center gap-2 rounded-[10px] border border-border bg-surface px-3 py-2">
+      <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ${avatarClass}`}>
+        {nombre.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join('')}
+      </div>
+      <div>
+        <div className="text-[12px] font-medium text-ink">{nombre}</div>
+        <div className="text-[10px] text-mute2">{sub}</div>
+      </div>
+      {onRemove && (
+        <button
+          onClick={onRemove}
+          className="ml-1 flex h-5 w-5 items-center justify-center rounded-full text-mute2 opacity-0 transition group-hover:opacity-100 hover:bg-danger-soft hover:text-danger"
+        >
+          <i className="ti ti-x text-[12px]" />
+        </button>
+      )}
     </div>
   )
 }

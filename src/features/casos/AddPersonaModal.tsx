@@ -97,21 +97,21 @@ export function AddPersonaModal({
             onClick={() => setTipo('workspace')}
             className={`flex-1 rounded-[5px] py-1.5 text-[12px] transition ${tipo === 'workspace' ? 'bg-surface text-ink shadow-sm' : 'text-muted'}`}
           >
-            Del workspace
+            <i className="ti ti-user-shield mr-1 text-[11px]" />Usuario
           </button>
           <button
             type="button"
             onClick={() => setTipo('cliente')}
             className={`flex-1 rounded-[5px] py-1.5 text-[12px] transition ${tipo === 'cliente' ? 'bg-surface text-ink shadow-sm' : 'text-muted'}`}
           >
-            Cliente registrado
+            <i className="ti ti-users mr-1 text-[11px]" />Cliente
           </button>
           <button
             type="button"
             onClick={() => setTipo('externo')}
             className={`flex-1 rounded-[5px] py-1.5 text-[12px] transition ${tipo === 'externo' ? 'bg-surface text-ink shadow-sm' : 'text-muted'}`}
           >
-            Externo
+            <i className="ti ti-user-plus mr-1 text-[11px]" />Externo
           </button>
         </div>
 
