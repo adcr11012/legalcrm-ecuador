@@ -51,8 +51,8 @@ export function ClienteSidebar({
             className="w-full bg-transparent text-[12px] text-ink outline-none placeholder:text-mute2"
           />
         </div>
-        <div className="flex flex-col gap-1.5">
-          <div className="flex gap-1">
+        <div>
+          <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
             {(['todos', 'activo', 'inactivo'] as const).map((f) => (
               <button
                 key={f}
@@ -65,7 +65,7 @@ export function ClienteSidebar({
               </button>
             ))}
           </div>
-          <div className="flex gap-1">
+          <div style={{ display: 'flex', gap: '4px' }}>
             <button
               onClick={() => setFiltro('potencial')}
               className={`flex-shrink-0 rounded-full px-2.5 py-1 text-[11px] transition ${
