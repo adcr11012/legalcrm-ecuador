@@ -1,6 +1,15 @@
 import { supabase } from '@/lib/supabase'
 import type { Documento, Visibilidad } from '@/types/database'
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string
+
+// Devuelve la URL del proxy para ver un documento sin necesitar sesión de Google
+export async function getDocumentoProxyUrl(documentoId: string): Promise<string> {
+  const { data } = await supabase.auth.getSession()
+  const token = data.session?.access_token ?? ''
+  return `${SUPABASE_URL}/functions/v1/drive-archivo?id=${documentoId}&token=${encodeURIComponent(token)}`
+}
+
 export async function listDocumentos(casoId: string): Promise<Documento[]> {
   const { data, error } = await supabase
     .from('documentos')

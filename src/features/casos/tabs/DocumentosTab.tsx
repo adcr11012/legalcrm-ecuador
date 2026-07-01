@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Documento } from '@/types/database'
+import { getDocumentoProxyUrl } from '@/features/casos/documentosApi'
 
 function iconFor(nombre: string) {
   const ext = nombre.split('.').pop()?.toLowerCase()
@@ -156,15 +157,17 @@ export function DocumentosTab({
                         {d.visibilidad === 'compartido' ? 'Compartido' : 'Privado'}
                       </span>
                     )}
-                    {d.drive_url && (
-                      <a
-                        href={d.drive_url}
-                        target="_blank"
-                        rel="noreferrer"
+                    {d.drive_file_id && (
+                      <button
+                        onClick={async () => {
+                          const url = await getDocumentoProxyUrl(d.id)
+                          window.open(url, '_blank', 'noreferrer')
+                        }}
                         className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-soft"
+                        title="Ver archivo"
                       >
                         <i className="ti ti-eye text-[14px]" />
-                      </a>
+                      </button>
                     )}
                     {puedeEditar && (
                       <button
