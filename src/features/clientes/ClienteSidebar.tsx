@@ -51,7 +51,7 @@ export function ClienteSidebar({
             className="w-full bg-transparent text-[12px] text-ink outline-none placeholder:text-mute2"
           />
         </div>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1.5">
           <div className="flex gap-1">
             {(['todos', 'activo', 'inactivo'] as const).map((f) => (
               <button
