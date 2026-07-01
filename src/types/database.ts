@@ -199,6 +199,7 @@ export type Database = {
       historial: Table<HistorialEntry>
       clientes: Table<Cliente>
       cliente_notas: Table<ClienteNota>
+      cliente_historial: Table<{ id: string; cliente_id: string; user_id: string; accion: string; detalle: string | null; created_at: string }>
       invitaciones: Table<Invitacion>
       etapas: Table<Etapa>
       tareas: Table<Tarea>
