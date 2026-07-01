@@ -161,7 +161,11 @@ export function DocumentosTab({
                       <button
                         onClick={async () => {
                           const url = await getDocumentoProxyUrl(d.id)
-                          window.open(url, '_blank', 'noreferrer')
+                          const res = await fetch(url)
+                          const blob = await res.blob()
+                          const blobUrl = URL.createObjectURL(blob)
+                          const w = window.open(blobUrl, '_blank', 'noreferrer')
+                          if (w) setTimeout(() => URL.revokeObjectURL(blobUrl), 60000)
                         }}
                         className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-soft"
                         title="Ver archivo"
