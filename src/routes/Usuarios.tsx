@@ -145,8 +145,11 @@ export default function Usuarios() {
               </div>
             </div>
 
-            <div>
-              {esAdmin && u.id !== profile?.id ? (
+            <div className="flex items-center gap-1.5">
+              {u.es_propietario && (
+                <i className="ti ti-crown text-[12px] text-warn" title="Propietario del workspace" />
+              )}
+              {esAdmin && u.id !== profile?.id && !u.es_propietario ? (
                 <select
                   value={u.rol}
                   disabled={cambiandoRol === u.id}
@@ -169,7 +172,7 @@ export default function Usuarios() {
             <div className="text-[11px] text-mute2">{lastSeenLabel(u.last_seen_at)}</div>
 
             <div>
-              {esAdmin && u.id !== profile?.id && (
+              {esAdmin && u.id !== profile?.id && !u.es_propietario && (
                 <button
                   onClick={() => onRemove(u)}
                   className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-danger-soft hover:text-danger"

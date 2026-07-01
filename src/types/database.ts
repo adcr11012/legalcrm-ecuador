@@ -35,6 +35,7 @@ export type Usuario = {
   nombre: string
   email: string
   rol: RolUsuario
+  es_propietario: boolean
   last_seen_at: string | null
   created_at: string
 }
