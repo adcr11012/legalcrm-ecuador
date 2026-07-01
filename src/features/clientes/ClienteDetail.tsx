@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getCliente, deleteCliente, updateCliente } from '@/features/clientes/api'
-import { listNotas, addNota } from '@/features/clientes/notasApi'
+import { listNotas, addNota, updateNota, deleteNota, addHistorial } from '@/features/clientes/notasApi'
 import { listCasosPorCliente, removePersona } from '@/features/casos/personasApi'
 import { listCasosByIds } from '@/features/casos/api'
 import { listEtapas } from '@/features/casos/etapasApi'
@@ -36,6 +36,7 @@ export function ClienteDetail({
   const [etapas, setEtapas] = useState<Etapa[]>([])
   const [notas, setNotas] = useState<ClienteNota[]>([])
   const [nuevaNota, setNuevaNota] = useState('')
+  const [editandoNota, setEditandoNota] = useState<{ id: string; texto: string } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
@@ -88,6 +89,23 @@ export function ClienteDetail({
     } finally {
       setSaving(false)
     }
+  }
+
+  async function onEditNota() {
+    if (!profile || !editandoNota || !editandoNota.texto.trim()) return
+    const anterior = notas.find((n) => n.id === editandoNota.id)?.contenido ?? ''
+    const updated = await updateNota(editandoNota.id, editandoNota.texto.trim())
+    setNotas((prev) => prev.map((n) => (n.id === updated.id ? updated : n)))
+    await addHistorial(clienteId, profile.id, 'Interacción editada', `Antes: "${anterior}" → Ahora: "${updated.contenido}"`)
+    setEditandoNota(null)
+  }
+
+  async function onDeleteNota(nota: ClienteNota) {
+    if (!profile) return
+    if (!confirm('¿Eliminar esta interacción? Quedará registrado en el historial.')) return
+    await deleteNota(nota.id)
+    setNotas((prev) => prev.filter((n) => n.id !== nota.id))
+    await addHistorial(clienteId, profile.id, 'Interacción eliminada', `"${nota.contenido}"`)
   }
 
   async function onSaveSeguimiento(value: string) {
@@ -253,11 +271,47 @@ export function ClienteDetail({
 
         <div className="flex flex-col gap-2">
           {notas.map((n) => (
-            <div key={n.id} className="rounded-[10px] border border-border bg-surface px-3.5 py-2.5">
-              <div className="text-[13px] text-ink">{n.contenido}</div>
-              <div className="mt-1 text-[11px] text-mute2">
-                {new Date(n.created_at).toLocaleString('es-EC', { dateStyle: 'medium', timeStyle: 'short' })}
-              </div>
+            <div key={n.id} className="group rounded-[10px] border border-border bg-surface px-3.5 py-2.5">
+              {editandoNota?.id === n.id ? (
+                <div className="flex gap-2">
+                  <input
+                    autoFocus
+                    value={editandoNota.texto}
+                    onChange={(e) => setEditandoNota({ ...editandoNota, texto: e.target.value })}
+                    onKeyDown={(e) => { if (e.key === 'Enter') onEditNota(); if (e.key === 'Escape') setEditandoNota(null) }}
+                    className="flex-1 rounded-[6px] border border-accent bg-bg px-2 py-1 text-[13px] text-ink outline-none"
+                  />
+                  <button onClick={onEditNota} className="rounded-[6px] bg-accent px-3 py-1 text-[12px] text-white">Guardar</button>
+                  <button onClick={() => setEditandoNota(null)} className="rounded-[6px] border border-border px-3 py-1 text-[12px] text-muted">Cancelar</button>
+                </div>
+              ) : (
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="text-[13px] text-ink">{n.contenido}</div>
+                    <div className="mt-1 text-[11px] text-mute2">
+                      {new Date(n.created_at).toLocaleString('es-EC', { dateStyle: 'medium', timeStyle: 'short' })}
+                    </div>
+                  </div>
+                  {profile?.rol === 'administrador' && (
+                    <div className="flex flex-shrink-0 gap-1 opacity-0 transition group-hover:opacity-100">
+                      <button
+                        onClick={() => setEditandoNota({ id: n.id, texto: n.contenido })}
+                        className="flex h-6 w-6 items-center justify-center rounded-[5px] text-mute2 hover:bg-soft hover:text-ink"
+                        title="Editar"
+                      >
+                        <i className="ti ti-edit text-[12px]" />
+                      </button>
+                      <button
+                        onClick={() => onDeleteNota(n)}
+                        className="flex h-6 w-6 items-center justify-center rounded-[5px] text-mute2 hover:bg-danger-soft hover:text-danger"
+                        title="Eliminar"
+                      >
+                        <i className="ti ti-trash text-[12px]" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
           {notas.length === 0 && (
