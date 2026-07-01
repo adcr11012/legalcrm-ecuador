@@ -51,28 +51,38 @@ export function ClienteSidebar({
             className="w-full bg-transparent text-[12px] text-ink outline-none placeholder:text-mute2"
           />
         </div>
-        <div className="flex gap-1 overflow-x-auto">
-          {(['todos', 'activo', 'inactivo', 'potencial'] as const).map((f) => (
+        <div className="flex flex-col gap-1">
+          <div className="flex gap-1">
+            {(['todos', 'activo', 'inactivo'] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFiltro(f)}
+                className={`flex-shrink-0 rounded-full px-2.5 py-1 text-[11px] transition ${
+                  filtro === f ? 'bg-accent text-white' : 'border border-border text-muted hover:bg-soft'
+                }`}
+              >
+                {f === 'todos' ? 'Todos' : ESTADO_LABEL[f]}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-1">
             <button
-              key={f}
-              onClick={() => setFiltro(f)}
+              onClick={() => setFiltro('potencial')}
               className={`flex-shrink-0 rounded-full px-2.5 py-1 text-[11px] transition ${
-                filtro === f ? 'bg-accent text-white' : 'border border-border text-muted hover:bg-soft'
+                filtro === 'potencial' ? 'bg-accent text-white' : 'border border-border text-muted hover:bg-soft'
               }`}
             >
-              {f === 'todos' ? 'Todos' : ESTADO_LABEL[f]}
+              {ESTADO_LABEL['potencial']}
             </button>
-          ))}
-          {pendientes > 0 && (
             <button
               onClick={() => setFiltro('seguimiento')}
               className={`flex-shrink-0 rounded-full px-2.5 py-1 text-[11px] transition ${
                 filtro === 'seguimiento' ? 'bg-warn text-white' : 'border border-warn/30 bg-warn-soft text-warn'
               }`}
             >
-              Seguimiento ({pendientes})
+              Seguimiento{pendientes > 0 ? ` (${pendientes})` : ''}
             </button>
-          )}
+          </div>
         </div>
       </div>
 
