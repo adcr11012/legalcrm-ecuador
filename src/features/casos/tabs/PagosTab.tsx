@@ -408,7 +408,7 @@ export function PagosTab({
                 </div>
               ))}
               <div className="flex justify-end pt-1 text-[12px] font-semibold text-ink">
-                Cobrables: ${fmt(totalGastosCob)}{totalGastosInfo > 0 && ` · Informativos: $${fmt(totalGastosInfo)}`}
+                Total: ${fmt(totalGastosCob + totalGastosInfo)}
               </div>
             </div>
           )}
