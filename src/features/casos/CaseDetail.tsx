@@ -9,7 +9,7 @@ import { listTareas } from '@/features/casos/tareasApi'
 import { listHistorial } from '@/features/casos/historialApi'
 import { listWorkspaceUsers } from '@/features/users/api'
 import { listEtapas } from '@/features/casos/etapasApi'
-import { listAnticipos, listGastos } from '@/features/casos/pagosApi'
+import { listAnticipos, listGastos, listHoras } from '@/features/casos/pagosApi'
 import { EtapaPill } from '@/features/casos/etapaDisplay'
 import { InfoTab } from '@/features/casos/tabs/InfoTab'
 import { DocumentosTab } from '@/features/casos/tabs/DocumentosTab'
@@ -24,7 +24,7 @@ import { AddPlazoModal } from '@/features/casos/AddPlazoModal'
 import { AddDocumentoModal } from '@/features/casos/AddDocumentoModal'
 import { CasoFormModal } from '@/features/casos/CasoFormModal'
 import { MATERIA_LABEL } from '@/features/casos/materias'
-import type { Caso, CasoAnticipo, CasoGasto, CasoPersona, Documento, Etapa, HistorialEntry, Plazo, Tarea, Usuario } from '@/types/database'
+import type { Caso, CasoAnticipo, CasoGasto, CasoHora, CasoPersona, Documento, Etapa, HistorialEntry, Plazo, Tarea, Usuario } from '@/types/database'
 
 const TABS = [
   { key: 'info', label: 'Información', icon: 'ti-info-circle' },
@@ -57,6 +57,7 @@ export function CaseDetail({
   const [historial, setHistorial] = useState<HistorialEntry[]>([])
   const [anticipos, setAnticipos] = useState<CasoAnticipo[]>([])
   const [gastos, setGastos] = useState<CasoGasto[]>([])
+  const [horas, setHoras] = useState<CasoHora[]>([])
   const [usersById, setUsersById] = useState<Map<string, Usuario>>(new Map())
   const [etapas, setEtapas] = useState<Etapa[]>([])
   const [loading, setLoading] = useState(true)
@@ -74,7 +75,7 @@ export function CaseDetail({
     setError(null)
     setTab('info')
     try {
-      const [c, p, d, pl, h, u, e, tr, ant, gas] = await Promise.all([
+      const [c, p, d, pl, h, u, e, tr, ant, gas, hor] = await Promise.all([
         getCaso(casoId),
         listPersonas(casoId),
         listDocumentos(casoId),
@@ -85,6 +86,7 @@ export function CaseDetail({
         listTareas(casoId),
         listAnticipos(casoId),
         listGastos(casoId),
+        listHoras(casoId),
       ])
       setCaso(c)
       setPersonas(p)
@@ -94,6 +96,7 @@ export function CaseDetail({
       setTareas(tr)
       setAnticipos(ant)
       setGastos(gas)
+      setHoras(hor)
       setUsersById(new Map(u.map((x) => [x.id, x])))
       setEtapas(e)
     } catch (err) {
@@ -317,11 +320,14 @@ export function CaseDetail({
             caso={caso}
             anticipos={anticipos}
             gastos={gastos}
+            horas={horas}
             puedeEditar={puedeEditar}
             onAnticipoAdded={(a) => setAnticipos((prev) => [...prev, a].sort((x, y) => x.fecha.localeCompare(y.fecha)))}
             onAnticipoDeleted={(id) => setAnticipos((prev) => prev.filter((a) => a.id !== id))}
             onGastoAdded={(g) => setGastos((prev) => [...prev, g].sort((x, y) => x.fecha.localeCompare(y.fecha)))}
             onGastoDeleted={(id) => setGastos((prev) => prev.filter((g) => g.id !== id))}
+            onHoraAdded={(h) => setHoras((prev) => [...prev, h].sort((x, y) => x.fecha.localeCompare(y.fecha)))}
+            onHoraDeleted={(id) => setHoras((prev) => prev.filter((h) => h.id !== id))}
           />
         )}
         {tab === 'hist' && <HistorialTab historial={historial} />}

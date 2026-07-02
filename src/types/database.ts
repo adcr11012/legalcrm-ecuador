@@ -49,6 +49,16 @@ export type CasoAnticipo = {
   created_at: string
 }
 
+export type CasoHora = {
+  id: string
+  caso_id: string
+  fecha: string
+  descripcion: string
+  horas: number
+  valor_hora: number
+  created_at: string
+}
+
 export type CasoGasto = {
   id: string
   caso_id: string
@@ -225,6 +235,7 @@ export type Database = {
       documento_tokens: Table<{ id: string; documento_id: string; user_id: string; expires_at: string; created_at: string }>
       caso_anticipos: Table<CasoAnticipo>
       caso_gastos: Table<CasoGasto>
+      caso_horas: Table<CasoHora>
     }
     Views: { [_ in never]: never }
     Functions: {
