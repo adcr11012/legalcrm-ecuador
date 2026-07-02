@@ -51,17 +51,16 @@ Deno.serve(async (req) => {
     if (!caso_id) return json({ error: 'Falta caso_id' }, 400)
 
     // RLS del propio cliente filtra automáticamente por permisos del usuario.
-    const [{ data: caso, error: casoError }, { data: personas }, { data: plazos }, { data: historial }, { data: documentos }] =
+    const [{ data: caso, error: casoError }, { data: personas }, { data: plazos }, { data: historial }, { data: documentos }, { data: anticipos }, { data: gastos }, { data: horas }] =
       await Promise.all([
         userClient.from('casos').select('*').eq('id', caso_id).maybeSingle(),
         userClient.from('caso_personas').select('*').eq('caso_id', caso_id),
         userClient.from('plazos').select('*').eq('caso_id', caso_id).order('fecha'),
         userClient.from('historial').select('*').eq('caso_id', caso_id).order('created_at', { ascending: false }).limit(12),
-        userClient
-          .from('documentos')
-          .select('nombre, created_at, estado_lectura, contenido_texto, error_lectura')
-          .eq('caso_id', caso_id)
-          .order('created_at', { ascending: false }),
+        userClient.from('documentos').select('nombre, created_at, estado_lectura, contenido_texto, error_lectura').eq('caso_id', caso_id).order('created_at', { ascending: false }),
+        userClient.from('caso_anticipos').select('fecha, monto, detalle').eq('caso_id', caso_id).order('fecha'),
+        userClient.from('caso_gastos').select('fecha, monto, descripcion, cobrable').eq('caso_id', caso_id).order('fecha'),
+        userClient.from('caso_horas').select('fecha, descripcion, horas, valor_hora').eq('caso_id', caso_id).order('fecha'),
       ])
     if (casoError || !caso) return json({ error: 'Caso no encontrado o sin acceso' }, 404)
 
@@ -81,6 +80,23 @@ Deno.serve(async (req) => {
     const plazosTexto = (plazos ?? []).map((p) => `- ${p.fecha}: ${p.titulo} (${p.tipo})`).join('\n')
     const historialTexto = (historial ?? []).map((h) => `- ${h.created_at.slice(0, 10)}: ${h.accion}${h.detalle ? ' — ' + h.detalle : ''}`).join('\n')
     const documentosTexto = documentos && documentos.length > 0 ? documentos.map(descripcionDocumento).join('\n\n') : '(sin documentos)'
+
+    const fmt = (n: number) => `$${Number(n).toFixed(2)}`
+    const anticiposTexto = (anticipos ?? []).length > 0
+      ? (anticipos ?? []).map((a) => `- ${a.fecha}: ${fmt(a.monto)}${a.detalle ? ' — ' + a.detalle : ''}`).join('\n')
+      : '(sin anticipos)'
+    const gastosTexto = (gastos ?? []).length > 0
+      ? (gastos ?? []).map((g) => `- ${g.fecha}: ${fmt(g.monto)} — ${g.descripcion} (${g.cobrable ? 'cobrable al cliente' : 'informativo'})`).join('\n')
+      : '(sin gastos)'
+    const horasTexto = (horas ?? []).length > 0
+      ? (horas ?? []).map((h) => `- ${h.fecha}: ${h.horas}hrs × ${fmt(h.valor_hora)}/hr = ${fmt(Number(h.horas) * Number(h.valor_hora))} — ${h.descripcion}`).join('\n')
+      : null
+
+    const totalAnticipos = (anticipos ?? []).reduce((s, a) => s + Number(a.monto), 0)
+    const totalGastosCob = (gastos ?? []).filter((g) => g.cobrable).reduce((s, g) => s + Number(g.monto), 0)
+    const totalHoras = (horas ?? []).reduce((s, h) => s + Number(h.horas) * Number(h.valor_hora), 0)
+    const honorarioBase = caso.honorarios_tipo === 'por_hora' ? totalHoras : (Number(caso.honorarios_monto) || 0)
+    const saldo = honorarioBase + totalGastosCob - totalAnticipos
 
     const { data: groqConexion } = await admin
       .from('groq_conexion')
@@ -105,6 +121,11 @@ ${plazosTexto || '(sin plazos registrados)'}
 
 Historial reciente:
 ${historialTexto || '(sin actividad registrada)'}
+
+Estado de cuenta:
+${horasTexto ? `Horas trabajadas:\n${horasTexto}\nTotal honorarios por hora: ${fmt(totalHoras)}\n` : ''}Anticipos recibidos:\n${anticiposTexto}
+Gastos:\n${gastosTexto}
+Saldo pendiente: ${fmt(saldo)} ${saldo <= 0 ? '(SALDADO)' : ''}
 
 Documentos:
 ${documentosTexto}
