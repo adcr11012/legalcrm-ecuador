@@ -9,6 +9,7 @@ import { listTareas } from '@/features/casos/tareasApi'
 import { listHistorial } from '@/features/casos/historialApi'
 import { listWorkspaceUsers } from '@/features/users/api'
 import { listEtapas } from '@/features/casos/etapasApi'
+import { listAnticipos, listGastos } from '@/features/casos/pagosApi'
 import { EtapaPill } from '@/features/casos/etapaDisplay'
 import { InfoTab } from '@/features/casos/tabs/InfoTab'
 import { DocumentosTab } from '@/features/casos/tabs/DocumentosTab'
@@ -17,18 +18,20 @@ import { TareasTab } from '@/features/casos/tabs/TareasTab'
 import { HistorialTab } from '@/features/casos/tabs/HistorialTab'
 import { NotasTab } from '@/features/casos/tabs/NotasTab'
 import { IATab } from '@/features/casos/tabs/IATab'
+import { PagosTab } from '@/features/casos/tabs/PagosTab'
 import { AddPersonaModal } from '@/features/casos/AddPersonaModal'
 import { AddPlazoModal } from '@/features/casos/AddPlazoModal'
 import { AddDocumentoModal } from '@/features/casos/AddDocumentoModal'
 import { CasoFormModal } from '@/features/casos/CasoFormModal'
 import { MATERIA_LABEL } from '@/features/casos/materias'
-import type { Caso, CasoPersona, Documento, Etapa, HistorialEntry, Plazo, Tarea, Usuario } from '@/types/database'
+import type { Caso, CasoAnticipo, CasoGasto, CasoPersona, Documento, Etapa, HistorialEntry, Plazo, Tarea, Usuario } from '@/types/database'
 
 const TABS = [
   { key: 'info', label: 'Información', icon: 'ti-info-circle' },
   { key: 'tareas', label: 'Tareas', icon: 'ti-checkbox' },
   { key: 'docs', label: 'Documentos', icon: 'ti-files' },
   { key: 'plazos', label: 'Plazos', icon: 'ti-clock' },
+  { key: 'pagos', label: 'Pagos', icon: 'ti-cash' },
   { key: 'hist', label: 'Historial', icon: 'ti-history' },
   { key: 'notas', label: 'Notas', icon: 'ti-notes' },
   { key: 'ia', label: 'IA', icon: 'ti-sparkles' },
@@ -52,6 +55,8 @@ export function CaseDetail({
   const [plazos, setPlazos] = useState<Plazo[]>([])
   const [tareas, setTareas] = useState<Tarea[]>([])
   const [historial, setHistorial] = useState<HistorialEntry[]>([])
+  const [anticipos, setAnticipos] = useState<CasoAnticipo[]>([])
+  const [gastos, setGastos] = useState<CasoGasto[]>([])
   const [usersById, setUsersById] = useState<Map<string, Usuario>>(new Map())
   const [etapas, setEtapas] = useState<Etapa[]>([])
   const [loading, setLoading] = useState(true)
@@ -69,7 +74,7 @@ export function CaseDetail({
     setError(null)
     setTab('info')
     try {
-      const [c, p, d, pl, h, u, e, tr] = await Promise.all([
+      const [c, p, d, pl, h, u, e, tr, ant, gas] = await Promise.all([
         getCaso(casoId),
         listPersonas(casoId),
         listDocumentos(casoId),
@@ -78,6 +83,8 @@ export function CaseDetail({
         listWorkspaceUsers(),
         listEtapas(),
         listTareas(casoId),
+        listAnticipos(casoId),
+        listGastos(casoId),
       ])
       setCaso(c)
       setPersonas(p)
@@ -85,6 +92,8 @@ export function CaseDetail({
       setPlazos(pl)
       setHistorial(h)
       setTareas(tr)
+      setAnticipos(ant)
+      setGastos(gas)
       setUsersById(new Map(u.map((x) => [x.id, x])))
       setEtapas(e)
     } catch (err) {
@@ -302,6 +311,18 @@ export function CaseDetail({
         )}
         {tab === 'plazos' && (
           <PlazosTab plazos={plazos} puedeEditar={puedeEditar} onOpenAdd={() => setAddPlazoOpen(true)} onDelete={onDeletePlazo} />
+        )}
+        {tab === 'pagos' && (
+          <PagosTab
+            caso={caso}
+            anticipos={anticipos}
+            gastos={gastos}
+            puedeEditar={puedeEditar}
+            onAnticipoAdded={(a) => setAnticipos((prev) => [...prev, a].sort((x, y) => x.fecha.localeCompare(y.fecha)))}
+            onAnticipoDeleted={(id) => setAnticipos((prev) => prev.filter((a) => a.id !== id))}
+            onGastoAdded={(g) => setGastos((prev) => [...prev, g].sort((x, y) => x.fecha.localeCompare(y.fecha)))}
+            onGastoDeleted={(id) => setGastos((prev) => prev.filter((g) => g.id !== id))}
+          />
         )}
         {tab === 'hist' && <HistorialTab historial={historial} />}
         {tab === 'notas' && showNotas && <NotasTab nota={caso.nota_interna} onSave={onSaveNota} />}

@@ -40,6 +40,25 @@ export type Usuario = {
   created_at: string
 }
 
+export type CasoAnticipo = {
+  id: string
+  caso_id: string
+  fecha: string
+  monto: number
+  detalle: string | null
+  created_at: string
+}
+
+export type CasoGasto = {
+  id: string
+  caso_id: string
+  fecha: string
+  monto: number
+  descripcion: string
+  cobrable: boolean
+  created_at: string
+}
+
 export type HonorariosTipo = 'fijo' | 'por_hora' | 'por_exito' | 'mixto'
 export type HonorariosFormaPago = 'inicio' | 'cuotas' | 'al_finalizar'
 
@@ -204,6 +223,8 @@ export type Database = {
       etapas: Table<Etapa>
       tareas: Table<Tarea>
       documento_tokens: Table<{ id: string; documento_id: string; user_id: string; expires_at: string; created_at: string }>
+      caso_anticipos: Table<CasoAnticipo>
+      caso_gastos: Table<CasoGasto>
     }
     Views: { [_ in never]: never }
     Functions: {
