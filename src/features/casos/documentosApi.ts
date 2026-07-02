@@ -32,9 +32,28 @@ export async function toggleVisibilidad(id: string, visibilidad: Visibilidad): P
   return data
 }
 
+async function callDriveEliminar(documentoIds: string[]): Promise<void> {
+  const { data: session } = await supabase.auth.getSession()
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/drive-eliminar`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${session.session?.access_token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ documento_ids: documentoIds }),
+  })
+  if (!res.ok) {
+    const j = await res.json()
+    throw new Error(j.error ?? 'No se pudo eliminar el documento')
+  }
+}
+
 export async function deleteDocumento(id: string): Promise<void> {
-  const { error } = await supabase.from('documentos').delete().eq('id', id)
+  await callDriveEliminar([id])
+}
+
+export async function deleteDocumentosCaso(casoId: string): Promise<void> {
+  const { data, error } = await supabase.from('documentos').select('id').eq('caso_id', casoId)
   if (error) throw error
+  if (!data || data.length === 0) return
+  await callDriveEliminar(data.map((d) => d.id))
 }
 
 export async function countDocumentos(): Promise<number> {

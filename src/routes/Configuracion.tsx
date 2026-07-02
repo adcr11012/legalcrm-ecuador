@@ -82,7 +82,7 @@ export default function Configuracion() {
   const puedeEditar = profile?.rol === 'administrador'
 
   async function onDesconectarDrive() {
-    if (!confirm('¿Desconectar Google Drive? Los documentos ya subidos seguirán existiendo en ese Drive, pero no se podrán subir nuevos hasta reconectar.')) return
+    if (!confirm('¿Desconectar Google Drive?\n\nLos documentos ya subidos permanecen en Drive y se podrán ver nuevamente al reconectar la misma cuenta.\n\nMientras esté desconectado no se podrán subir, ver ni leer documentos con IA.')) return
     setDriveBusy(true)
     setError(null)
     try {

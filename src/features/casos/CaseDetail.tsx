@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { getCaso, updateCaso, updateEtapaCaso, deleteCaso } from '@/features/casos/api'
 import { listPersonas, removePersona } from '@/features/casos/personasApi'
-import { listDocumentos, toggleVisibilidad, deleteDocumento, leerDocumentoAhora } from '@/features/casos/documentosApi'
+import { listDocumentos, toggleVisibilidad, deleteDocumento, deleteDocumentosCaso, leerDocumentoAhora } from '@/features/casos/documentosApi'
 import { renameDriveFile } from '@/features/workspace/driveApi'
 import { listPlazos, deletePlazo } from '@/features/casos/plazosApi'
 import { listTareas } from '@/features/casos/tareasApi'
@@ -166,6 +166,13 @@ export function CaseDetail({
 
   async function onDeleteCaso() {
     if (!confirm(`¿Eliminar el caso "${caso!.titulo}"? Esta acción no se puede deshacer.`)) return
+    const docsConArchivo = documentos.filter((d) => d.drive_file_id)
+    if (docsConArchivo.length > 0) {
+      const borrarDrive = confirm(
+        `Este caso tiene ${docsConArchivo.length} documento${docsConArchivo.length === 1 ? '' : 's'} en Google Drive.\n\n¿Deseas eliminarlos también de Drive?\n\nAceptar = eliminar de Drive\nCancelar = dejar en Drive (quedarán sin vínculo)`
+      )
+      if (borrarDrive) await deleteDocumentosCaso(caso!.id)
+    }
     await deleteCaso(caso!.id)
     onDeleted?.()
   }
