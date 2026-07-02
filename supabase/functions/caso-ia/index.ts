@@ -10,7 +10,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2'
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
-const GROQ_MODEL = 'llama-3.3-70b-versatile'
+const GROQ_MODELS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'gemma2-9b-it']
 
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
@@ -112,29 +112,35 @@ ${documentosTexto}
 
     const pregFinal = typeof pregunta === 'string' && pregunta.trim() ? pregunta.trim() : 'Resume este caso en pocas oraciones, en español.'
 
-    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${groqConexion.api_key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages: [
-          {
-            role: 'system',
-            content:
-              'Eres el asistente de TSADOQ, un gestor legal de casos. Responde en español, de forma clara y breve, usando ÚNICAMENTE la información del caso que se te da a continuación. Si no tienes la información para responder algo, dilo explícitamente en vez de inventar.\n\n' +
-              contexto,
-          },
-          { role: 'user', content: pregFinal },
-        ],
-      }),
-    })
-    const groqJson = await groqRes.json()
-    if (!groqRes.ok) {
-      console.error('Groq call failed', groqJson)
-      return json({ error: groqJson.error?.message ?? 'La IA no respondió' }, 400)
+    const messages = [
+      {
+        role: 'system',
+        content:
+          'Eres el asistente de TSADOQ, un gestor legal de casos. Responde en español, de forma clara y breve, usando ÚNICAMENTE la información del caso que se te da a continuación. Si no tienes la información para responder algo, dilo explícitamente en vez de inventar.\n\n' +
+          contexto,
+      },
+      { role: 'user', content: pregFinal },
+    ]
+
+    let respuesta: string | null = null
+    let lastError = 'La IA no respondió'
+    for (const model of GROQ_MODELS) {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${groqConexion.api_key}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model, messages }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        respuesta = data.choices?.[0]?.message?.content ?? '(sin respuesta)'
+        break
+      }
+      lastError = data.error?.message ?? lastError
+      // Solo reintenta si es error de capacidad/rate limit
+      if (res.status !== 429 && res.status !== 503) break
     }
 
-    const respuesta = groqJson.choices?.[0]?.message?.content ?? '(sin respuesta)'
+    if (!respuesta) return json({ error: lastError }, 400)
     return json({ respuesta })
   } catch (err) {
     console.error(err)
