@@ -1,29 +1,20 @@
 // Edge Function: procesar-documentos
-// Worker invocado por un cron de Supabase cada pocos minutos. Toma un lote
-// pequeño de documentos en estado "pendiente" (de cualquier workspace),
-// extrae su texto según el tipo de archivo, y guarda el resultado — para
-// que caso-ia solo tenga que leer texto ya calculado, sin procesar nada
-// en vivo ni arriesgar timeouts.
-//
-// Rutas según mime_type:
-//  - application/pdf con texto real -> pdf-parse
-//  - application/pdf escaneado (sin texto) -> por ahora queda en error;
-//    convertir páginas a imagen no está soportado todavía.
-//  - image/* -> modelo de visión gratis de OpenRouter (Nemotron)
-//  - Word (.docx) -> extracción directa de texto (mammoth)
-//  - cualquier otro tipo no llega aquí (queda en 'no_aplica' desde la subida)
+// Worker invocado por un cron de Supabase cada pocos minutos.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { Buffer } from 'node:buffer'
 // @deno-types="npm:@types/pdf-parse@1"
 import pdfParse from 'npm:pdf-parse@1.1.1'
 import mammoth from 'npm:mammoth@1.8.0'
+import { init as initPdfium } from 'npm:@embedpdf/pdfium@2'
+import { PNG } from 'npm:pngjs@7'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID')
 const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET')
 const VISION_MODEL = 'nvidia/nemotron-nano-12b-v2-vl:free'
+const PDF_VISION_MODEL = 'openrouter/auto'
 const MAX_CHARS = 6000
 const LOTE = 5
 
@@ -59,46 +50,75 @@ async function getAccessToken(refreshToken: string): Promise<string | null> {
   }
 }
 
-async function descargarArchivo(fileId: string, accessToken: string): Promise<ArrayBuffer> {
-  const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
+async function pdfAPng(pdfBytes: ArrayBuffer): Promise<Buffer> {
+  const pdfium = await initPdfium()
+  pdfium.PDFiumExt_Init()
+
+  const wasm = (pdfium as unknown as { pdfium: { _malloc: (n: number) => number; _free: (p: number) => void; HEAPU8: Uint8Array } }).pdfium
+  const buf = new Uint8Array(pdfBytes)
+  const ptr = wasm._malloc(buf.byteLength)
+  wasm.HEAPU8.set(buf, ptr)
+  const docPtr = pdfium.FPDF_LoadMemDocument(ptr, buf.byteLength, '')
+  if (!docPtr) { wasm._free(ptr); throw new Error(`PDFium no pudo abrir el PDF (error ${pdfium.FPDF_GetLastError()})`) }
+
+  const pagePtr = pdfium.FPDF_LoadPage(docPtr, 0)
+  if (!pagePtr) throw new Error('PDFium: no se pudo cargar la página 0')
+
+  const scale = 150 / 72
+  const renderW = Math.round(pdfium.FPDF_GetPageWidth(pagePtr) * scale)
+  const renderH = Math.round(pdfium.FPDF_GetPageHeight(pagePtr) * scale)
+
+  const bmpPtr = pdfium.FPDFBitmap_Create(renderW, renderH, 0)
+  pdfium.FPDFBitmap_FillRect(bmpPtr, 0, 0, renderW, renderH, 0xFFFFFFFF)
+  pdfium.FPDF_RenderPageBitmap(bmpPtr, pagePtr, 0, 0, renderW, renderH, 0, 0)
+
+  const stride = pdfium.FPDFBitmap_GetStride(bmpPtr)
+  const bmpDataPtr = pdfium.FPDFBitmap_GetBuffer(bmpPtr)
+  const raw = wasm.HEAPU8.slice(bmpDataPtr, bmpDataPtr + stride * renderH)
+
+  const rgba = new Uint8Array(renderW * renderH * 4)
+  for (let i = 0; i < renderW * renderH; i++) {
+    const s = i * 4
+    rgba[s] = raw[s + 2]; rgba[s + 1] = raw[s + 1]; rgba[s + 2] = raw[s]; rgba[s + 3] = 255
+  }
+
+  pdfium.FPDFBitmap_Destroy(bmpPtr)
+  pdfium.FPDF_ClosePage(pagePtr)
+  pdfium.FPDF_CloseDocument(docPtr)
+  wasm._free(ptr)
+
+  const png = new PNG({ width: renderW, height: renderH })
+  png.data = Buffer.from(rgba)
+  const chunks: Buffer[] = []
+  await new Promise<void>((resolve, reject) => {
+    const s = png.pack()
+    s.on('data', (c: Buffer) => chunks.push(c))
+    s.on('end', resolve)
+    s.on('error', reject)
   })
-  if (!res.ok) throw new Error(`No se pudo descargar el archivo (${res.status})`)
-  return await res.arrayBuffer()
+  return Buffer.concat(chunks)
 }
 
-async function leerPdf(buffer: Buffer): Promise<{ texto: string | null; escaneado: boolean }> {
-  const parsed = await pdfParse(buffer)
-  const texto = parsed.text?.trim().slice(0, MAX_CHARS) || null
-  return { texto, escaneado: !texto }
-}
-
-async function leerDocx(buffer: Buffer): Promise<string | null> {
-  const result = await mammoth.extractRawText({ buffer })
-  return result.value?.trim().slice(0, MAX_CHARS) || null
-}
-
-async function leerImagenConVision(buffer: ArrayBuffer, mimeType: string, apiKey: string): Promise<string> {
-  const base64 = Buffer.from(buffer).toString('base64')
+async function leerImagenConVision(buffer: ArrayBuffer | Buffer, mimeType: string, apiKey: string, model = VISION_MODEL): Promise<string> {
+  const base64 = Buffer.from(buffer as ArrayBuffer).toString('base64')
   const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: VISION_MODEL,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: 'Transcribe todo el texto visible en esta imagen, en español si aplica. Si no hay texto, describe brevemente qué se ve.' },
-            { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64}` } },
-          ],
-        },
-      ],
+      model,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'text', text: 'Transcribe todo el texto visible en esta imagen, en español si aplica. Si no hay texto, describe brevemente qué se ve.' },
+          { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64}` } },
+        ],
+      }],
     }),
   })
   const data = await res.json()
   if (!res.ok) throw new Error(data.error?.message ?? 'El modelo de visión no respondió')
-  const texto = data.choices?.[0]?.message?.content?.trim()
+  const raw = data.choices?.[0]?.message?.content
+  const texto = (Array.isArray(raw) ? raw.map((b: { text?: string }) => b.text ?? '').join('') : raw ?? '').trim()
   if (!texto) throw new Error('El modelo de visión no devolvió texto')
   return texto.slice(0, MAX_CHARS)
 }
@@ -107,9 +127,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   const authHeader = req.headers.get('Authorization') ?? ''
-  if (authHeader !== `Bearer ${SERVICE_ROLE_KEY}`) {
-    return json({ error: 'No autorizado' }, 401)
-  }
+  if (authHeader !== `Bearer ${SERVICE_ROLE_KEY}`) return json({ error: 'No autorizado' }, 401)
 
   try {
     const { data: pendientes, error: pendError } = await admin
@@ -155,46 +173,40 @@ Deno.serve(async (req) => {
         const accessToken = await tokenParaWorkspace(workspaceId)
         if (!accessToken) throw new Error('Google Drive no está conectado en este workspace')
 
-        const bytes = await descargarArchivo(doc.drive_file_id, accessToken)
+        const bytes = await fetch(`https://www.googleapis.com/drive/v3/files/${doc.drive_file_id}?alt=media`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }).then(r => { if (!r.ok) throw new Error(`Drive error ${r.status}`); return r.arrayBuffer() })
+
         const mime = doc.mime_type ?? ''
         let texto: string | null = null
+        let modeloUsado: string | null = null
 
         if (mime === 'application/pdf') {
-          const { texto: textoPdf, escaneado } = await leerPdf(Buffer.from(bytes))
-          if (escaneado) {
-            // PDF sin texto (escaneado/imagen) → obtener thumbnail de Drive y leer con visión
+          const parsed = await pdfParse(Buffer.from(bytes))
+          texto = parsed.text?.trim().slice(0, MAX_CHARS) || null
+          if (!texto) {
             const apiKey = await visionKeyParaWorkspace(workspaceId)
             if (!apiKey) throw new Error('PDF escaneado: conecta OpenRouter (Visión) para leer este tipo de archivo')
-            const thumbRes = await fetch(
-              `https://www.googleapis.com/drive/v3/files/${doc.drive_file_id}?fields=thumbnailLink`,
-              { headers: { Authorization: `Bearer ${accessToken}` } }
-            )
-            const thumbData = await thumbRes.json()
-            const thumbUrl: string | undefined = thumbData.thumbnailLink
-            if (!thumbUrl) throw new Error('PDF escaneado: Drive no generó miniatura para este archivo')
-            // Obtener imagen más grande (reemplazar tamaño en la URL)
-            const thumbUrlHd = thumbUrl.replace(/=s\d+$/, '=s1600')
-            const imgRes = await fetch(thumbUrlHd, { headers: { Authorization: `Bearer ${accessToken}` } })
-            if (!imgRes.ok) throw new Error('No se pudo descargar la miniatura del PDF')
-            const imgBytes = await imgRes.arrayBuffer()
-            texto = await leerImagenConVision(imgBytes, 'image/jpeg', apiKey)
+            const pngBuf = await pdfAPng(bytes)
+            texto = await leerImagenConVision(pngBuf, 'image/png', apiKey, PDF_VISION_MODEL)
+            modeloUsado = PDF_VISION_MODEL
           } else {
-            texto = textoPdf
+            modeloUsado = 'pdf-parse'
           }
         } else if (mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-          texto = await leerDocx(Buffer.from(bytes))
+          const result = await mammoth.extractRawText({ buffer: Buffer.from(bytes) })
+          texto = result.value?.trim().slice(0, MAX_CHARS) || null
+          modeloUsado = 'mammoth'
         } else if (mime.startsWith('image/')) {
           const apiKey = await visionKeyParaWorkspace(workspaceId)
           if (!apiKey) throw new Error('La lectura de imágenes (OpenRouter) no está conectada en este workspace')
           texto = await leerImagenConVision(bytes, mime, apiKey)
+          modeloUsado = VISION_MODEL
         } else {
-          throw new Error(`Tipo de archivo no soportado para lectura (${mime || 'desconocido'})`)
+          throw new Error(`Tipo de archivo no soportado (${mime || 'desconocido'})`)
         }
 
-        await admin
-          .from('documentos')
-          .update({ estado_lectura: 'listo', contenido_texto: texto, error_lectura: null })
-          .eq('id', doc.id)
+        await admin.from('documentos').update({ estado_lectura: 'listo', contenido_texto: texto, error_lectura: null, modelo_lectura: modeloUsado }).eq('id', doc.id)
         procesados++
       } catch (err) {
         const mensaje = err instanceof Error ? err.message : String(err)
