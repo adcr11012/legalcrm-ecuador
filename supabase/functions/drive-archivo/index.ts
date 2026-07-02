@@ -1,13 +1,11 @@
 // Edge Function: drive-archivo
-// Proxy para archivos de Google Drive. El usuario se autentica con Supabase (no con Google).
-// El backend usa el token OAuth del workspace para descargar el archivo y lo devuelve al cliente.
-// Uso: GET /drive-archivo?id=DOCUMENTO_ID
+// Proxy para archivos de Google Drive usando token de un solo uso (5 min).
+// Uso: GET /drive-archivo?token=UUID
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
 const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID')
 const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET')
 
@@ -43,33 +41,49 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    // Autenticar usuario con Supabase JWT (header o query param para nueva pestaña)
     const url = new URL(req.url)
-    const tokenFromQuery = url.searchParams.get('token')
-    const authHeader = tokenFromQuery ? `Bearer ${tokenFromQuery}` : (req.headers.get('Authorization') ?? '')
-    const userClient = createClient(SUPABASE_URL, ANON_KEY, { global: { headers: { Authorization: authHeader } } })
-    const { data: userData, error: userError } = await userClient.auth.getUser()
-    if (userError || !userData.user) {
-      return new Response('No autenticado', { status: 401, headers: corsHeaders })
+    const token = url.searchParams.get('token')
+    if (!token) return new Response('Falta ?token=', { status: 400, headers: corsHeaders })
+
+    // Validar token de un solo uso (service role para saltear RLS)
+    const { data: tk, error: tkError } = await admin
+      .from('documento_tokens')
+      .select('id, documento_id, user_id, expires_at')
+      .eq('id', token)
+      .maybeSingle()
+
+    if (tkError || !tk) return new Response('Token inválido', { status: 401, headers: corsHeaders })
+    if (new Date(tk.expires_at) < new Date()) {
+      await admin.from('documento_tokens').delete().eq('id', token)
+      return new Response('Token expirado', { status: 401, headers: corsHeaders })
     }
 
-    const documentoId = url.searchParams.get('id')
-    if (!documentoId) return new Response('Falta ?id=', { status: 400, headers: corsHeaders })
+    // Consumir token (un solo uso)
+    await admin.from('documento_tokens').delete().eq('id', token)
 
-    // Verificar acceso al documento vía RLS
-    const { data: doc, error: docError } = await userClient
+    // Obtener documento
+    const { data: doc } = await admin
       .from('documentos')
       .select('id, caso_id, drive_file_id, mime_type, nombre')
-      .eq('id', documentoId)
+      .eq('id', tk.documento_id)
       .maybeSingle()
-    if (docError || !doc) return new Response('Documento no encontrado o sin acceso', { status: 404, headers: corsHeaders })
+    if (!doc) return new Response('Documento no encontrado', { status: 404, headers: corsHeaders })
     if (!doc.drive_file_id) return new Response('Sin archivo en Drive', { status: 404, headers: corsHeaders })
 
-    // Obtener workspace del caso
+    // Obtener workspace
     const { data: caso } = await admin.from('casos').select('workspace_id').eq('id', doc.caso_id).single()
     if (!caso) return new Response('Caso no encontrado', { status: 404, headers: corsHeaders })
 
-    // Obtener token de Drive del workspace
+    // Verificar que el usuario pertenece al workspace
+    const { data: userRow } = await admin
+      .from('users')
+      .select('id')
+      .eq('id', tk.user_id)
+      .eq('workspace_id', caso.workspace_id)
+      .maybeSingle()
+    if (!userRow) return new Response('Sin acceso', { status: 403, headers: corsHeaders })
+
+    // Obtener token de Drive
     const { data: driveConexion } = await admin
       .from('drive_conexion')
       .select('refresh_token')
@@ -78,7 +92,7 @@ Deno.serve(async (req) => {
     const accessToken = driveConexion ? await getAccessToken(driveConexion.refresh_token) : null
     if (!accessToken) return new Response('Drive no conectado', { status: 503, headers: corsHeaders })
 
-    // Descargar archivo de Drive
+    // Descargar y servir archivo
     const fileRes = await fetch(
       `https://www.googleapis.com/drive/v3/files/${doc.drive_file_id}?alt=media`,
       { headers: { Authorization: `Bearer ${accessToken}` } }
@@ -94,7 +108,7 @@ Deno.serve(async (req) => {
         ...corsHeaders,
         'Content-Type': contentType,
         'Content-Disposition': `inline; filename="${fileName}"`,
-        'Cache-Control': 'private, max-age=3600',
+        'Cache-Control': 'private, no-store',
       },
     })
   } catch (err) {

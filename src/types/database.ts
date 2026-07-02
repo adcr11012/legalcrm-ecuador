@@ -203,6 +203,7 @@ export type Database = {
       invitaciones: Table<Invitacion>
       etapas: Table<Etapa>
       tareas: Table<Tarea>
+      documento_tokens: Table<{ id: string; documento_id: string; user_id: string; expires_at: string; created_at: string }>
     }
     Views: { [_ in never]: never }
     Functions: {
