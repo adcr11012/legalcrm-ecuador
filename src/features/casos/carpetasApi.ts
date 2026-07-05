@@ -12,11 +12,10 @@ export async function listCarpetas(casoId: string): Promise<Carpeta[]> {
   return data
 }
 
-export async function swapOrdenCarpetas(a: Carpeta, b: Carpeta): Promise<void> {
-  await Promise.all([
-    supabase.from('carpetas').update({ orden: b.orden }).eq('id', a.id),
-    supabase.from('carpetas').update({ orden: a.orden }).eq('id', b.id),
-  ])
+export async function reindexCarpetas(ordenados: Carpeta[]): Promise<void> {
+  await Promise.all(
+    ordenados.map((c, i) => supabase.from('carpetas').update({ orden: i }).eq('id', c.id))
+  )
 }
 
 export async function createCarpeta(casoId: string, workspaceId: string, nombre: string, parentId?: string): Promise<Carpeta> {

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Carpeta, Documento } from '@/types/database'
 import { getDocumentoProxyUrl } from '@/features/casos/documentosApi'
-import { moverDocumento, createCarpeta, deleteCarpeta, renameCarpeta, swapOrdenCarpetas } from '@/features/casos/carpetasApi'
+import { moverDocumento, createCarpeta, deleteCarpeta, renameCarpeta, reindexCarpetas } from '@/features/casos/carpetasApi'
 
 function iconFor(nombre: string) {
   const ext = nombre.split('.').pop()?.toLowerCase()
@@ -187,7 +187,7 @@ function CarpetaSection({
   onMover: (docId: string, carpetaId: string | null) => Promise<void>
   onRenameCarpeta: (id: string, nombre: string) => Promise<void>
   onDeleteCarpeta: (id: string) => Promise<void>
-  onMoverCarpeta: (a: Carpeta, b: Carpeta) => Promise<void>
+  onMoverCarpeta: (a: Carpeta, b: Carpeta, siblings: Carpeta[]) => Promise<void>
 }) {
   const [open, setOpen] = useState(true)
   const [editingCarpeta, setEditingCarpeta] = useState(false)
@@ -212,6 +212,7 @@ function CarpetaSection({
         {editingCarpeta ? (
           <div className="flex flex-1 items-center gap-1 min-w-0">
             <i className={`ti ${open ? 'ti-folder-open' : 'ti-folder'} text-[15px] text-muted flex-shrink-0`} />
+
             <input
               autoFocus value={carpetaName}
               onChange={(e) => setCarpetaName(e.target.value)}
@@ -238,38 +239,43 @@ function CarpetaSection({
             </button>
           </div>
         ) : (
-          <button onClick={() => setOpen(v => !v)} className="flex items-center gap-1.5 flex-1 min-w-0">
-            <i className={`ti ${open ? 'ti-folder-open' : 'ti-folder'} text-[15px] text-muted`} />
-            <span className="text-[12px] font-medium text-ink truncate">{carpeta.nombre}</span>
-            <span className="text-[10px] text-muted ml-1">{docs.length}</span>
-            <i className={`ti ${open ? 'ti-chevron-down' : 'ti-chevron-right'} text-[11px] text-muted ml-auto`} />
-          </button>
-        )}
-        {puedeEditar && !editingCarpeta && (
-          <div className="flex gap-1">
-            <button
-              onClick={() => prev && onMoverCarpeta(carpeta, prev)}
-              disabled={!prev}
-              className="flex h-6 w-6 items-center justify-center rounded-[4px] text-muted hover:bg-soft disabled:opacity-20"
-              title="Subir"
-            >
-              <i className="ti ti-chevron-up text-[12px]" />
+          <>
+            <button onClick={() => setOpen(v => !v)} className="flex items-center gap-1.5 flex-1 min-w-0">
+              <i className={`ti ${open ? 'ti-folder-open' : 'ti-folder'} text-[15px] text-muted`} />
+              <span className="text-[12px] font-medium text-ink truncate">{carpeta.nombre}</span>
+              <span className="text-[10px] text-muted ml-1">{docs.length}</span>
+              <i className={`ti ${open ? 'ti-chevron-down' : 'ti-chevron-right'} text-[11px] text-muted ml-auto`} />
             </button>
-            <button
-              onClick={() => next && onMoverCarpeta(carpeta, next)}
-              disabled={!next}
-              className="flex h-6 w-6 items-center justify-center rounded-[4px] text-muted hover:bg-soft disabled:opacity-20"
-              title="Bajar"
-            >
-              <i className="ti ti-chevron-down text-[12px]" />
-            </button>
-            <button onClick={() => setEditingCarpeta(true)} className="flex h-6 w-6 items-center justify-center rounded-[4px] text-muted hover:bg-soft" title="Renombrar">
-              <i className="ti ti-edit text-[12px]" />
-            </button>
-            <button onClick={() => onDeleteCarpeta(carpeta.id)} className="flex h-6 w-6 items-center justify-center rounded-[4px] text-muted hover:bg-danger-soft hover:text-danger" title="Eliminar carpeta">
-              <i className="ti ti-trash text-[12px]" />
-            </button>
-          </div>
+            {puedeEditar && (
+              <>
+                <span className="text-[10px] text-border select-none">|</span>
+                <div className="flex gap-0.5">
+                  <button
+                    onClick={() => prev && onMoverCarpeta(carpeta, prev, siblings)}
+                    disabled={!prev}
+                    className="flex h-6 w-6 items-center justify-center rounded-[4px] text-muted hover:bg-soft disabled:opacity-20"
+                    title="Subir"
+                  >
+                    <i className="ti ti-chevron-up text-[12px]" />
+                  </button>
+                  <button
+                    onClick={() => next && onMoverCarpeta(carpeta, next, siblings)}
+                    disabled={!next}
+                    className="flex h-6 w-6 items-center justify-center rounded-[4px] text-muted hover:bg-soft disabled:opacity-20"
+                    title="Bajar"
+                  >
+                    <i className="ti ti-chevron-down text-[12px]" />
+                  </button>
+                  <button onClick={() => setEditingCarpeta(true)} className="flex h-6 w-6 items-center justify-center rounded-[4px] text-muted hover:bg-soft" title="Renombrar">
+                    <i className="ti ti-edit text-[12px]" />
+                  </button>
+                  <button onClick={() => onDeleteCarpeta(carpeta.id)} className="flex h-6 w-6 items-center justify-center rounded-[4px] text-muted hover:bg-danger-soft hover:text-danger" title="Eliminar carpeta">
+                    <i className="ti ti-trash text-[12px]" />
+                  </button>
+                </div>
+              </>
+            )}
+          </>
         )}
       </div>
       {open && (
@@ -335,8 +341,12 @@ export function DocumentosTab({
     onCarpetasChange()
   }
 
-  async function handleMoverCarpeta(a: Carpeta, b: Carpeta) {
-    await swapOrdenCarpetas(a, b)
+  async function handleMoverCarpeta(a: Carpeta, b: Carpeta, siblings: Carpeta[]) {
+    const list = [...siblings]
+    const idxA = list.findIndex(c => c.id === a.id)
+    const idxB = list.findIndex(c => c.id === b.id)
+    ;[list[idxA], list[idxB]] = [list[idxB], list[idxA]]
+    await reindexCarpetas(list)
     onCarpetasChange()
   }
 
