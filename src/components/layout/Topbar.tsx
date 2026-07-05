@@ -23,17 +23,22 @@ export function Topbar({ action, sidebarOpen }: { action: PageAction; sidebarOpe
   const title = TITLES[sectionFor(pathname)] ?? ''
 
   return (
-    <div className="flex h-[52px] flex-shrink-0 items-center gap-2.5 border-b border-border bg-surface px-3 sm:px-5">
+    <div className="relative flex h-[52px] flex-shrink-0 items-center border-b border-border bg-surface px-3 sm:px-5">
+      {/* Izquierda: título de sección */}
+      <div className="min-w-0 flex-1 truncate text-[15px] font-semibold text-ink">{title}</div>
+
+      {/* Centro: logo TSADOQ — solo cuando sidebar está oculto */}
       {!sidebarOpen && (
-        <div className="flex flex-shrink-0 items-center gap-2">
-          <img src="/LOGO.png" alt="TSADOQ" className="h-7 w-auto object-contain" />
-          <div className="hidden sm:block">
-            <div className="text-[13px] font-bold leading-tight text-ink">TSADOQ</div>
-            <div className="text-[10px] leading-tight text-mute2">Gestor de casos</div>
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="flex items-center gap-2">
+            <img src="/LOGO.png" alt="TSADOQ" className="h-7 w-auto object-contain" />
+            <div className="hidden sm:block">
+              <div className="text-[13px] font-bold leading-tight text-ink">TSADOQ</div>
+              <div className="text-[10px] leading-tight text-mute2">Gestor de casos</div>
+            </div>
           </div>
         </div>
       )}
-      <div className="min-w-0 flex-1 truncate text-[15px] font-semibold text-ink">{title}</div>
       <WorkspaceAssistant />
       <NotificationsBell />
       {action && (
