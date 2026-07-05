@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { Carpeta, Documento } from '@/types/database'
 import { getDocumentoProxyUrl, registrarAccesoDocumento, compartirDocumento } from '@/features/casos/documentosApi'
 import { moverDocumento, createCarpeta, deleteCarpeta, renameCarpeta, reindexCarpetas } from '@/features/casos/carpetasApi'
@@ -13,10 +13,10 @@ function iconFor(nombre: string) {
 }
 
 function estadoLecturaBadge(d: Documento) {
-  if (d.estado_lectura === 'listo') return { label: 'Listo para IA', cls: 'bg-success-soft text-success' }
-  if (d.estado_lectura === 'pendiente') return { label: 'En cola para IA', cls: 'bg-soft text-muted' }
+  if (d.estado_lectura === 'listo') return { label: 'IA lista', cls: 'bg-success-soft text-success' }
+  if (d.estado_lectura === 'pendiente') return { label: 'En cola', cls: 'bg-soft text-muted' }
   if (d.estado_lectura === 'procesando') return { label: 'Leyendo…', cls: 'bg-accent-soft text-accent' }
-  if (d.estado_lectura === 'error') return { label: 'No se pudo leer', cls: 'bg-danger-soft text-danger' }
+  if (d.estado_lectura === 'error') return { label: 'Error IA', cls: 'bg-danger-soft text-danger' }
   return null
 }
 
@@ -33,23 +33,43 @@ function buildTree(carpetas: Carpeta[]): { root: Carpeta[]; children: Record<str
   return { root, children }
 }
 
-function CarpetaSelector({ carpetas, value, onChange }: { carpetas: Carpeta[]; value: string | null; onChange: (id: string | null) => void }) {
+// Botón compacto con select nativo invisible encima — al hacer click abre el dropdown completo
+function FolderPicker({ carpetas, value, onChange }: {
+  carpetas: Carpeta[]; value: string | null; onChange: (id: string | null) => void
+}) {
+  const selectRef = useRef<HTMLSelectElement>(null)
   const { root, children } = buildTree(carpetas)
+  const current = carpetas.find(c => c.id === value)
+
   return (
-    <select
-      value={value ?? ''}
-      onChange={(e) => onChange(e.target.value || null)}
-      className="rounded-[6px] border border-border bg-bg px-1.5 py-0.5 text-[11px] text-ink outline-none focus:border-accent"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <option value="">Sin carpeta</option>
-      {root.flatMap((c) => [
-        <option key={c.id} value={c.id}>{c.nombre}</option>,
-        ...(children[c.id] ?? []).map((sub) => (
-          <option key={sub.id} value={sub.id}>{'  → ' + sub.nombre}</option>
-        )),
-      ])}
-    </select>
+    <div className="relative inline-flex" onClick={(e) => e.stopPropagation()}>
+      <button
+        type="button"
+        onClick={() => selectRef.current?.showPicker?.() ?? selectRef.current?.click()}
+        className="flex items-center gap-1 rounded-[4px] border border-border bg-bg px-1.5 py-0.5 text-[10px] text-muted transition hover:bg-soft"
+        title={current?.nombre ?? 'Sin carpeta'}
+      >
+        <i className="ti ti-folder text-[11px] flex-shrink-0" />
+        <span className="max-w-[64px] truncate">{current?.nombre ?? 'Sin carpeta'}</span>
+        <i className="ti ti-chevron-down text-[9px] flex-shrink-0" />
+      </button>
+      <select
+        ref={selectRef}
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value || null)}
+        onClick={(e) => e.stopPropagation()}
+        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+        aria-hidden
+      >
+        <option value="">Sin carpeta</option>
+        {root.flatMap((c) => [
+          <option key={c.id} value={c.id}>{c.nombre}</option>,
+          ...(children[c.id] ?? []).map((sub) => (
+            <option key={sub.id} value={sub.id}>{'  → ' + sub.nombre}</option>
+          )),
+        ])}
+      </select>
+    </div>
   )
 }
 
@@ -124,48 +144,88 @@ function DocRow({
           <button onClick={() => setErrorDoc(null)}><i className="ti ti-x text-[11px]" /></button>
         </div>
       )}
-      <div className="flex items-center gap-3 rounded-[10px] border border-border bg-surface px-3.5 py-2.5">
-        <div className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[6px] ${bg} ${fg}`}>
-          <i className={`ti ${icon} text-[18px]`} />
+      <div className="flex items-start gap-2.5 rounded-[10px] border border-border bg-surface px-3 py-2.5">
+        {/* Icono de tipo */}
+        <div className={`mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[6px] ${bg} ${fg}`}>
+          <i className={`ti ${icon} text-[16px]`} />
         </div>
+
         <div className="min-w-0 flex-1">
-          {editing ? (
-            <input
-              autoFocus value={editVal} onChange={(e) => setEditVal(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') confirmEdit(); if (e.key === 'Escape') setEditing(false) }}
-              disabled={saving}
-              className="w-full rounded-[6px] border border-accent bg-bg px-2 py-1 text-[13px] text-ink outline-none"
-            />
-          ) : (
-            <div className="truncate text-[13px] font-medium text-ink">{d.nombre}</div>
-          )}
-          <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-muted">
-            <span>{new Date(d.created_at).toLocaleDateString('es-EC')}</span>
-            {badge && <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${badge.cls}`} title={d.error_lectura ?? undefined}>{badge.label}</span>}
-            {(d.estado_lectura === 'pendiente' || d.estado_lectura === 'error') && (
-              <button onClick={() => onLeerAhora(d.id)} disabled={leyendoId === d.id} className="text-[10px] text-accent underline-offset-2 hover:underline disabled:opacity-60">
-                {leyendoId === d.id ? 'Leyendo…' : 'Leer ahora'}
-              </button>
+          {/* Fila 1: nombre + acciones */}
+          <div className="flex items-center gap-1.5">
+            {editing ? (
+              <input
+                autoFocus value={editVal} onChange={(e) => setEditVal(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') confirmEdit(); if (e.key === 'Escape') setEditing(false) }}
+                disabled={saving}
+                className="min-w-0 flex-1 rounded-[6px] border border-accent bg-bg px-2 py-0.5 text-[13px] text-ink outline-none"
+              />
+            ) : (
+              <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-ink" title={d.nombre}>{d.nombre}</span>
             )}
+
+            {/* Botones de acción */}
+            <div className="flex flex-shrink-0 items-center gap-1">
+              {editing ? (
+                <>
+                  <button onClick={confirmEdit} disabled={saving} className="flex h-6 w-6 items-center justify-center rounded-[5px] border border-accent text-accent transition hover:bg-accent-soft disabled:opacity-60">
+                    <i className="ti ti-check text-[13px]" />
+                  </button>
+                  <button onClick={() => setEditing(false)} disabled={saving} className="flex h-6 w-6 items-center justify-center rounded-[5px] border border-border text-muted transition hover:bg-soft">
+                    <i className="ti ti-x text-[13px]" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  {d.drive_file_id && (
+                    <button disabled={abriendo} onClick={abrirDoc} className="flex h-6 w-6 items-center justify-center rounded-[5px] border border-border text-muted transition hover:bg-soft disabled:opacity-50" title="Ver archivo">
+                      <i className={`ti ${abriendo ? 'ti-loader-2 animate-spin' : 'ti-eye'} text-[13px]`} />
+                    </button>
+                  )}
+                  {d.drive_file_id && (
+                    <button disabled={compartiendo} onClick={compartirDoc}
+                      className={`flex h-6 w-6 items-center justify-center rounded-[5px] border transition disabled:opacity-50 ${urlCopiada ? 'border-success bg-success-soft text-success' : 'border-border text-muted hover:bg-soft'}`}
+                      title={urlCopiada ? '¡Enlace copiado!' : 'Copiar enlace compartible'}
+                    >
+                      <i className={`ti ${compartiendo ? 'ti-loader-2 animate-spin' : urlCopiada ? 'ti-check' : 'ti-link'} text-[13px]`} />
+                    </button>
+                  )}
+                  {puedeEditar && (
+                    <button onClick={() => { setEditing(true); setEditVal(d.nombre) }} className="flex h-6 w-6 items-center justify-center rounded-[5px] border border-border text-muted transition hover:bg-soft" title="Renombrar">
+                      <i className="ti ti-edit text-[13px]" />
+                    </button>
+                  )}
+                  {puedeEditar && (
+                    <button onClick={() => onDelete(d.id)} className="flex h-6 w-6 items-center justify-center rounded-[5px] border border-border text-muted transition hover:bg-danger-soft hover:text-danger" title="Eliminar">
+                      <i className="ti ti-trash text-[13px]" />
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
-        </div>
-        <div className="flex flex-shrink-0 items-center gap-2">
-          {editing ? (
-            <>
-              <button onClick={confirmEdit} disabled={saving} className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-accent text-accent transition hover:bg-accent-soft disabled:opacity-60">
-                <i className="ti ti-check text-[14px]" />
-              </button>
-              <button onClick={() => setEditing(false)} disabled={saving} className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-soft">
-                <i className="ti ti-x text-[14px]" />
-              </button>
-            </>
-          ) : (
-            <>
+
+          {/* Fila 2: meta + carpeta + visibilidad */}
+          {!editing && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+              <span className="text-[10px] text-mute2">{new Date(d.created_at).toLocaleDateString('es-EC')}</span>
+              {badge && (
+                <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${badge.cls}`} title={d.error_lectura ?? undefined}>{badge.label}</span>
+              )}
+              {(d.estado_lectura === 'pendiente' || d.estado_lectura === 'error') && (
+                <button onClick={() => onLeerAhora(d.id)} disabled={leyendoId === d.id} className="text-[10px] text-accent underline-offset-2 hover:underline disabled:opacity-60">
+                  {leyendoId === d.id ? 'Leyendo…' : 'Leer ahora'}
+                </button>
+              )}
+              <div className="flex-1" />
               {puedeEditar && carpetas.length > 0 && (
-                <CarpetaSelector carpetas={carpetas} value={d.carpeta_id} onChange={(id) => onMover(d.id, id)} />
+                <FolderPicker carpetas={carpetas} value={d.carpeta_id} onChange={(id) => onMover(d.id, id)} />
               )}
               {puedeEditar ? (
-                <button onClick={() => onToggleVisibilidad(d)} className={`rounded-full px-2 py-0.5 text-[10px] ${d.visibilidad === 'compartido' ? 'bg-success-soft text-success' : 'border border-border bg-soft text-muted'}`}>
+                <button
+                  onClick={() => onToggleVisibilidad(d)}
+                  className={`rounded-full px-2 py-0.5 text-[10px] transition ${d.visibilidad === 'compartido' ? 'bg-success-soft text-success' : 'border border-border bg-soft text-muted hover:bg-soft'}`}
+                >
                   {d.visibilidad === 'compartido' ? 'Compartido' : 'Privado'}
                 </button>
               ) : (
@@ -173,32 +233,7 @@ function DocRow({
                   {d.visibilidad === 'compartido' ? 'Compartido' : 'Privado'}
                 </span>
               )}
-              {d.drive_file_id && (
-                <>
-                  <button disabled={abriendo} onClick={abrirDoc} className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-soft disabled:opacity-50" title="Ver archivo">
-                    <i className={`ti ${abriendo ? 'ti-loader-2 animate-spin' : 'ti-eye'} text-[14px]`} />
-                  </button>
-                  <button
-                    disabled={compartiendo}
-                    onClick={compartirDoc}
-                    className={`flex h-7 w-7 items-center justify-center rounded-[6px] border transition disabled:opacity-50 ${urlCopiada ? 'border-success bg-success-soft text-success' : 'border-border text-muted hover:bg-soft'}`}
-                    title={urlCopiada ? '¡Enlace copiado!' : 'Copiar enlace compartible'}
-                  >
-                    <i className={`ti ${compartiendo ? 'ti-loader-2 animate-spin' : urlCopiada ? 'ti-check' : 'ti-link'} text-[14px]`} />
-                  </button>
-                </>
-              )}
-              {puedeEditar && (
-                <button onClick={() => { setEditing(true); setEditVal(d.nombre) }} className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-soft">
-                  <i className="ti ti-edit text-[14px]" />
-                </button>
-              )}
-              {puedeEditar && (
-                <button onClick={() => onDelete(d.id)} className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-danger-soft hover:text-danger">
-                  <i className="ti ti-trash text-[14px]" />
-                </button>
-              )}
-            </>
+            </div>
           )}
         </div>
       </div>
@@ -245,7 +280,6 @@ function CarpetaSection({
         {editingCarpeta ? (
           <div className="flex flex-1 items-center gap-1 min-w-0">
             <i className={`ti ${open ? 'ti-folder-open' : 'ti-folder'} text-[15px] text-muted flex-shrink-0`} />
-
             <input
               autoFocus value={carpetaName}
               onChange={(e) => setCarpetaName(e.target.value)}
@@ -259,50 +293,44 @@ function CarpetaSection({
             <button
               onMouseDown={(e) => e.preventDefault()}
               onClick={async () => { await onRenameCarpeta(carpeta.id, carpetaName); setEditingCarpeta(false) }}
-              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[4px] bg-accent text-white"
+              className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-[4px] bg-accent text-white"
             >
               <i className="ti ti-check text-[12px]" />
             </button>
             <button
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => { setCarpetaName(carpeta.nombre); setEditingCarpeta(false) }}
-              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[4px] border border-border text-muted hover:bg-soft"
+              className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-[4px] border border-border text-muted hover:bg-soft"
             >
               <i className="ti ti-x text-[12px]" />
             </button>
           </div>
         ) : (
           <>
-            <button onClick={() => setOpen(v => !v)} className="flex items-center gap-1.5 flex-1 min-w-0">
+            <button onClick={() => setOpen(v => !v)} className="flex flex-1 min-w-0 items-center gap-1.5">
               <i className={`ti ${open ? 'ti-folder-open' : 'ti-folder'} text-[15px] text-muted`} />
-              <span className="text-[12px] font-medium text-ink truncate">{carpeta.nombre}</span>
+              <span className="truncate text-[12px] font-medium text-ink">{carpeta.nombre}</span>
               <span className="text-[10px] text-muted ml-1">{docs.length}</span>
-              <i className={`ti ${open ? 'ti-chevron-down' : 'ti-chevron-right'} text-[11px] text-muted ml-auto`} />
+              <i className={`ti ${open ? 'ti-chevron-down' : 'ti-chevron-right'} ml-auto text-[11px] text-muted`} />
             </button>
             {puedeEditar && (
               <>
-                <span className="text-[10px] text-border select-none">|</span>
+                <span className="select-none text-[10px] text-border">|</span>
                 <div className="flex gap-0.5">
-                  <button
-                    onClick={() => prev && onMoverCarpeta(carpeta, prev, siblings)}
-                    disabled={!prev}
-                    className="flex h-7 w-7 items-center justify-center rounded-[4px] text-muted hover:bg-soft disabled:opacity-20"
-                    title="Subir"
-                  >
+                  <button onClick={() => prev && onMoverCarpeta(carpeta, prev, siblings)} disabled={!prev}
+                    className="flex h-6 w-6 items-center justify-center rounded-[4px] text-muted hover:bg-soft disabled:opacity-20" title="Subir">
                     <i className="ti ti-chevron-up text-[12px]" />
                   </button>
-                  <button
-                    onClick={() => next && onMoverCarpeta(carpeta, next, siblings)}
-                    disabled={!next}
-                    className="flex h-7 w-7 items-center justify-center rounded-[4px] text-muted hover:bg-soft disabled:opacity-20"
-                    title="Bajar"
-                  >
+                  <button onClick={() => next && onMoverCarpeta(carpeta, next, siblings)} disabled={!next}
+                    className="flex h-6 w-6 items-center justify-center rounded-[4px] text-muted hover:bg-soft disabled:opacity-20" title="Bajar">
                     <i className="ti ti-chevron-down text-[12px]" />
                   </button>
-                  <button onClick={() => setEditingCarpeta(true)} className="flex h-7 w-7 items-center justify-center rounded-[4px] text-muted hover:bg-soft" title="Renombrar">
+                  <button onClick={() => setEditingCarpeta(true)}
+                    className="flex h-6 w-6 items-center justify-center rounded-[4px] text-muted hover:bg-soft" title="Renombrar">
                     <i className="ti ti-edit text-[12px]" />
                   </button>
-                  <button onClick={() => onDeleteCarpeta(carpeta.id)} className="flex h-7 w-7 items-center justify-center rounded-[4px] text-muted hover:bg-danger-soft hover:text-danger" title="Eliminar carpeta">
+                  <button onClick={() => onDeleteCarpeta(carpeta.id)}
+                    className="flex h-6 w-6 items-center justify-center rounded-[4px] text-muted hover:bg-danger-soft hover:text-danger" title="Eliminar carpeta">
                     <i className="ti ti-trash text-[12px]" />
                   </button>
                 </div>
@@ -312,7 +340,7 @@ function CarpetaSection({
         )}
       </div>
       {open && (
-        <div className="flex flex-col gap-1.5 mb-3">
+        <div className="mb-3 flex flex-col gap-1.5">
           {docs.map(d => (
             <DocRow key={d.id} d={d} carpetas={allCarpetas} puedeEditar={puedeEditar}
               onToggleVisibilidad={onToggleVisibilidad} onRename={onRename}
@@ -414,10 +442,7 @@ export function DocumentosTab({
     onCarpetasChange()
   }
 
-  const docsSinCarpeta: Documento[] = []
-  for (const d of documentos) {
-    if (!d.carpeta_id) docsSinCarpeta.push(d)
-  }
+  const docsSinCarpeta = documentos.filter(d => !d.carpeta_id)
 
   return (
     <div>
@@ -442,7 +467,7 @@ export function DocumentosTab({
 
       {nuevaCarpeta && (
         <div className="mb-3 flex items-center gap-2 rounded-[8px] border border-accent bg-accent-soft p-2.5">
-          <i className="ti ti-folder-plus text-accent text-[16px]" />
+          <i className="ti ti-folder-plus text-[16px] text-accent" />
           <input
             autoFocus placeholder="Nombre de la carpeta"
             value={nuevaCarpetaNombre} onChange={(e) => setNuevaCarpetaNombre(e.target.value)}
