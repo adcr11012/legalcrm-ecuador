@@ -32,10 +32,8 @@ export function Topbar({ action, sidebarOpen }: { action: PageAction; sidebarOpe
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div className="flex items-center gap-2">
             <img src="/LOGO.png" alt="TSADOQ" className="h-7 w-auto object-contain" />
-            <div className="hidden sm:block">
-              <div className="text-[13px] font-bold leading-tight text-ink">TSADOQ</div>
-              <div className="text-[10px] leading-tight text-mute2">Gestor de casos</div>
-            </div>
+            <span className="text-[14px] font-bold text-ink">TSADOQ</span>
+            <span className="hidden text-[12px] text-mute2 sm:inline">| Gestor de casos</span>
           </div>
         </div>
       )}
