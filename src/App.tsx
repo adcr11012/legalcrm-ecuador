@@ -15,6 +15,10 @@ const Invite          = lazy(() => import('@/routes/Invite'))
 const Configuracion   = lazy(() => import('@/routes/Configuracion'))
 const Drive           = lazy(() => import('@/routes/Drive'))
 const DriveOAuthCallback = lazy(() => import('@/routes/DriveOAuthCallback'))
+const AdminLayout        = lazy(() => import('@/routes/admin/AdminLayout'))
+const AdminDashboard     = lazy(() => import('@/routes/admin/AdminDashboard'))
+const AdminWorkspaces    = lazy(() => import('@/routes/admin/AdminWorkspaces'))
+const AdminWorkspaceDetail = lazy(() => import('@/routes/admin/AdminWorkspaceDetail'))
 
 function PageLoader() {
   return <div className="flex h-full flex-1 items-center justify-center text-[13px] text-muted">Cargando…</div>
@@ -45,6 +49,13 @@ function App() {
                 <Route path="/drive" element={<Drive />} />
                 <Route path="/configuracion" element={<Configuracion />} />
               </Route>
+            </Route>
+
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="workspaces" element={<AdminWorkspaces />} />
+              <Route path="workspaces/:id" element={<AdminWorkspaceDetail />} />
             </Route>
 
             <Route path="/" element={<Navigate to="/dashboard" replace />} />

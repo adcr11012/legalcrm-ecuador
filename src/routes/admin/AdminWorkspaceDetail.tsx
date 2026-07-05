@@ -1,0 +1,212 @@
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import {
+  getWorkspaceDetail, setWorkspacePlan, toggleWorkspaceSuspended,
+  type WorkspaceDetail,
+} from '@/features/admin/adminApi'
+import { PlanBadge } from '@/routes/admin/AdminDashboard'
+
+const PLANS = ['free', 'pro', 'enterprise']
+
+export default function AdminWorkspaceDetail() {
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const [detail, setDetail] = useState<WorkspaceDetail | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState('')
+
+  useEffect(() => {
+    if (!id) return
+    getWorkspaceDetail(id)
+      .then(d => {
+        setDetail(d)
+        setSelectedPlan(d.workspace.plan)
+      })
+      .finally(() => setLoading(false))
+  }, [id])
+
+  async function handlePlanChange() {
+    if (!id || !detail || selectedPlan === detail.workspace.plan) return
+    if (!confirm(`¿Cambiar plan a "${selectedPlan}"?`)) return
+    setSaving(true)
+    try {
+      await setWorkspacePlan(id, selectedPlan)
+      setDetail(prev => prev ? { ...prev, workspace: { ...prev.workspace, plan: selectedPlan } } : prev)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleToggleSuspend() {
+    if (!id || !detail) return
+    const { suspended } = detail.workspace
+    if (!confirm(`¿${suspended ? 'Reactivar' : 'Suspender'} este workspace?`)) return
+    setSaving(true)
+    try {
+      await toggleWorkspaceSuspended(id, !suspended)
+      setDetail(prev => prev ? { ...prev, workspace: { ...prev.workspace, suspended: !suspended } } : prev)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (loading) return <div className="p-6 text-[13px] text-muted">Cargando…</div>
+  if (!detail) return <div className="p-6 text-[13px] text-danger">Workspace no encontrado.</div>
+
+  const { workspace, usuarios, stats } = detail
+
+  return (
+    <div className="p-6">
+      {/* Encabezado */}
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <button
+            onClick={() => navigate('/admin/workspaces')}
+            className="mb-2 flex items-center gap-1 text-[12px] text-muted hover:text-ink"
+          >
+            <i className="ti ti-arrow-left text-[13px]" /> Volver
+          </button>
+          <h1 className="text-[18px] font-bold text-ink">{workspace.nombre}</h1>
+          <p className="mt-0.5 text-[12px] text-muted">
+            Creado el {new Date(workspace.created_at).toLocaleDateString('es-EC', { day: '2-digit', month: 'long', year: 'numeric' })}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {workspace.suspended && (
+            <span className="rounded-full bg-danger-soft px-2.5 py-0.5 text-[10px] font-semibold text-danger">Suspendido</span>
+          )}
+          <PlanBadge plan={workspace.plan} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        {/* Columna principal */}
+        <div className="space-y-5 lg:col-span-2">
+          {/* Métricas */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              { label: 'Casos', value: stats.casos, icon: 'ti-briefcase' },
+              { label: 'Documentos', value: stats.documentos, icon: 'ti-files' },
+              { label: 'Clientes', value: stats.clientes, icon: 'ti-users' },
+              { label: 'Tareas', value: stats.tareas, icon: 'ti-checkbox' },
+            ].map(m => (
+              <div key={m.label} className="rounded-[10px] border border-border bg-surface p-4">
+                <i className={`ti ${m.icon} mb-2 text-[18px] text-mute2`} />
+                <div className="text-[22px] font-bold text-ink">{m.value}</div>
+                <div className="text-[11px] text-muted">{m.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Usuarios */}
+          <div className="rounded-[10px] border border-border bg-surface overflow-hidden">
+            <div className="border-b border-border px-4 py-3">
+              <h2 className="text-[13px] font-semibold text-ink">Usuarios ({usuarios?.length ?? 0})</h2>
+            </div>
+            {!usuarios || usuarios.length === 0 ? (
+              <div className="px-4 py-6 text-center text-[12px] text-muted">Sin usuarios.</div>
+            ) : (
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border bg-soft">
+                    <th className="px-4 py-2 text-left text-[10px] font-semibold uppercase tracking-wide text-mute2">Nombre</th>
+                    <th className="px-4 py-2 text-left text-[10px] font-semibold uppercase tracking-wide text-mute2">Email</th>
+                    <th className="px-4 py-2 text-left text-[10px] font-semibold uppercase tracking-wide text-mute2">Rol</th>
+                    <th className="px-4 py-2 text-left text-[10px] font-semibold uppercase tracking-wide text-mute2">Desde</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {usuarios.map((u, i) => (
+                    <tr key={i} className="border-b border-border/60 last:border-0">
+                      <td className="px-4 py-2.5 text-[12px] font-medium text-ink">{u.nombre}</td>
+                      <td className="px-4 py-2.5 text-[12px] text-muted">{u.email}</td>
+                      <td className="px-4 py-2.5">
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                          u.rol === 'admin' ? 'bg-accent-soft text-accent' : 'bg-soft text-muted'
+                        }`}>
+                          {u.rol}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5 text-[12px] text-muted">
+                        {new Date(u.created_at).toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+
+        {/* Columna lateral — acciones */}
+        <div className="space-y-4">
+          {/* Cambiar plan */}
+          <div className="rounded-[10px] border border-border bg-surface p-4">
+            <h3 className="mb-3 text-[12px] font-semibold text-ink">Plan</h3>
+            <div className="flex flex-col gap-2">
+              {PLANS.map(p => (
+                <label key={p} className="flex cursor-pointer items-center gap-2.5">
+                  <input
+                    type="radio"
+                    name="plan"
+                    value={p}
+                    checked={selectedPlan === p}
+                    onChange={() => setSelectedPlan(p)}
+                    className="accent-accent"
+                  />
+                  <PlanBadge plan={p} />
+                </label>
+              ))}
+            </div>
+            <button
+              disabled={saving || selectedPlan === workspace.plan}
+              onClick={handlePlanChange}
+              className="mt-3 w-full rounded-[6px] bg-accent py-1.5 text-[12px] font-semibold text-white transition disabled:opacity-40 hover:opacity-90"
+            >
+              {saving ? 'Guardando…' : 'Aplicar plan'}
+            </button>
+          </div>
+
+          {/* Suspender / Reactivar */}
+          <div className="rounded-[10px] border border-border bg-surface p-4">
+            <h3 className="mb-1 text-[12px] font-semibold text-ink">Estado del workspace</h3>
+            <p className="mb-3 text-[11px] text-muted">
+              {workspace.suspended
+                ? 'Este workspace está suspendido. Los usuarios no pueden iniciar sesión.'
+                : 'El workspace está activo y operativo.'}
+            </p>
+            <button
+              disabled={saving}
+              onClick={handleToggleSuspend}
+              className={`w-full rounded-[6px] py-1.5 text-[12px] font-semibold transition disabled:opacity-40 ${
+                workspace.suspended
+                  ? 'bg-success text-white hover:opacity-90'
+                  : 'border border-danger text-danger hover:bg-danger-soft'
+              }`}
+            >
+              {saving ? '…' : workspace.suspended ? 'Reactivar workspace' : 'Suspender workspace'}
+            </button>
+          </div>
+
+          {/* Info técnica */}
+          <div className="rounded-[10px] border border-border bg-surface p-4 space-y-2">
+            <h3 className="text-[12px] font-semibold text-ink">Info</h3>
+            <div className="text-[11px] text-muted">
+              <span className="font-medium text-ink">ID:</span>{' '}
+              <span className="font-mono break-all">{workspace.id}</span>
+            </div>
+            <div className="text-[11px] text-muted">
+              <span className="font-medium text-ink">Notif. email:</span>{' '}
+              {workspace.notif_email ? 'Activadas' : 'Desactivadas'}
+            </div>
+            <div className="text-[11px] text-muted">
+              <span className="font-medium text-ink">Días anticipación:</span>{' '}
+              {workspace.dias_anticipacion}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
