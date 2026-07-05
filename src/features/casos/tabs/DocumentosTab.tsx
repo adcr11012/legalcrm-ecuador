@@ -43,14 +43,12 @@ function CarpetaSelector({ carpetas, value, onChange }: { carpetas: Carpeta[]; v
       onClick={(e) => e.stopPropagation()}
     >
       <option value="">Sin carpeta</option>
-      {root.map((c) => (
-        <>
-          <option key={c.id} value={c.id}>{c.nombre}</option>
-          {(children[c.id] ?? []).map((sub) => (
-            <option key={sub.id} value={sub.id}>{'  → ' + sub.nombre}</option>
-          ))}
-        </>
-      ))}
+      {root.flatMap((c) => [
+        <option key={c.id} value={c.id}>{c.nombre}</option>,
+        ...(children[c.id] ?? []).map((sub) => (
+          <option key={sub.id} value={sub.id}>{'  → ' + sub.nombre}</option>
+        )),
+      ])}
     </select>
   )
 }

@@ -89,7 +89,7 @@ export function CaseDetail({
         listAnticipos(casoId),
         listGastos(casoId),
         listHoras(casoId),
-        listCarpetas(casoId),
+        listCarpetas(casoId).catch(() => [] as Carpeta[]),
       ])
       setCaso(c)
       setPersonas(p)
