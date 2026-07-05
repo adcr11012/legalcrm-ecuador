@@ -42,6 +42,8 @@ export function DocumentosTab({
   const [editingValue, setEditingValue] = useState('')
   const [saving, setSaving] = useState(false)
   const [leyendoId, setLeyendoId] = useState<string | null>(null)
+  const [abriendo, setAbriendo] = useState<string | null>(null)
+  const [errorDoc, setErrorDoc] = useState<string | null>(null)
 
   async function handleLeerAhora(id: string) {
     setLeyendoId(id)
@@ -70,6 +72,13 @@ export function DocumentosTab({
 
   return (
     <div>
+      {errorDoc && (
+        <div className="mb-3 flex items-start gap-2 rounded-[8px] bg-danger-soft px-3 py-2 text-[12px] text-danger">
+          <i className="ti ti-alert-circle mt-0.5 flex-shrink-0 text-[14px]" />
+          <span>{errorDoc}</span>
+          <button onClick={() => setErrorDoc(null)} className="ml-auto flex-shrink-0"><i className="ti ti-x text-[12px]" /></button>
+        </div>
+      )}
       <div className="mb-3 flex items-center justify-between">
         <span className="text-[12px] text-muted">{documentos.length} documento{documentos.length === 1 ? '' : 's'}</span>
         {puedeSubir && (
@@ -159,19 +168,26 @@ export function DocumentosTab({
                     )}
                     {d.drive_file_id && (
                       <button
+                        disabled={abriendo === d.id}
                         onClick={async () => {
+                          setErrorDoc(null)
+                          setAbriendo(d.id)
                           const w = window.open('', '_blank')
                           try {
                             const url = await getDocumentoProxyUrl(d.id)
                             if (w) w.location.href = url
-                          } catch {
+                          } catch (err) {
                             if (w) w.close()
+                            const msg = err instanceof Error ? err.message : String(err)
+                            setErrorDoc(msg)
+                          } finally {
+                            setAbriendo(null)
                           }
                         }}
-                        className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-soft"
+                        className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-soft disabled:opacity-50"
                         title="Ver archivo"
                       >
-                        <i className="ti ti-eye text-[14px]" />
+                        <i className={`ti ${abriendo === d.id ? 'ti-loader-2 animate-spin' : 'ti-eye'} text-[14px]`} />
                       </button>
                     )}
                     {puedeEditar && (
