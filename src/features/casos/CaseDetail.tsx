@@ -389,6 +389,7 @@ export function CaseDetail({
       {informeOpen && (
         <InformeCaso
           caso={caso}
+          etapas={etapas}
           personas={personas.map(p => ({ nombre: nombrePersona(p, usersById), rol: p.rol }))}
           plazos={plazos}
           tareas={tareas}
