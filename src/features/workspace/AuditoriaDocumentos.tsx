@@ -60,7 +60,10 @@ export function AuditoriaDocumentos({ workspaceId }: { workspaceId: string }) {
   return (
     <div className="rounded-[10px] border border-border bg-surface">
       <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
-        <span className="text-[12px] font-semibold text-ink">Auditoría de documentos</span>
+        <div>
+          <span className="text-[12px] font-semibold text-ink">Auditoría de documentos</span>
+          <span className="ml-2 text-[10px] text-mute2">Últimos 20 días</span>
+        </div>
         <select
           value={filtroAccion}
           onChange={(e) => { setFiltroAccion(e.target.value); setPagina(0) }}
@@ -76,7 +79,7 @@ export function AuditoriaDocumentos({ workspaceId }: { workspaceId: string }) {
       {loading ? (
         <div className="px-3 py-4 text-[12px] text-muted">Cargando…</div>
       ) : registros.length === 0 ? (
-        <div className="px-3 py-4 text-[12px] text-mute2">Sin registros.</div>
+        <div className="px-3 py-4 text-[12px] text-mute2">Sin registros en los últimos 20 días.</div>
       ) : (
         <div className="divide-y divide-border">
           {registros.map((r) => {
