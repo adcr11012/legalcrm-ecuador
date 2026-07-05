@@ -1,7 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { preguntarWorkspaceIA } from '@/features/workspace/workspaceIaApi'
 
 type Mensaje = { rol: 'user' | 'ia'; texto: string }
+
+const soportaMic = typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)
+const soportaTTS = typeof window !== 'undefined' && 'speechSynthesis' in window
 
 export function WorkspaceAssistant() {
   const [open, setOpen] = useState(false)
@@ -9,7 +12,33 @@ export function WorkspaceAssistant() {
   const [pregunta, setPregunta] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [escuchando, setEscuchando] = useState(false)
+  const [vozActiva, setVozActiva] = useState(false)
   const boxRef = useRef<HTMLDivElement>(null)
+  const recRef = useRef<SpeechRecognition | null>(null)
+
+  function hablar(texto: string) {
+    if (!soportaTTS || !vozActiva) return
+    window.speechSynthesis.cancel()
+    const utt = new SpeechSynthesisUtterance(texto)
+    utt.lang = 'es-EC'
+    const voces = window.speechSynthesis.getVoices()
+    const esVoz = voces.find(v => v.lang.startsWith('es') && v.localService) ?? voces.find(v => v.lang.startsWith('es'))
+    if (esVoz) utt.voice = esVoz
+    utt.rate = 1.05
+    window.speechSynthesis.speak(utt)
+  }
+
+  function toggleMic(onResult: (t: string) => void) {
+    if (escuchando) { recRef.current?.stop(); setEscuchando(false); return }
+    const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition
+    const rec = new SR()
+    rec.lang = 'es-EC'; rec.interimResults = false; rec.maxAlternatives = 1
+    rec.onresult = (e: SpeechRecognitionEvent) => onResult(e.results[0][0].transcript)
+    rec.onend = () => setEscuchando(false)
+    rec.onerror = () => setEscuchando(false)
+    recRef.current = rec; rec.start(); setEscuchando(true)
+  }
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -29,6 +58,7 @@ export function WorkspaceAssistant() {
     try {
       const respuesta = await preguntarWorkspaceIA(texto)
       setMensajes((prev) => [...prev, { rol: 'ia', texto: respuesta }])
+      hablar(respuesta)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'La IA no respondió.')
     } finally {
@@ -75,13 +105,31 @@ export function WorkspaceAssistant() {
           </div>
 
           <div className="flex gap-1.5 border-t border-border p-2.5">
+            {soportaMic && (
+              <button
+                onClick={() => toggleMic((t) => { setPregunta(t); enviar(t) })}
+                title={escuchando ? 'Detener' : 'Hablar'}
+                className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[6px] border transition ${escuchando ? 'border-danger bg-danger-soft text-danger' : 'border-border text-muted hover:bg-soft'}`}
+              >
+                <i className={`ti ${escuchando ? 'ti-microphone-off' : 'ti-microphone'} text-[14px]`} />
+              </button>
+            )}
             <input
               value={pregunta}
               onChange={(e) => setPregunta(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && enviar()}
-              placeholder="Preguntar algo…"
+              placeholder={escuchando ? 'Escuchando…' : 'Preguntar algo…'}
               className="flex-1 rounded-[6px] border border-border bg-bg px-2.5 py-1.5 text-[12px] text-ink outline-none focus:border-accent"
             />
+            {soportaTTS && (
+              <button
+                onClick={() => { setVozActiva(v => !v); window.speechSynthesis.cancel() }}
+                title={vozActiva ? 'Desactivar voz' : 'Activar voz'}
+                className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[6px] border transition ${vozActiva ? 'border-accent bg-accent-soft text-accent' : 'border-border text-muted hover:bg-soft'}`}
+              >
+                <i className={`ti ${vozActiva ? 'ti-volume' : 'ti-volume-off'} text-[14px]`} />
+              </button>
+            )}
             <button
               onClick={() => enviar()}
               disabled={loading || !pregunta.trim()}

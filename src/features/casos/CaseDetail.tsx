@@ -10,6 +10,7 @@ import { listHistorial } from '@/features/casos/historialApi'
 import { listWorkspaceUsers } from '@/features/users/api'
 import { listEtapas } from '@/features/casos/etapasApi'
 import { listAnticipos, listGastos, listHoras } from '@/features/casos/pagosApi'
+import { listCarpetas } from '@/features/casos/carpetasApi'
 import { EtapaPill } from '@/features/casos/etapaDisplay'
 import { InfoTab } from '@/features/casos/tabs/InfoTab'
 import { DocumentosTab } from '@/features/casos/tabs/DocumentosTab'
@@ -24,7 +25,7 @@ import { AddPlazoModal } from '@/features/casos/AddPlazoModal'
 import { AddDocumentoModal } from '@/features/casos/AddDocumentoModal'
 import { CasoFormModal } from '@/features/casos/CasoFormModal'
 import { MATERIA_LABEL } from '@/features/casos/materias'
-import type { Caso, CasoAnticipo, CasoGasto, CasoHora, CasoPersona, Documento, Etapa, HistorialEntry, Plazo, Tarea, Usuario } from '@/types/database'
+import type { Carpeta, Caso, CasoAnticipo, CasoGasto, CasoHora, CasoPersona, Documento, Etapa, HistorialEntry, Plazo, Tarea, Usuario } from '@/types/database'
 
 const TABS = [
   { key: 'info', label: 'Información', icon: 'ti-info-circle' },
@@ -58,6 +59,7 @@ export function CaseDetail({
   const [anticipos, setAnticipos] = useState<CasoAnticipo[]>([])
   const [gastos, setGastos] = useState<CasoGasto[]>([])
   const [horas, setHoras] = useState<CasoHora[]>([])
+  const [carpetas, setCarpetas] = useState<Carpeta[]>([])
   const [usersById, setUsersById] = useState<Map<string, Usuario>>(new Map())
   const [etapas, setEtapas] = useState<Etapa[]>([])
   const [loading, setLoading] = useState(true)
@@ -75,7 +77,7 @@ export function CaseDetail({
     setError(null)
     setTab('info')
     try {
-      const [c, p, d, pl, h, u, e, tr, ant, gas, hor] = await Promise.all([
+      const [c, p, d, pl, h, u, e, tr, ant, gas, hor, carp] = await Promise.all([
         getCaso(casoId),
         listPersonas(casoId),
         listDocumentos(casoId),
@@ -87,6 +89,7 @@ export function CaseDetail({
         listAnticipos(casoId),
         listGastos(casoId),
         listHoras(casoId),
+        listCarpetas(casoId),
       ])
       setCaso(c)
       setPersonas(p)
@@ -97,6 +100,7 @@ export function CaseDetail({
       setAnticipos(ant)
       setGastos(gas)
       setHoras(hor)
+      setCarpetas(carp)
       setUsersById(new Map(u.map((x) => [x.id, x])))
       setEtapas(e)
     } catch (err) {
@@ -303,6 +307,9 @@ export function CaseDetail({
         {tab === 'docs' && (
           <DocumentosTab
             documentos={documentos}
+            carpetas={carpetas}
+            casoId={caso.id}
+            workspaceId={caso.workspace_id}
             puedeEditar={puedeEditar}
             puedeSubir={puedeSubirDocs}
             onOpenAdd={() => setAddDocOpen(true)}
@@ -310,6 +317,11 @@ export function CaseDetail({
             onRename={onRenameDoc}
             onDelete={onDeleteDoc}
             onLeerAhora={onLeerDocAhora}
+            onCarpetasChange={async () => {
+              const [d, carp] = await Promise.all([listDocumentos(caso.id), listCarpetas(caso.id)])
+              setDocumentos(d)
+              setCarpetas(carp)
+            }}
           />
         )}
         {tab === 'plazos' && (

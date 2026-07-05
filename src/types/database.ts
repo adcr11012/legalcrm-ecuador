@@ -139,6 +139,16 @@ export type Documento = {
   estado_lectura: EstadoLectura
   contenido_texto: string | null
   error_lectura: string | null
+  carpeta_id: string | null
+}
+
+export type Carpeta = {
+  id: string
+  caso_id: string
+  workspace_id: string
+  nombre: string
+  parent_id: string | null
+  created_at: string
 }
 
 export type Plazo = {
@@ -233,6 +243,7 @@ export type Database = {
       etapas: Table<Etapa>
       tareas: Table<Tarea>
       documento_tokens: Table<{ id: string; documento_id: string; user_id: string; expires_at: string; created_at: string }>
+      carpetas: Table<Carpeta>
       caso_anticipos: Table<CasoAnticipo>
       caso_gastos: Table<CasoGasto>
       caso_horas: Table<CasoHora>

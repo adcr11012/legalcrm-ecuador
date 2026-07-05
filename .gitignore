@@ -24,3 +24,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+test-pdfium.mjs
+test-pdfium.ts
+output.txt
+page1.png
+form.pdf
+TSADOQ IMAGENES/
