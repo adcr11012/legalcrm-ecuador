@@ -66,3 +66,58 @@ export async function toggleWorkspaceSuspended(workspaceId: string, suspended: b
   const { error } = await (supabase as any).from('workspaces').update({ suspended }).eq('id', workspaceId)
   if (error) throw error
 }
+
+// ── Suscripciones / control financiero ──────────────────────────────
+
+export type PagoPeriodo = {
+  id: string
+  periodo_inicio: string
+  periodo_fin: string
+  monto: number
+  estado: 'pendiente' | 'pagado' | 'vencido'
+  fecha_pago: string | null
+  notas: string | null
+}
+
+export type BillingGlobal = {
+  cobrado_mes: number
+  pendiente_mes: number
+  vencidos: number
+  total_anio: number
+}
+
+export async function getBillingGlobal(): Promise<BillingGlobal> {
+  const { data, error } = await rpc('admin_billing_global')
+  if (error) throw error
+  return data as BillingGlobal
+}
+
+export async function getWorkspacePagos(workspaceId: string): Promise<PagoPeriodo[]> {
+  const { data, error } = await rpc('admin_workspace_pagos', { p_workspace_id: workspaceId })
+  if (error) throw error
+  return (data ?? []) as PagoPeriodo[]
+}
+
+export async function activarPlan(workspaceId: string, plan: string, monto: number, inicio: string): Promise<void> {
+  const { error } = await rpc('admin_activar_plan', {
+    p_workspace_id: workspaceId,
+    p_plan: plan,
+    p_monto: monto,
+    p_inicio: inicio,
+  })
+  if (error) throw error
+}
+
+export async function generarPeriodo(workspaceId: string): Promise<void> {
+  const { error } = await rpc('admin_generar_periodo', { p_workspace_id: workspaceId })
+  if (error) throw error
+}
+
+export async function registrarPago(pagoId: string, fecha: string, notas?: string): Promise<void> {
+  const { error } = await rpc('admin_registrar_pago', {
+    p_pago_id: pagoId,
+    p_fecha: fecha,
+    p_notas: notas ?? null,
+  })
+  if (error) throw error
+}

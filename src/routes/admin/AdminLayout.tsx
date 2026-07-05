@@ -57,6 +57,9 @@ export default function AdminLayout() {
           <NavLink to="/admin/workspaces" className={navItem}>
             <i className="ti ti-building text-[16px]" /> Workspaces
           </NavLink>
+          <NavLink to="/admin/billing" className={navItem}>
+            <i className="ti ti-credit-card text-[16px]" /> Facturación
+          </NavLink>
         </div>
 
         {/* Pie: email + volver */}
