@@ -28,36 +28,41 @@ export type WorkspaceDetail = {
   stats: { casos: number; documentos: number; clientes: number; tareas: number }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const rpc = (fn: string, args?: Record<string, unknown>) => (supabase as any).rpc(fn, args)
+
 export async function isSuperadmin(): Promise<boolean> {
-  const { data, error } = await supabase.rpc('is_superadmin')
+  const { data, error } = await rpc('is_superadmin')
   if (error) return false
   return data === true
 }
 
 export async function getGlobalStats(): Promise<GlobalStats> {
-  const { data, error } = await supabase.rpc('admin_global_stats')
+  const { data, error } = await rpc('admin_global_stats')
   if (error) throw error
   return data as GlobalStats
 }
 
 export async function getAdminWorkspaces(): Promise<WorkspaceStat[]> {
-  const { data, error } = await supabase.rpc('admin_workspaces')
+  const { data, error } = await rpc('admin_workspaces')
   if (error) throw error
   return (data ?? []) as WorkspaceStat[]
 }
 
 export async function getWorkspaceDetail(workspaceId: string): Promise<WorkspaceDetail> {
-  const { data, error } = await supabase.rpc('admin_workspace_detail', { p_workspace_id: workspaceId })
+  const { data, error } = await rpc('admin_workspace_detail', { p_workspace_id: workspaceId })
   if (error) throw error
   return data as WorkspaceDetail
 }
 
 export async function setWorkspacePlan(workspaceId: string, plan: string): Promise<void> {
-  const { error } = await supabase.from('workspaces').update({ plan }).eq('id', workspaceId)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any).from('workspaces').update({ plan }).eq('id', workspaceId)
   if (error) throw error
 }
 
 export async function toggleWorkspaceSuspended(workspaceId: string, suspended: boolean): Promise<void> {
-  const { error } = await supabase.from('workspaces').update({ suspended }).eq('id', workspaceId)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any).from('workspaces').update({ suspended }).eq('id', workspaceId)
   if (error) throw error
 }
