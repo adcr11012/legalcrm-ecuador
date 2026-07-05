@@ -19,9 +19,9 @@ create policy "workspace members can insert own audits"
   on auditoria_documentos for insert
   with check (
     exists (
-      select 1 from perfiles
-      where perfiles.user_id = auth.uid()
-        and perfiles.workspace_id = auditoria_documentos.workspace_id
+      select 1 from users
+      where users.id = auth.uid()
+        and users.workspace_id = auditoria_documentos.workspace_id
     )
   );
 
@@ -29,12 +29,27 @@ create policy "admins can read audit log"
   on auditoria_documentos for select
   using (
     exists (
-      select 1 from perfiles
-      where perfiles.user_id = auth.uid()
-        and perfiles.workspace_id = auditoria_documentos.workspace_id
-        and perfiles.rol = 'administrador'
+      select 1 from users
+      where users.id = auth.uid()
+        and users.workspace_id = auditoria_documentos.workspace_id
+        and users.rol = 'administrador'
     )
   );
 
 create index auditoria_documentos_workspace_idx on auditoria_documentos(workspace_id, created_at desc);
 create index auditoria_documentos_documento_idx on auditoria_documentos(documento_id);
+
+-- Auto-rellena usuario_id con el usuario autenticado
+create or replace function set_auditoria_usuario()
+returns trigger language plpgsql security definer as $$
+begin
+  if new.usuario_id is null then
+    new.usuario_id := auth.uid();
+  end if;
+  return new;
+end;
+$$;
+
+create trigger auditoria_documentos_usuario
+  before insert on auditoria_documentos
+  for each row execute function set_auditoria_usuario();

@@ -7,7 +7,7 @@ type Registro = {
   nombre_doc: string | null
   created_at: string
   usuario_id: string | null
-  perfiles: { nombre: string } | null
+  users: { nombre: string } | null
   casos: { titulo: string } | null
 }
 
@@ -39,7 +39,7 @@ export function AuditoriaDocumentos({ workspaceId }: { workspaceId: string }) {
       setLoading(true)
       let q = supabase
         .from('auditoria_documentos')
-        .select('id, accion, nombre_doc, created_at, usuario_id, perfiles(nombre), casos(titulo)')
+        .select('id, accion, nombre_doc, created_at, usuario_id, users(nombre), casos(titulo)')
         .eq('workspace_id', workspaceId)
         .order('created_at', { ascending: false })
         .range(pagina * POR_PAGINA, (pagina + 1) * POR_PAGINA - 1)
@@ -87,7 +87,7 @@ export function AuditoriaDocumentos({ workspaceId }: { workspaceId: string }) {
                     {r.nombre_doc ?? '—'}
                   </div>
                   <div className="text-[10px] text-mute2">
-                    {r.perfiles?.nombre ?? 'Usuario desconocido'}
+                    {r.users?.nombre ?? 'Usuario desconocido'}
                     {r.casos?.titulo ? ` · ${r.casos.titulo}` : ''}
                   </div>
                 </div>
