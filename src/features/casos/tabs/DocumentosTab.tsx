@@ -231,16 +231,16 @@ function CarpetaSection({
             <button
               onMouseDown={(e) => e.preventDefault()}
               onClick={async () => { await onRenameCarpeta(carpeta.id, carpetaName); setEditingCarpeta(false) }}
-              className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-[3px] bg-accent text-white"
+              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[4px] bg-accent text-white"
             >
-              <i className="ti ti-check text-[11px]" />
+              <i className="ti ti-check text-[12px]" />
             </button>
             <button
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => { setCarpetaName(carpeta.nombre); setEditingCarpeta(false) }}
-              className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-[3px] border border-border text-muted hover:bg-soft"
+              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[4px] border border-border text-muted hover:bg-soft"
             >
-              <i className="ti ti-x text-[11px]" />
+              <i className="ti ti-x text-[12px]" />
             </button>
           </div>
         ) : (
@@ -258,7 +258,7 @@ function CarpetaSection({
                   <button
                     onClick={() => prev && onMoverCarpeta(carpeta, prev, siblings)}
                     disabled={!prev}
-                    className="flex h-6 w-6 items-center justify-center rounded-[4px] text-muted hover:bg-soft disabled:opacity-20"
+                    className="flex h-7 w-7 items-center justify-center rounded-[4px] text-muted hover:bg-soft disabled:opacity-20"
                     title="Subir"
                   >
                     <i className="ti ti-chevron-up text-[12px]" />
@@ -266,15 +266,15 @@ function CarpetaSection({
                   <button
                     onClick={() => next && onMoverCarpeta(carpeta, next, siblings)}
                     disabled={!next}
-                    className="flex h-6 w-6 items-center justify-center rounded-[4px] text-muted hover:bg-soft disabled:opacity-20"
+                    className="flex h-7 w-7 items-center justify-center rounded-[4px] text-muted hover:bg-soft disabled:opacity-20"
                     title="Bajar"
                   >
                     <i className="ti ti-chevron-down text-[12px]" />
                   </button>
-                  <button onClick={() => setEditingCarpeta(true)} className="flex h-6 w-6 items-center justify-center rounded-[4px] text-muted hover:bg-soft" title="Renombrar">
+                  <button onClick={() => setEditingCarpeta(true)} className="flex h-7 w-7 items-center justify-center rounded-[4px] text-muted hover:bg-soft" title="Renombrar">
                     <i className="ti ti-edit text-[12px]" />
                   </button>
-                  <button onClick={() => onDeleteCarpeta(carpeta.id)} className="flex h-6 w-6 items-center justify-center rounded-[4px] text-muted hover:bg-danger-soft hover:text-danger" title="Eliminar carpeta">
+                  <button onClick={() => onDeleteCarpeta(carpeta.id)} className="flex h-7 w-7 items-center justify-center rounded-[4px] text-muted hover:bg-danger-soft hover:text-danger" title="Eliminar carpeta">
                     <i className="ti ti-trash text-[12px]" />
                   </button>
                 </div>

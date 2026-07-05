@@ -51,7 +51,7 @@ export function NotificationsBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-[calc(100%+6px)] z-[200] w-[320px] overflow-hidden rounded-[10px] border border-border bg-surface shadow-lg">
+        <div className="absolute right-0 top-[calc(100%+6px)] z-[200] w-[calc(100vw-16px)] max-w-[320px] overflow-hidden rounded-[10px] border border-border bg-surface shadow-lg">
           <div className="border-b border-border px-3.5 py-2.5 text-[12px] font-semibold text-ink">Novedades</div>
           <div className="max-h-[360px] overflow-y-auto">
             {loading && <div className="p-4 text-center text-[12px] text-mute2">Cargando…</div>}

@@ -85,8 +85,8 @@ export function AuditoriaDocumentos({ workspaceId }: { workspaceId: string }) {
           {registros.map((r) => {
             const a = ACCION_LABEL[r.accion] ?? { label: r.accion, icon: 'ti-activity', cls: 'text-muted bg-soft' }
             return (
-              <div key={r.id} className="flex items-start gap-2.5 px-3 py-2">
-                <span className={`mt-0.5 flex-shrink-0 rounded-[4px] px-1.5 py-0.5 text-[10px] font-medium ${a.cls}`}>
+              <div key={r.id} className="flex flex-col gap-0.5 px-3 py-2 sm:flex-row sm:items-start sm:gap-2.5">
+                <span className={`w-fit flex-shrink-0 rounded-[4px] px-1.5 py-0.5 text-[10px] font-medium ${a.cls}`}>
                   <i className={`ti ${a.icon} mr-1`} />{a.label}
                 </span>
                 <div className="min-w-0 flex-1">
