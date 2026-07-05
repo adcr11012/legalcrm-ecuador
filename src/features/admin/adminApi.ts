@@ -29,8 +29,9 @@ export type WorkspaceDetail = {
 }
 
 export async function isSuperadmin(): Promise<boolean> {
-  const { data } = await supabase.from('superadmins').select('user_id').maybeSingle()
-  return data !== null
+  const { data, error } = await supabase.rpc('is_superadmin')
+  if (error) return false
+  return data === true
 }
 
 export async function getGlobalStats(): Promise<GlobalStats> {
