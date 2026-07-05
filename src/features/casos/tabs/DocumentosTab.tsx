@@ -202,6 +202,13 @@ function CarpetaSection({
   return (
     <div style={{ marginLeft: depth * 12 }}>
       <div className="mb-1.5 flex items-center gap-2">
+        {depth > 0 && (
+          <div className="flex flex-shrink-0 items-center self-start pt-[6px]">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-border">
+              <path d="M2 0 L2 7 L14 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+            </svg>
+          </div>
+        )}
         {editingCarpeta ? (
           <div className="flex flex-1 items-center gap-1 min-w-0">
             <i className={`ti ${open ? 'ti-folder-open' : 'ti-folder'} text-[15px] text-muted flex-shrink-0`} />
