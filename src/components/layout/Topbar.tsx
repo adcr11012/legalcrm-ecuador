@@ -18,18 +18,12 @@ function sectionFor(pathname: string): string {
   return match ?? pathname
 }
 
-export function Topbar({ action, onMenuClick }: { action: PageAction; onMenuClick: () => void }) {
+export function Topbar({ action }: { action: PageAction }) {
   const { pathname } = useLocation()
   const title = TITLES[sectionFor(pathname)] ?? ''
 
   return (
     <div className="flex h-[52px] flex-shrink-0 items-center gap-2.5 border-b border-border bg-surface px-3 sm:px-5">
-      <button
-        onClick={onMenuClick}
-        className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[6px] text-muted transition hover:bg-soft hover:text-ink"
-      >
-        <i className="ti ti-menu-2 text-[18px]" />
-      </button>
       <div className="min-w-0 flex-1 truncate text-[15px] font-semibold text-ink">{title}</div>
       <WorkspaceAssistant />
       <NotificationsBell />

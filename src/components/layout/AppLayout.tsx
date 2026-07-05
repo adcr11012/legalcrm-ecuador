@@ -23,9 +23,9 @@ export function AppLayout() {
 
   return (
     <div className="flex h-screen bg-bg">
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen((v) => !v)} />
       <div className="flex h-screen min-w-0 flex-1 flex-col">
-        <Topbar action={action} onMenuClick={() => setSidebarOpen((v) => !v)} />
+        <Topbar action={action} />
         <div className="relative flex flex-1 overflow-hidden">
           <PageActionContext.Provider value={setAction}>
             <Outlet />

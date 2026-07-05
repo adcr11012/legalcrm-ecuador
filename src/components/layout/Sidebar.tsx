@@ -40,7 +40,7 @@ function useServiciosEstado() {
   return { drive, groq, openrouter }
 }
 
-export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function Sidebar({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   const { profile, signOut } = useAuth()
   const servicios = useServiciosEstado()
 
@@ -51,25 +51,28 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
 
   return (
     <>
-      {open && <div onClick={onClose} className="fixed inset-0 z-[150] bg-black/35 lg:hidden" />}
+      {open && <div onClick={onToggle} className="fixed inset-0 z-[150] bg-black/35 lg:hidden" />}
       <nav
         className={`flex h-screen flex-shrink-0 flex-col border-r border-border bg-surface transition-all duration-200 ${
           open ? 'fixed inset-y-0 left-0 z-[160] w-[240px] lg:static lg:w-[220px]' : 'static z-auto w-[60px]'
         }`}
       >
-        <div className={`flex items-center border-b border-border pb-3.5 pt-4.5 ${open ? 'justify-between px-4' : 'justify-center px-1'}`}>
-          {open ? (
-            <img src="/LOGO.png" alt="TSADOQ" className="h-10 w-auto max-w-[160px] object-contain" />
-          ) : (
-            <img src="/LOGO.png" alt="TSADOQ" className="h-8 w-8 object-contain object-left" />
-          )}
+        <div className={`flex h-[52px] flex-shrink-0 items-center border-b border-border ${open ? 'gap-2.5 px-3' : 'justify-center px-1'}`}>
+          <button
+            onClick={onToggle}
+            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[6px] text-muted transition hover:bg-soft hover:text-ink"
+            title={open ? 'Colapsar menú' : 'Expandir menú'}
+          >
+            <i className="ti ti-menu-2 text-[18px]" />
+          </button>
           {open && (
-            <button
-              onClick={onClose}
-              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[6px] text-mute2 transition hover:bg-soft hover:text-ink lg:hidden"
-            >
-              <i className="ti ti-x text-[15px]" />
-            </button>
+            <>
+              <img src="/LOGO.png" alt="TSADOQ" className="h-7 w-auto object-contain" />
+              <div className="min-w-0">
+                <div className="text-[13px] font-bold leading-tight text-ink">TSADOQ</div>
+                <div className="text-[10px] leading-tight text-mute2">Gestor de casos</div>
+              </div>
+            </>
           )}
         </div>
 
@@ -78,7 +81,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
             <div className="px-2 pb-1 pt-2.5 text-[10px] font-semibold uppercase tracking-wide text-mute2">Principal</div>
           )}
           {PRINCIPAL.map((item) => (
-            <NavLink key={item.to} to={item.to} title={item.label} className={navItemClass} onClick={() => onClose()}>
+            <NavLink key={item.to} to={item.to} title={item.label} className={navItemClass}>
               <i className={`ti ${item.icon} flex-shrink-0 text-[16px]`} />
               {open && <span className="truncate">{item.label}</span>}
             </NavLink>
@@ -89,7 +92,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
           )}
           {!open && <div className="my-2 border-t border-border" />}
           {WORKSPACE.filter((item) => !item.soloAdmin || profile?.rol === 'administrador').map((item) => (
-            <NavLink key={item.to} to={item.to} title={item.label} className={navItemClass} onClick={() => onClose()}>
+            <NavLink key={item.to} to={item.to} title={item.label} className={navItemClass}>
               <i className={`ti ${item.icon} flex-shrink-0 text-[16px]`} />
               {open && <span className="truncate">{item.label}</span>}
             </NavLink>
