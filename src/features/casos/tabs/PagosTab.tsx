@@ -287,28 +287,30 @@ export function PagosTab({
           {horas.length === 0
             ? <EmptyRow text="Sin horas registradas" />
             : (
-              <div className="flex flex-col gap-1">
-                <div className="grid grid-cols-[80px_1fr_60px_80px_80px_28px] gap-2 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-mute2">
-                  <span>Fecha</span><span>Descripción</span><span className="text-right">Hrs</span><span className="text-right">$/hr</span><span className="text-right">Total</span><span />
-                </div>
-                {horas.map((h) => (
-                  <div key={h.id} className="grid grid-cols-[80px_1fr_60px_80px_80px_28px] items-center gap-2 rounded-[8px] border border-border bg-surface px-3 py-2">
-                    <span className="text-[11px] text-mute2">{fmtFecha(h.fecha)}</span>
-                    <span className="text-[12px] text-ink truncate">{h.descripcion}</span>
-                    <span className="text-right text-[12px] text-ink">{h.horas}</span>
-                    <span className="text-right text-[12px] text-muted">${fmt(Number(h.valor_hora))}</span>
-                    <span className="text-right text-[13px] font-semibold text-ink">${fmt(Number(h.horas) * Number(h.valor_hora))}</span>
-                    {puedeEditar && (
-                      <button onClick={async () => { await deleteHora(h.id); onHoraDeleted(h.id) }}
-                        className="flex h-6 w-6 items-center justify-center rounded text-muted hover:bg-danger-soft hover:text-danger">
-                        <i className="ti ti-trash text-[13px]" />
-                      </button>
-                    )}
+              <div className="overflow-x-auto">
+                <div className="min-w-[380px] flex flex-col gap-1">
+                  <div className="grid grid-cols-[80px_1fr_60px_80px_80px_28px] gap-2 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-mute2">
+                    <span>Fecha</span><span>Descripción</span><span className="text-right">Hrs</span><span className="text-right">$/hr</span><span className="text-right">Total</span><span />
                   </div>
-                ))}
-                <div className="flex justify-end gap-4 pt-1 text-[12px] font-semibold text-ink">
-                  <span>{horas.reduce((s, h) => s + Number(h.horas), 0)} hrs totales</span>
-                  <span>Total: ${fmt(totalHoras)}</span>
+                  {horas.map((h) => (
+                    <div key={h.id} className="grid grid-cols-[80px_1fr_60px_80px_80px_28px] items-center gap-2 rounded-[8px] border border-border bg-surface px-3 py-2">
+                      <span className="text-[11px] text-mute2">{fmtFecha(h.fecha)}</span>
+                      <span className="text-[12px] text-ink truncate">{h.descripcion}</span>
+                      <span className="text-right text-[12px] text-ink">{h.horas}</span>
+                      <span className="text-right text-[12px] text-muted">${fmt(Number(h.valor_hora))}</span>
+                      <span className="text-right text-[13px] font-semibold text-ink">${fmt(Number(h.horas) * Number(h.valor_hora))}</span>
+                      {puedeEditar && (
+                        <button onClick={async () => { await deleteHora(h.id); onHoraDeleted(h.id) }}
+                          className="flex h-6 w-6 items-center justify-center rounded text-muted hover:bg-danger-soft hover:text-danger">
+                          <i className="ti ti-trash text-[13px]" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <div className="flex justify-end gap-4 pt-1 text-[12px] font-semibold text-ink">
+                    <span>{horas.reduce((s, h) => s + Number(h.horas), 0)} hrs totales</span>
+                    <span>Total: ${fmt(totalHoras)}</span>
+                  </div>
                 </div>
               </div>
             )}
