@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Carpeta, Documento } from '@/types/database'
 import { getDocumentoProxyUrl } from '@/features/casos/documentosApi'
-import { moverDocumento, createCarpeta, deleteCarpeta, renameCarpeta } from '@/features/casos/carpetasApi'
+import { moverDocumento, createCarpeta, deleteCarpeta, renameCarpeta, swapOrdenCarpetas } from '@/features/casos/carpetasApi'
 
 function iconFor(nombre: string) {
   const ext = nombre.split('.').pop()?.toLowerCase()
@@ -176,9 +176,9 @@ function DocRow({
 }
 
 function CarpetaSection({
-  carpeta, docs, subcarpetas, allCarpetas, puedeEditar, onToggleVisibilidad, onRename, onDelete, onLeerAhora, leyendoId, onMover, onRenameCarpeta, onDeleteCarpeta, depth,
+  carpeta, docs, subcarpetas, allCarpetas, siblings, puedeEditar, onToggleVisibilidad, onRename, onDelete, onLeerAhora, leyendoId, onMover, onRenameCarpeta, onDeleteCarpeta, onMoverCarpeta, depth,
 }: {
-  carpeta: Carpeta; docs: Documento[]; subcarpetas: Carpeta[]; allCarpetas: Carpeta[]
+  carpeta: Carpeta; docs: Documento[]; subcarpetas: Carpeta[]; allCarpetas: Carpeta[]; siblings: Carpeta[]
   puedeEditar: boolean; leyendoId: string | null; depth: number
   onToggleVisibilidad: (doc: Documento) => void
   onRename: (id: string, nombre: string) => Promise<void>
@@ -187,11 +187,16 @@ function CarpetaSection({
   onMover: (docId: string, carpetaId: string | null) => Promise<void>
   onRenameCarpeta: (id: string, nombre: string) => Promise<void>
   onDeleteCarpeta: (id: string) => Promise<void>
+  onMoverCarpeta: (a: Carpeta, b: Carpeta) => Promise<void>
 }) {
   const [open, setOpen] = useState(true)
   const [editingCarpeta, setEditingCarpeta] = useState(false)
   const [carpetaName, setCarpetaName] = useState(carpeta.nombre)
   const { children } = buildTree(allCarpetas)
+
+  const idx = siblings.findIndex(s => s.id === carpeta.id)
+  const prev = idx > 0 ? siblings[idx - 1] : null
+  const next = idx < siblings.length - 1 ? siblings[idx + 1] : null
 
   return (
     <div style={{ marginLeft: depth * 12 }}>
@@ -234,6 +239,22 @@ function CarpetaSection({
         )}
         {puedeEditar && !editingCarpeta && (
           <div className="flex gap-1">
+            <button
+              onClick={() => prev && onMoverCarpeta(carpeta, prev)}
+              disabled={!prev}
+              className="flex h-6 w-6 items-center justify-center rounded-[4px] text-muted hover:bg-soft disabled:opacity-20"
+              title="Subir"
+            >
+              <i className="ti ti-chevron-up text-[12px]" />
+            </button>
+            <button
+              onClick={() => next && onMoverCarpeta(carpeta, next)}
+              disabled={!next}
+              className="flex h-6 w-6 items-center justify-center rounded-[4px] text-muted hover:bg-soft disabled:opacity-20"
+              title="Bajar"
+            >
+              <i className="ti ti-chevron-down text-[12px]" />
+            </button>
             <button onClick={() => setEditingCarpeta(true)} className="flex h-6 w-6 items-center justify-center rounded-[4px] text-muted hover:bg-soft" title="Renombrar">
               <i className="ti ti-edit text-[12px]" />
             </button>
@@ -249,11 +270,11 @@ function CarpetaSection({
             <CarpetaSection
               key={sub.id} carpeta={sub}
               docs={[]} subcarpetas={children[sub.id] ?? []}
-              allCarpetas={allCarpetas} puedeEditar={puedeEditar}
+              allCarpetas={allCarpetas} siblings={subcarpetas} puedeEditar={puedeEditar}
               onToggleVisibilidad={onToggleVisibilidad} onRename={onRename}
               onDelete={onDelete} onLeerAhora={onLeerAhora} leyendoId={leyendoId}
               onMover={onMover} onRenameCarpeta={onRenameCarpeta}
-              onDeleteCarpeta={onDeleteCarpeta} depth={depth + 1}
+              onDeleteCarpeta={onDeleteCarpeta} onMoverCarpeta={onMoverCarpeta} depth={depth + 1}
             />
           ))}
           {docs.map(d => (
@@ -303,6 +324,11 @@ export function DocumentosTab({
 
   async function handleMover(docId: string, carpetaId: string | null) {
     await moverDocumento(docId, carpetaId)
+    onCarpetasChange()
+  }
+
+  async function handleMoverCarpeta(a: Carpeta, b: Carpeta) {
+    await swapOrdenCarpetas(a, b)
     onCarpetasChange()
   }
 
@@ -397,11 +423,11 @@ export function DocumentosTab({
             key={carpeta.id} carpeta={carpeta}
             docs={docsPorCarpeta[carpeta.id] ?? []}
             subcarpetas={children[carpeta.id] ?? []}
-            allCarpetas={carpetasProp} puedeEditar={puedeEditar}
+            allCarpetas={carpetasProp} siblings={root} puedeEditar={puedeEditar}
             onToggleVisibilidad={onToggleVisibilidad} onRename={onRename}
             onDelete={onDelete} onLeerAhora={handleLeerAhora} leyendoId={leyendoId}
             onMover={handleMover} onRenameCarpeta={handleRenameCarpeta}
-            onDeleteCarpeta={handleDeleteCarpeta} depth={0}
+            onDeleteCarpeta={handleDeleteCarpeta} onMoverCarpeta={handleMoverCarpeta} depth={0}
           />
         ))}
 

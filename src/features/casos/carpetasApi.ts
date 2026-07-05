@@ -6,9 +6,17 @@ export async function listCarpetas(casoId: string): Promise<Carpeta[]> {
     .from('carpetas')
     .select('*')
     .eq('caso_id', casoId)
-    .order('nombre')
+    .order('orden')
+    .order('created_at')
   if (error) throw error
   return data
+}
+
+export async function swapOrdenCarpetas(a: Carpeta, b: Carpeta): Promise<void> {
+  await Promise.all([
+    supabase.from('carpetas').update({ orden: b.orden }).eq('id', a.id),
+    supabase.from('carpetas').update({ orden: a.orden }).eq('id', b.id),
+  ])
 }
 
 export async function createCarpeta(casoId: string, workspaceId: string, nombre: string, parentId?: string): Promise<Carpeta> {

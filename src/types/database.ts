@@ -148,6 +148,7 @@ export type Carpeta = {
   workspace_id: string
   nombre: string
   parent_id: string | null
+  orden: number
   created_at: string
 }
 
