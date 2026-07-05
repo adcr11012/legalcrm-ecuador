@@ -37,10 +37,14 @@ export function AuditoriaDocumentos({ workspaceId }: { workspaceId: string }) {
   useEffect(() => {
     async function cargar() {
       setLoading(true)
+      const desde = new Date()
+      desde.setDate(desde.getDate() - 20)
+
       let q = supabase
         .from('auditoria_documentos')
         .select('id, accion, nombre_doc, created_at, usuario_id, users(nombre), casos(titulo)')
         .eq('workspace_id', workspaceId)
+        .gte('created_at', desde.toISOString())
         .order('created_at', { ascending: false })
         .range(pagina * POR_PAGINA, (pagina + 1) * POR_PAGINA - 1)
 
