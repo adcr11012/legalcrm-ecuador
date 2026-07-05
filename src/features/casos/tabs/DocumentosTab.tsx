@@ -192,7 +192,6 @@ function CarpetaSection({
   const [editingCarpeta, setEditingCarpeta] = useState(false)
   const [carpetaName, setCarpetaName] = useState(carpeta.nombre)
   const { children } = buildTree(allCarpetas)
-  const total = docs.length + subcarpetas.reduce((s, sub) => s + (allCarpetas.filter(c => c.parent_id === sub.id).length), 0)
 
   return (
     <div style={{ marginLeft: depth * 12 }}>

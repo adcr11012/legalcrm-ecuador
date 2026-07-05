@@ -3,17 +3,11 @@ import { preguntarCasoIA } from '@/features/casos/casoIaApi'
 
 type Mensaje = { rol: 'user' | 'ia'; texto: string }
 
-declare global {
-  interface Window {
-    SpeechRecognition: typeof SpeechRecognition
-    webkitSpeechRecognition: typeof SpeechRecognition
-  }
-}
-
 function useSpeech() {
   const [escuchando, setEscuchando] = useState(false)
   const [vozActiva, setVozActiva] = useState(false)
-  const recRef = useRef<SpeechRecognition | null>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recRef = useRef<any>(null)
   const soportaMic = typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)
   const soportaTTS = typeof window !== 'undefined' && 'speechSynthesis' in window
 
@@ -31,12 +25,13 @@ function useSpeech() {
 
   function escuchar(onResult: (texto: string) => void) {
     if (!soportaMic) return
-    const SR = window.SpeechRecognition ?? window.webkitSpeechRecognition
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition
     const rec = new SR()
     rec.lang = 'es-EC'
     rec.interimResults = false
     rec.maxAlternatives = 1
-    rec.onresult = (e) => onResult(e.results[0][0].transcript)
+    rec.onresult = (e: SpeechRecognitionEvent) => onResult(e.results[0][0].transcript)
     rec.onend = () => setEscuchando(false)
     rec.onerror = () => setEscuchando(false)
     recRef.current = rec

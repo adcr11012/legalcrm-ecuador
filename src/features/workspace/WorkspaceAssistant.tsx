@@ -15,7 +15,8 @@ export function WorkspaceAssistant() {
   const [escuchando, setEscuchando] = useState(false)
   const [vozActiva, setVozActiva] = useState(false)
   const boxRef = useRef<HTMLDivElement>(null)
-  const recRef = useRef<SpeechRecognition | null>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recRef = useRef<any>(null)
 
   function hablar(texto: string) {
     if (!soportaTTS || !vozActiva) return
