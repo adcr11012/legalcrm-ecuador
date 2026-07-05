@@ -249,8 +249,6 @@ export const INSTANCIAS_POR_MATERIA: Record<Materia, Opcion[]> = {
   laboral: [
     { value: 'primera_instancia', label: 'Primera instancia' },
     { value: 'segunda_instancia', label: 'Segunda instancia' },
-    { value: 'casacion_cnj', label: 'Casación CNJ' },
-    { value: 'corte_constitucional', label: 'Corte Constitucional' },
   ],
   familia: [
     { value: 'primera_instancia', label: 'Primera instancia' },
