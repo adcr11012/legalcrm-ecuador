@@ -73,7 +73,7 @@ Deno.serve(async () => {
       .from('users')
       .select('email')
       .eq('workspace_id', ws.id)
-      .eq('es_admin', true)
+      .eq('rol', 'administrador')
     const adminEmails = (admins ?? []).map((a) => a.email)
 
     for (const plazo of plazos ?? []) {

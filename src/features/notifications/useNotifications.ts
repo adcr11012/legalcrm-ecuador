@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { listAllPlazos } from '@/features/casos/plazosApi'
+import { listAllTareasPendientes } from '@/features/casos/tareasApi'
 import { listCasos } from '@/features/casos/api'
 import { listClientes } from '@/features/clientes/api'
 import { listInvitacionesPendientes } from '@/features/usuarios/invitacionesApi'
@@ -8,7 +9,7 @@ import { useAuth } from '@/features/auth/AuthProvider'
 
 export type Notificacion = {
   id: string
-  tipo: 'plazo' | 'cliente' | 'invitacion'
+  tipo: 'plazo' | 'cliente' | 'invitacion' | 'tarea'
   titulo: string
   subtitulo: string
   urgente: boolean
@@ -24,13 +25,16 @@ export function useNotifications() {
     if (!profile) return
     setLoading(true)
     try {
-      const [plazos, casos, clientes, invitaciones] = await Promise.all([
+      const [plazos, tareas, casos, clientes, invitaciones] = await Promise.all([
         listAllPlazos(),
+        listAllTareasPendientes(),
         listCasos(),
         listClientes(),
         profile.rol === 'administrador' ? listInvitacionesPendientes() : Promise.resolve([]),
       ])
       const casosById = new Map(casos.map((c) => [c.id, c]))
+
+      const hoy = new Date().toISOString().slice(0, 10)
 
       const dePlazos: Notificacion[] = plazos
         .map((p) => ({ p, dias: diasRestantes(p.fecha) }))
@@ -44,7 +48,20 @@ export function useNotifications() {
           to: `/casos/${p.caso_id}`,
         }))
 
-      const hoy = new Date().toISOString().slice(0, 10)
+      const deTareas: Notificacion[] = tareas
+        .filter((t) => t.fecha_limite && t.fecha_limite <= hoy)
+        .map((t) => {
+          const diasT = diasRestantes(t.fecha_limite!)
+          return {
+            id: `tarea-${t.id}`,
+            tipo: 'tarea' as const,
+            titulo: t.titulo,
+            subtitulo: `Tarea · ${casosById.get(t.caso_id)?.titulo ?? 'no disponible'} · ${diasT < 0 ? 'Vencida' : 'Hoy'}`,
+            urgente: true,
+            to: `/casos/${t.caso_id}`,
+          }
+        })
+
       const deClientes: Notificacion[] = clientes
         .filter((c) => c.proximo_seguimiento && c.proximo_seguimiento <= hoy)
         .map((c) => ({
@@ -65,7 +82,7 @@ export function useNotifications() {
         to: '/usuarios',
       }))
 
-      setItems([...deClientes, ...dePlazos, ...deInvitaciones])
+      setItems([...deClientes, ...deTareas, ...dePlazos, ...deInvitaciones])
     } finally {
       setLoading(false)
     }

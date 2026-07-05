@@ -6,6 +6,7 @@ const ICON: Record<Notificacion['tipo'], string> = {
   plazo: 'ti-clock',
   cliente: 'ti-user-circle',
   invitacion: 'ti-mail',
+  tarea: 'ti-checkbox',
 }
 
 export function NotificationsBell() {
