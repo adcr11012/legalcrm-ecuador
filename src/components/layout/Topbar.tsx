@@ -18,12 +18,21 @@ function sectionFor(pathname: string): string {
   return match ?? pathname
 }
 
-export function Topbar({ action }: { action: PageAction }) {
+export function Topbar({ action, sidebarOpen }: { action: PageAction; sidebarOpen: boolean }) {
   const { pathname } = useLocation()
   const title = TITLES[sectionFor(pathname)] ?? ''
 
   return (
     <div className="flex h-[52px] flex-shrink-0 items-center gap-2.5 border-b border-border bg-surface px-3 sm:px-5">
+      {!sidebarOpen && (
+        <div className="flex flex-shrink-0 items-center gap-2">
+          <img src="/LOGO.png" alt="TSADOQ" className="h-7 w-auto object-contain" />
+          <div className="hidden sm:block">
+            <div className="text-[13px] font-bold leading-tight text-ink">TSADOQ</div>
+            <div className="text-[10px] leading-tight text-mute2">Gestor de casos</div>
+          </div>
+        </div>
+      )}
       <div className="min-w-0 flex-1 truncate text-[15px] font-semibold text-ink">{title}</div>
       <WorkspaceAssistant />
       <NotificationsBell />
