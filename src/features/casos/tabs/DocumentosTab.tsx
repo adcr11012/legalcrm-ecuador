@@ -163,13 +163,7 @@ export function DocumentosTab({
                           const w = window.open('', '_blank', 'noreferrer')
                           try {
                             const url = await getDocumentoProxyUrl(d.id)
-                            const res = await fetch(url)
-                            const blob = await res.blob()
-                            const blobUrl = URL.createObjectURL(blob)
-                            if (w) {
-                              w.location.href = blobUrl
-                              setTimeout(() => URL.revokeObjectURL(blobUrl), 60000)
-                            }
+                            if (w) w.location.href = url
                           } catch {
                             if (w) w.close()
                           }
