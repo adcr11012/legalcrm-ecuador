@@ -160,7 +160,7 @@ export function DocumentosTab({
                     {d.drive_file_id && (
                       <button
                         onClick={async () => {
-                          const w = window.open('', '_blank', 'noreferrer')
+                          const w = window.open('', '_blank')
                           try {
                             const url = await getDocumentoProxyUrl(d.id)
                             if (w) w.location.href = url
