@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { preguntarWorkspaceIA } from '@/features/workspace/workspaceIaApi'
 
 type Mensaje = { rol: 'user' | 'ia'; texto: string }
