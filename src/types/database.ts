@@ -69,6 +69,19 @@ export type CasoGasto = {
   created_at: string
 }
 
+export type AuditoriaDocumento = {
+  id: string
+  workspace_id: string
+  documento_id: string | null
+  usuario_id: string | null
+  accion: string
+  nombre_doc: string | null
+  caso_id: string | null
+  ip: string | null
+  user_agent: string | null
+  created_at: string
+}
+
 export type HonorariosTipo = 'fijo' | 'por_hora' | 'por_exito' | 'mixto'
 export type HonorariosFormaPago = 'inicio' | 'cuotas' | 'al_finalizar'
 
@@ -248,6 +261,7 @@ export type Database = {
       caso_anticipos: Table<CasoAnticipo>
       caso_gastos: Table<CasoGasto>
       caso_horas: Table<CasoHora>
+      auditoria_documentos: Table<AuditoriaDocumento>
     }
     Views: { [_ in never]: never }
     Functions: {
