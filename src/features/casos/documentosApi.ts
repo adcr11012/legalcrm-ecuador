@@ -1,6 +1,17 @@
 import { supabase } from '@/lib/supabase'
 import type { Documento, Visibilidad } from '@/types/database'
 
+export async function registrarAccesoDocumento(params: {
+  documento_id: string
+  workspace_id: string
+  accion: 'apertura' | 'lectura_ia' | 'descarga' | 'eliminacion' | 'renombrado' | 'subida'
+  nombre_doc?: string
+  caso_id?: string
+}): Promise<void> {
+  // fire-and-forget: no bloqueamos el flujo si falla
+  supabase.from('auditoria_documentos').insert(params).then()
+}
+
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string
 
 // Genera un token de un solo uso (5 min) y devuelve la URL del proxy

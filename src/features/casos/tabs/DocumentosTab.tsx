@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Carpeta, Documento } from '@/types/database'
-import { getDocumentoProxyUrl } from '@/features/casos/documentosApi'
+import { getDocumentoProxyUrl, registrarAccesoDocumento } from '@/features/casos/documentosApi'
 import { moverDocumento, createCarpeta, deleteCarpeta, renameCarpeta, reindexCarpetas } from '@/features/casos/carpetasApi'
 
 function iconFor(nombre: string) {
@@ -54,7 +54,7 @@ function CarpetaSelector({ carpetas, value, onChange }: { carpetas: Carpeta[]; v
 }
 
 function DocRow({
-  d, carpetas, puedeEditar, onToggleVisibilidad, onRename, onDelete, onLeerAhora, leyendoId, onMover,
+  d, carpetas, puedeEditar, onToggleVisibilidad, onRename, onDelete, onLeerAhora, leyendoId, onMover, casoId, workspaceId,
 }: {
   d: Documento; carpetas: Carpeta[]; puedeEditar: boolean
   onToggleVisibilidad: (doc: Documento) => void
@@ -63,6 +63,8 @@ function DocRow({
   onLeerAhora: (id: string) => Promise<void>
   leyendoId: string | null
   onMover: (docId: string, carpetaId: string | null) => Promise<void>
+  casoId: string
+  workspaceId: string
 }) {
   const [editing, setEditing] = useState(false)
   const [editVal, setEditVal] = useState(d.nombre)
@@ -86,6 +88,7 @@ function DocRow({
     try {
       const url = await getDocumentoProxyUrl(d.id)
       if (w) w.location.href = url
+      registrarAccesoDocumento({ documento_id: d.id, workspace_id: workspaceId, accion: 'apertura', nombre_doc: d.nombre, caso_id: casoId })
     } catch (err) {
       if (w) w.close()
       setErrorDoc(err instanceof Error ? err.message : String(err))
@@ -176,7 +179,7 @@ function DocRow({
 }
 
 function CarpetaSection({
-  carpeta, allDocumentos, subcarpetas, allCarpetas, siblings, puedeEditar, onToggleVisibilidad, onRename, onDelete, onLeerAhora, leyendoId, onMover, onRenameCarpeta, onDeleteCarpeta, onMoverCarpeta, depth,
+  carpeta, allDocumentos, subcarpetas, allCarpetas, siblings, puedeEditar, onToggleVisibilidad, onRename, onDelete, onLeerAhora, leyendoId, onMover, onRenameCarpeta, onDeleteCarpeta, onMoverCarpeta, depth, casoId, workspaceId,
 }: {
   carpeta: Carpeta; allDocumentos: Documento[]; subcarpetas: Carpeta[]; allCarpetas: Carpeta[]; siblings: Carpeta[]
   puedeEditar: boolean; leyendoId: string | null; depth: number
@@ -188,6 +191,8 @@ function CarpetaSection({
   onRenameCarpeta: (id: string, nombre: string) => Promise<void>
   onDeleteCarpeta: (id: string) => Promise<void>
   onMoverCarpeta: (a: Carpeta, b: Carpeta, siblings: Carpeta[]) => Promise<void>
+  casoId: string
+  workspaceId: string
 }) {
   const [open, setOpen] = useState(true)
   const [editingCarpeta, setEditingCarpeta] = useState(false)
@@ -284,6 +289,7 @@ function CarpetaSection({
             <DocRow key={d.id} d={d} carpetas={allCarpetas} puedeEditar={puedeEditar}
               onToggleVisibilidad={onToggleVisibilidad} onRename={onRename}
               onDelete={onDelete} onLeerAhora={onLeerAhora} leyendoId={leyendoId} onMover={onMover}
+              casoId={casoId} workspaceId={workspaceId}
             />
           ))}
           {subcarpetas.map(sub => (
@@ -295,6 +301,7 @@ function CarpetaSection({
               onDelete={onDelete} onLeerAhora={onLeerAhora} leyendoId={leyendoId}
               onMover={onMover} onRenameCarpeta={onRenameCarpeta}
               onDeleteCarpeta={onDeleteCarpeta} onMoverCarpeta={onMoverCarpeta} depth={depth + 1}
+              casoId={casoId} workspaceId={workspaceId}
             />
           ))}
           {docs.length === 0 && subcarpetas.length === 0 && (
@@ -333,7 +340,11 @@ export function DocumentosTab({
 
   async function handleLeerAhora(id: string) {
     setLeyendoId(id)
-    try { await onLeerAhora(id) } finally { setLeyendoId(null) }
+    try {
+      await onLeerAhora(id)
+      const doc = documentos.find(d => d.id === id)
+      registrarAccesoDocumento({ documento_id: id, workspace_id: workspaceId, accion: 'lectura_ia', nombre_doc: doc?.nombre, caso_id: casoId })
+    } finally { setLeyendoId(null) }
   }
 
   async function handleMover(docId: string, carpetaId: string | null) {
@@ -440,6 +451,7 @@ export function DocumentosTab({
             onDelete={onDelete} onLeerAhora={handleLeerAhora} leyendoId={leyendoId}
             onMover={handleMover} onRenameCarpeta={handleRenameCarpeta}
             onDeleteCarpeta={handleDeleteCarpeta} onMoverCarpeta={handleMoverCarpeta} depth={0}
+            casoId={casoId} workspaceId={workspaceId}
           />
         ))}
 
@@ -457,7 +469,7 @@ export function DocumentosTab({
                 <DocRow key={d.id} d={d} carpetas={carpetasProp} puedeEditar={puedeEditar}
                   onToggleVisibilidad={onToggleVisibilidad} onRename={onRename}
                   onDelete={onDelete} onLeerAhora={handleLeerAhora} leyendoId={leyendoId}
-                  onMover={handleMover}
+                  onMover={handleMover} casoId={casoId} workspaceId={workspaceId}
                 />
               ))}
             </div>

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { getCaso, updateCaso, updateEtapaCaso, deleteCaso } from '@/features/casos/api'
 import { listPersonas, removePersona } from '@/features/casos/personasApi'
-import { listDocumentos, toggleVisibilidad, deleteDocumento, deleteDocumentosCaso, leerDocumentoAhora } from '@/features/casos/documentosApi'
+import { listDocumentos, toggleVisibilidad, deleteDocumento, deleteDocumentosCaso, leerDocumentoAhora, registrarAccesoDocumento } from '@/features/casos/documentosApi'
 import { renameDriveFile } from '@/features/workspace/driveApi'
 import { listPlazos, deletePlazo } from '@/features/casos/plazosApi'
 import { listTareas } from '@/features/casos/tareasApi'
@@ -160,11 +160,14 @@ export function CaseDetail({
   async function onRenameDoc(id: string, nuevoNombre: string) {
     const updated = await renameDriveFile(id, nuevoNombre)
     setDocumentos((prev) => prev.map((d) => (d.id === updated.id ? updated : d)))
+    if (caso) registrarAccesoDocumento({ documento_id: id, workspace_id: caso.workspace_id, accion: 'renombrado', nombre_doc: nuevoNombre, caso_id: caso.id })
   }
 
   async function onDeleteDoc(id: string) {
+    const doc = documentos.find(d => d.id === id)
     await deleteDocumento(id)
     setDocumentos((prev) => prev.filter((d) => d.id !== id))
+    if (caso) registrarAccesoDocumento({ documento_id: id, workspace_id: caso.workspace_id, accion: 'eliminacion', nombre_doc: doc?.nombre, caso_id: caso.id })
   }
 
   async function onLeerDocAhora(id: string) {
@@ -363,7 +366,10 @@ export function CaseDetail({
         open={addDocOpen}
         onClose={() => setAddDocOpen(false)}
         casoId={caso.id}
-        onAdded={(d) => setDocumentos((prev) => [d, ...prev])}
+        onAdded={(d) => {
+          setDocumentos((prev) => [d, ...prev])
+          if (caso) registrarAccesoDocumento({ documento_id: d.id, workspace_id: caso.workspace_id, accion: 'subida', nombre_doc: d.nombre, caso_id: caso.id })
+        }}
       />
       <CasoFormModal
         open={editOpen}

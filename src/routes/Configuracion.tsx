@@ -6,6 +6,7 @@ import { isGoogleDriveConfigured, buildGoogleConsentUrl, getDriveEstado, descone
 import { EtapasSettings } from '@/features/casos/EtapasSettings'
 import { GroqSettings } from '@/features/workspace/GroqSettings'
 import { OpenRouterSettings } from '@/features/workspace/OpenRouterSettings'
+import { AuditoriaDocumentos } from '@/features/workspace/AuditoriaDocumentos'
 import { getTema, setTema, type Tema } from '@/lib/theme'
 import type { Workspace } from '@/types/database'
 
@@ -221,6 +222,13 @@ export default function Configuracion() {
             <div className="text-[13px] font-medium text-ink">{workspace.dias_anticipacion} días antes</div>
           )}
         </div>
+
+        {puedeEditar && (
+          <>
+            <div className="mt-6 mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-mute2">Auditoría LOPDP</div>
+            <AuditoriaDocumentos workspaceId={workspace.id} />
+          </>
+        )}
 
         {!puedeEditar && (
           <p className="mt-3 text-[11px] text-mute2">Solo un administrador puede modificar esta configuración.</p>
