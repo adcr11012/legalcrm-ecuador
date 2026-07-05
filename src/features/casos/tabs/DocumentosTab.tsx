@@ -160,12 +160,19 @@ export function DocumentosTab({
                     {d.drive_file_id && (
                       <button
                         onClick={async () => {
-                          const url = await getDocumentoProxyUrl(d.id)
-                          const res = await fetch(url)
-                          const blob = await res.blob()
-                          const blobUrl = URL.createObjectURL(blob)
-                          const w = window.open(blobUrl, '_blank', 'noreferrer')
-                          if (w) setTimeout(() => URL.revokeObjectURL(blobUrl), 60000)
+                          const w = window.open('', '_blank', 'noreferrer')
+                          try {
+                            const url = await getDocumentoProxyUrl(d.id)
+                            const res = await fetch(url)
+                            const blob = await res.blob()
+                            const blobUrl = URL.createObjectURL(blob)
+                            if (w) {
+                              w.location.href = blobUrl
+                              setTimeout(() => URL.revokeObjectURL(blobUrl), 60000)
+                            }
+                          } catch {
+                            if (w) w.close()
+                          }
                         }}
                         className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-soft"
                         title="Ver archivo"
