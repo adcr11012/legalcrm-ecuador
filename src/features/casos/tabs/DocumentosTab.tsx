@@ -196,9 +196,9 @@ function CarpetaSection({
   return (
     <div style={{ marginLeft: depth * 12 }}>
       <div className="mb-1.5 flex items-center gap-2">
-        <button onClick={() => setOpen(v => !v)} className="flex items-center gap-1.5 flex-1 min-w-0">
-          <i className={`ti ${open ? 'ti-folder-open' : 'ti-folder'} text-[15px] text-muted`} />
-          {editingCarpeta ? (
+        {editingCarpeta ? (
+          <div className="flex flex-1 items-center gap-1 min-w-0">
+            <i className={`ti ${open ? 'ti-folder-open' : 'ti-folder'} text-[15px] text-muted flex-shrink-0`} />
             <input
               autoFocus value={carpetaName}
               onChange={(e) => setCarpetaName(e.target.value)}
@@ -206,15 +206,32 @@ function CarpetaSection({
                 if (e.key === 'Enter') { await onRenameCarpeta(carpeta.id, carpetaName); setEditingCarpeta(false) }
                 if (e.key === 'Escape') { setCarpetaName(carpeta.nombre); setEditingCarpeta(false) }
               }}
-              onClick={(e) => e.stopPropagation()}
-              className="rounded-[4px] border border-accent bg-bg px-1.5 py-0.5 text-[12px] text-ink outline-none"
+              onBlur={async () => { await onRenameCarpeta(carpeta.id, carpetaName); setEditingCarpeta(false) }}
+              className="flex-1 min-w-0 rounded-[4px] border border-accent bg-bg px-1.5 py-0.5 text-[12px] text-ink outline-none"
             />
-          ) : (
+            <button
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={async () => { await onRenameCarpeta(carpeta.id, carpetaName); setEditingCarpeta(false) }}
+              className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-[3px] bg-accent text-white"
+            >
+              <i className="ti ti-check text-[11px]" />
+            </button>
+            <button
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => { setCarpetaName(carpeta.nombre); setEditingCarpeta(false) }}
+              className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-[3px] border border-border text-muted hover:bg-soft"
+            >
+              <i className="ti ti-x text-[11px]" />
+            </button>
+          </div>
+        ) : (
+          <button onClick={() => setOpen(v => !v)} className="flex items-center gap-1.5 flex-1 min-w-0">
+            <i className={`ti ${open ? 'ti-folder-open' : 'ti-folder'} text-[15px] text-muted`} />
             <span className="text-[12px] font-medium text-ink truncate">{carpeta.nombre}</span>
-          )}
-          <span className="text-[10px] text-muted ml-1">{docs.length + subcarpetas.length > 0 ? `${docs.length}` : '0'}</span>
-          <i className={`ti ${open ? 'ti-chevron-down' : 'ti-chevron-right'} text-[11px] text-muted ml-auto`} />
-        </button>
+            <span className="text-[10px] text-muted ml-1">{docs.length}</span>
+            <i className={`ti ${open ? 'ti-chevron-down' : 'ti-chevron-right'} text-[11px] text-muted ml-auto`} />
+          </button>
+        )}
         {puedeEditar && !editingCarpeta && (
           <div className="flex gap-1">
             <button onClick={() => setEditingCarpeta(true)} className="flex h-6 w-6 items-center justify-center rounded-[4px] text-muted hover:bg-soft" title="Renombrar">
