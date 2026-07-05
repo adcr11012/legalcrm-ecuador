@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Carpeta, Documento } from '@/types/database'
-import { getDocumentoProxyUrl, registrarAccesoDocumento } from '@/features/casos/documentosApi'
+import { getDocumentoProxyUrl, registrarAccesoDocumento, compartirDocumento } from '@/features/casos/documentosApi'
 import { moverDocumento, createCarpeta, deleteCarpeta, renameCarpeta, reindexCarpetas } from '@/features/casos/carpetasApi'
 
 function iconFor(nombre: string) {
@@ -70,6 +70,8 @@ function DocRow({
   const [editVal, setEditVal] = useState(d.nombre)
   const [saving, setSaving] = useState(false)
   const [abriendo, setAbriendo] = useState(false)
+  const [compartiendo, setCompartiendo] = useState(false)
+  const [urlCopiada, setUrlCopiada] = useState(false)
   const [errorDoc, setErrorDoc] = useState<string | null>(null)
   const { icon, bg, fg } = iconFor(d.nombre)
   const badge = estadoLecturaBadge(d)
@@ -94,6 +96,22 @@ function DocRow({
       setErrorDoc(err instanceof Error ? err.message : String(err))
     } finally {
       setAbriendo(false)
+    }
+  }
+
+  async function compartirDoc() {
+    setErrorDoc(null)
+    setCompartiendo(true)
+    try {
+      const url = await compartirDocumento(d.id)
+      await navigator.clipboard.writeText(url)
+      setUrlCopiada(true)
+      setTimeout(() => setUrlCopiada(false), 2500)
+      registrarAccesoDocumento({ documento_id: d.id, workspace_id: workspaceId, accion: 'descarga', nombre_doc: d.nombre, caso_id: casoId })
+    } catch (err) {
+      setErrorDoc(err instanceof Error ? err.message : String(err))
+    } finally {
+      setCompartiendo(false)
     }
   }
 
@@ -156,9 +174,19 @@ function DocRow({
                 </span>
               )}
               {d.drive_file_id && (
-                <button disabled={abriendo} onClick={abrirDoc} className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-soft disabled:opacity-50" title="Ver archivo">
-                  <i className={`ti ${abriendo ? 'ti-loader-2 animate-spin' : 'ti-eye'} text-[14px]`} />
-                </button>
+                <>
+                  <button disabled={abriendo} onClick={abrirDoc} className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-soft disabled:opacity-50" title="Ver archivo">
+                    <i className={`ti ${abriendo ? 'ti-loader-2 animate-spin' : 'ti-eye'} text-[14px]`} />
+                  </button>
+                  <button
+                    disabled={compartiendo}
+                    onClick={compartirDoc}
+                    className={`flex h-7 w-7 items-center justify-center rounded-[6px] border transition disabled:opacity-50 ${urlCopiada ? 'border-success bg-success-soft text-success' : 'border-border text-muted hover:bg-soft'}`}
+                    title={urlCopiada ? '¡Enlace copiado!' : 'Copiar enlace compartible'}
+                  >
+                    <i className={`ti ${compartiendo ? 'ti-loader-2 animate-spin' : urlCopiada ? 'ti-check' : 'ti-link'} text-[14px]`} />
+                  </button>
+                </>
               )}
               {puedeEditar && (
                 <button onClick={() => { setEditing(true); setEditVal(d.nombre) }} className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-soft">

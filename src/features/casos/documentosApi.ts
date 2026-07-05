@@ -73,6 +73,18 @@ export async function countDocumentos(): Promise<number> {
   return count ?? 0
 }
 
+export async function compartirDocumento(documentoId: string): Promise<string> {
+  const { data: { session } } = await supabase.auth.getSession()
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/drive-compartir`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${session?.access_token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ documento_id: documentoId }),
+  })
+  const j = await res.json()
+  if (!res.ok) throw new Error(j.error ?? 'No se pudo compartir el documento')
+  return j.url as string
+}
+
 export async function leerDocumentoAhora(documentoId: string): Promise<void> {
   const { data: session } = await supabase.auth.getSession()
   const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/leer-documento-ahora`

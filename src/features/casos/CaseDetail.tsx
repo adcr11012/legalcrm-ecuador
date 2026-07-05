@@ -24,6 +24,8 @@ import { AddPersonaModal } from '@/features/casos/AddPersonaModal'
 import { AddPlazoModal } from '@/features/casos/AddPlazoModal'
 import { AddDocumentoModal } from '@/features/casos/AddDocumentoModal'
 import { CasoFormModal } from '@/features/casos/CasoFormModal'
+import { InformeCaso } from '@/features/casos/InformeCaso'
+import { nombrePersona } from '@/features/casos/personaDisplay'
 import { MATERIA_LABEL } from '@/features/casos/materias'
 import type { Carpeta, Caso, CasoAnticipo, CasoGasto, CasoHora, CasoPersona, Documento, Etapa, HistorialEntry, Plazo, Tarea, Usuario } from '@/types/database'
 
@@ -70,6 +72,7 @@ export function CaseDetail({
   const [addPlazoOpen, setAddPlazoOpen] = useState(false)
   const [addDocOpen, setAddDocOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
+  const [informeOpen, setInformeOpen] = useState(false)
   const [campoError, setCampoError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
@@ -221,6 +224,12 @@ export function CaseDetail({
           </div>
         </div>
         <div className="flex flex-shrink-0 gap-2">
+          <button
+            onClick={() => setInformeOpen(true)}
+            className="flex items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[12px] text-muted transition hover:bg-soft"
+          >
+            <i className="ti ti-file-description" /> <span className="hidden sm:inline">Informe</span>
+          </button>
           {puedeEditar && (
             <button
               onClick={() => setEditOpen(true)}
@@ -377,6 +386,17 @@ export function CaseDetail({
         caso={caso}
         onUpdated={(updated) => setCaso(updated)}
       />
+      {informeOpen && (
+        <InformeCaso
+          caso={caso}
+          personas={personas.map(p => ({ nombre: nombrePersona(p, usersById), rol: p.rol }))}
+          plazos={plazos}
+          tareas={tareas}
+          documentos={documentos}
+          historial={historial}
+          onClose={() => setInformeOpen(false)}
+        />
+      )}
     </div>
   )
 }
