@@ -176,9 +176,9 @@ function DocRow({
 }
 
 function CarpetaSection({
-  carpeta, docs, subcarpetas, allCarpetas, siblings, puedeEditar, onToggleVisibilidad, onRename, onDelete, onLeerAhora, leyendoId, onMover, onRenameCarpeta, onDeleteCarpeta, onMoverCarpeta, depth,
+  carpeta, allDocumentos, subcarpetas, allCarpetas, siblings, puedeEditar, onToggleVisibilidad, onRename, onDelete, onLeerAhora, leyendoId, onMover, onRenameCarpeta, onDeleteCarpeta, onMoverCarpeta, depth,
 }: {
-  carpeta: Carpeta; docs: Documento[]; subcarpetas: Carpeta[]; allCarpetas: Carpeta[]; siblings: Carpeta[]
+  carpeta: Carpeta; allDocumentos: Documento[]; subcarpetas: Carpeta[]; allCarpetas: Carpeta[]; siblings: Carpeta[]
   puedeEditar: boolean; leyendoId: string | null; depth: number
   onToggleVisibilidad: (doc: Documento) => void
   onRename: (id: string, nombre: string) => Promise<void>
@@ -193,6 +193,7 @@ function CarpetaSection({
   const [editingCarpeta, setEditingCarpeta] = useState(false)
   const [carpetaName, setCarpetaName] = useState(carpeta.nombre)
   const { children } = buildTree(allCarpetas)
+  const docs = allDocumentos.filter(d => d.carpeta_id === carpeta.id)
 
   const idx = siblings.findIndex(s => s.id === carpeta.id)
   const prev = idx > 0 ? siblings[idx - 1] : null
@@ -266,21 +267,21 @@ function CarpetaSection({
       </div>
       {open && (
         <div className="flex flex-col gap-1.5 mb-3">
+          {docs.map(d => (
+            <DocRow key={d.id} d={d} carpetas={allCarpetas} puedeEditar={puedeEditar}
+              onToggleVisibilidad={onToggleVisibilidad} onRename={onRename}
+              onDelete={onDelete} onLeerAhora={onLeerAhora} leyendoId={leyendoId} onMover={onMover}
+            />
+          ))}
           {subcarpetas.map(sub => (
             <CarpetaSection
               key={sub.id} carpeta={sub}
-              docs={[]} subcarpetas={children[sub.id] ?? []}
+              allDocumentos={allDocumentos} subcarpetas={children[sub.id] ?? []}
               allCarpetas={allCarpetas} siblings={subcarpetas} puedeEditar={puedeEditar}
               onToggleVisibilidad={onToggleVisibilidad} onRename={onRename}
               onDelete={onDelete} onLeerAhora={onLeerAhora} leyendoId={leyendoId}
               onMover={onMover} onRenameCarpeta={onRenameCarpeta}
               onDeleteCarpeta={onDeleteCarpeta} onMoverCarpeta={onMoverCarpeta} depth={depth + 1}
-            />
-          ))}
-          {docs.map(d => (
-            <DocRow key={d.id} d={d} carpetas={allCarpetas} puedeEditar={puedeEditar}
-              onToggleVisibilidad={onToggleVisibilidad} onRename={onRename}
-              onDelete={onDelete} onLeerAhora={onLeerAhora} leyendoId={leyendoId} onMover={onMover}
             />
           ))}
           {docs.length === 0 && subcarpetas.length === 0 && (
@@ -357,15 +358,9 @@ export function DocumentosTab({
     onCarpetasChange()
   }
 
-  const docsPorCarpeta: Record<string, Documento[]> = {}
   const docsSinCarpeta: Documento[] = []
   for (const d of documentos) {
-    if (d.carpeta_id) {
-      if (!docsPorCarpeta[d.carpeta_id]) docsPorCarpeta[d.carpeta_id] = []
-      docsPorCarpeta[d.carpeta_id].push(d)
-    } else {
-      docsSinCarpeta.push(d)
-    }
+    if (!d.carpeta_id) docsSinCarpeta.push(d)
   }
 
   return (
@@ -421,7 +416,7 @@ export function DocumentosTab({
         {root.map(carpeta => (
           <CarpetaSection
             key={carpeta.id} carpeta={carpeta}
-            docs={docsPorCarpeta[carpeta.id] ?? []}
+            allDocumentos={documentos}
             subcarpetas={children[carpeta.id] ?? []}
             allCarpetas={carpetasProp} siblings={root} puedeEditar={puedeEditar}
             onToggleVisibilidad={onToggleVisibilidad} onRename={onRename}
