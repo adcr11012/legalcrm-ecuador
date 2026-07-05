@@ -3,7 +3,6 @@ import type { Caso, Documento, Etapa, Plazo, Tarea } from '@/types/database'
 import { MATERIA_LABEL } from '@/features/casos/materias'
 
 type Persona = { nombre: string; rol: string }
-type Historial = { accion: string; detalle: string | null; created_at: string }
 
 type Props = {
   caso: Caso
@@ -12,7 +11,6 @@ type Props = {
   plazos: Plazo[]
   tareas: Tarea[]
   documentos: Documento[]
-  historial: Historial[]
   onClose: () => void
 }
 
@@ -47,7 +45,7 @@ const ESTADO_TAREA_LABEL: Record<string, string> = {
   completada: 'Completada',
 }
 
-export function InformeCaso({ caso, etapas, personas, plazos, tareas, documentos, historial, onClose }: Props) {
+export function InformeCaso({ caso, etapas, personas, plazos, tareas, documentos, onClose }: Props) {
   useEffect(() => {
     function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', onKey)
@@ -69,10 +67,6 @@ export function InformeCaso({ caso, etapas, personas, plazos, tareas, documentos
     .filter(t => t.estado === 'completada')
     .sort((a, b) => b.created_at.localeCompare(a.created_at))
 
-  const historialReciente = [...historial]
-    .sort((a, b) => b.created_at.localeCompare(a.created_at))
-    .slice(0, 20)
-
   const personasEquipo = personas.filter(p => p.rol === 'abogado' || p.rol === 'otro')
   const personasClientes = personas.filter(p => p.rol === 'cliente')
 
@@ -80,7 +74,7 @@ export function InformeCaso({ caso, etapas, personas, plazos, tareas, documentos
     caso, etapaActual, personasEquipo, personasClientes,
     plazosPendientes, plazosRealizados,
     tareasPendientes, tareasCompletadas,
-    documentos, historialReciente,
+    documentos,
     hoy, todayStr, fmtShort, fmt, fmtTs,
   }
 
@@ -134,7 +128,7 @@ function InformeContenido({
   caso, etapaActual, personasEquipo, personasClientes,
   plazosPendientes, plazosRealizados,
   tareasPendientes, tareasCompletadas,
-  documentos, historialReciente,
+  documentos,
   hoy, todayStr, fmtShort, fmtTs,
 }: {
   caso: Caso
@@ -146,7 +140,6 @@ function InformeContenido({
   tareasPendientes: Tarea[]
   tareasCompletadas: Tarea[]
   documentos: Documento[]
-  historialReciente: Historial[]
   hoy: string
   todayStr: string
   fmtShort: (d: string) => string
@@ -364,22 +357,6 @@ function InformeContenido({
           <div className={secLabel}>Nota interna</div>
           <div className="whitespace-pre-wrap rounded-[6px] bg-soft px-3 py-2 text-[11px] leading-relaxed text-ink">
             {caso.nota_interna}
-          </div>
-        </div>
-      )}
-
-      {/* ── Historial de actividad ── */}
-      {historialReciente.length > 0 && (
-        <div className={seccion}>
-          <div className={secLabel}>Historial de actividad</div>
-          <div className="space-y-1">
-            {historialReciente.map((h, i) => (
-              <div key={i} className="flex gap-2 text-[11px]">
-                <span className="w-[84px] flex-shrink-0 text-mute2">{fmtTs(h.created_at)}</span>
-                <span className="text-muted">{h.accion}</span>
-                {h.detalle && <span className="min-w-0 truncate text-ink">{h.detalle}</span>}
-              </div>
-            ))}
           </div>
         </div>
       )}

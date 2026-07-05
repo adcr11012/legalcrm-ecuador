@@ -394,7 +394,6 @@ export function CaseDetail({
           plazos={plazos}
           tareas={tareas}
           documentos={documentos}
-          historial={historial}
           onClose={() => setInformeOpen(false)}
         />
       )}
