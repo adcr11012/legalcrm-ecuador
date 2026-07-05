@@ -173,14 +173,10 @@ Deno.serve(async (req) => {
         const parsed = await pdfParse(Buffer.from(bytes))
         texto = parsed.text?.trim().slice(0, MAX_CHARS) || null
         if (!texto) {
-          const { data: orConexion } = await admin
-            .from('openrouter_conexion')
-            .select('api_key')
-            .eq('workspace_id', caso.workspace_id)
-            .maybeSingle()
-          if (!orConexion) throw new Error('PDF escaneado: conecta OpenRouter (Visión) para leer este tipo de archivo')
+          const { data: orApiKey } = await admin.rpc('get_openrouter_key', { p_workspace_id: caso.workspace_id })
+          if (!orApiKey) throw new Error('PDF escaneado: conecta OpenRouter (Visión) para leer este tipo de archivo')
           const pngBuf = await pdfAPng(bytes)
-          texto = await leerImagenConVision(pngBuf, 'image/png', orConexion.api_key, PDF_VISION_MODEL)
+          texto = await leerImagenConVision(pngBuf, 'image/png', orApiKey, PDF_VISION_MODEL)
           modeloUsado = PDF_VISION_MODEL
         } else {
           modeloUsado = 'pdf-parse'
@@ -190,13 +186,9 @@ Deno.serve(async (req) => {
         texto = result.value?.trim().slice(0, MAX_CHARS) || null
         modeloUsado = 'mammoth'
       } else if (mime.startsWith('image/')) {
-        const { data: orConexion } = await admin
-          .from('openrouter_conexion')
-          .select('api_key')
-          .eq('workspace_id', caso.workspace_id)
-          .maybeSingle()
-        if (!orConexion) throw new Error('La lectura de imágenes (OpenRouter) no está conectada en este workspace')
-        texto = await leerImagenConVision(bytes, mime, orConexion.api_key)
+        const { data: orApiKey } = await admin.rpc('get_openrouter_key', { p_workspace_id: caso.workspace_id })
+        if (!orApiKey) throw new Error('La lectura de imágenes (OpenRouter) no está conectada en este workspace')
+        texto = await leerImagenConVision(bytes, mime, orApiKey)
         modeloUsado = VISION_MODEL
       } else {
         throw new Error(`Tipo de archivo no soportado (${mime || 'desconocido'})`)

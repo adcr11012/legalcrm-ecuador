@@ -156,9 +156,9 @@ Deno.serve(async (req) => {
 
     async function visionKeyParaWorkspace(workspaceId: string): Promise<string | null> {
       if (visionKeyCache.has(workspaceId)) return visionKeyCache.get(workspaceId)!
-      const { data } = await admin.from('openrouter_conexion').select('api_key').eq('workspace_id', workspaceId).maybeSingle()
-      visionKeyCache.set(workspaceId, data?.api_key ?? null)
-      return data?.api_key ?? null
+      const { data } = await admin.rpc('get_openrouter_key', { p_workspace_id: workspaceId })
+      visionKeyCache.set(workspaceId, data ?? null)
+      return data ?? null
     }
 
     let procesados = 0

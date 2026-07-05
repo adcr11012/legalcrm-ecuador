@@ -108,12 +108,8 @@ Deno.serve(async (req) => {
     const honorarioBase = caso.honorarios_tipo === 'por_hora' ? totalHoras : (Number(caso.honorarios_monto) || 0)
     const saldo = honorarioBase + totalGastosCob - totalAnticipos
 
-    const { data: groqConexion } = await admin
-      .from('groq_conexion')
-      .select('api_key')
-      .eq('workspace_id', perfil.workspace_id)
-      .maybeSingle()
-    if (!groqConexion) return json({ error: 'TSADOQ IA no está conectada en este workspace' }, 400)
+    const { data: groqApiKey } = await admin.rpc('get_groq_key', { p_workspace_id: perfil.workspace_id })
+    if (!groqApiKey) return json({ error: 'TSADOQ IA no está conectada en este workspace' }, 400)
 
     const contexto = `
 Caso: ${caso.titulo}
@@ -156,7 +152,7 @@ ${documentosTexto}
     for (const model of GROQ_MODELS) {
       const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${groqConexion.api_key}`, 'Content-Type': 'application/json' },
+        headers: { Authorization: `Bearer ${groqApiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ model, messages }),
       })
       const data = await res.json()

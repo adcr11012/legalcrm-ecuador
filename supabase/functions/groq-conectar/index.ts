@@ -67,11 +67,10 @@ Deno.serve(async (req) => {
       return json({ error: testJson.error?.message ?? 'La clave no es válida' }, 400)
     }
 
-    const { error: upsertError } = await admin.from('groq_conexion').upsert({
-      workspace_id: perfil.workspace_id,
-      api_key,
-      connected_by: userData.user.id,
-      updated_at: new Date().toISOString(),
+    const { error: upsertError } = await admin.rpc('save_groq_key', {
+      p_workspace_id: perfil.workspace_id,
+      p_api_key: api_key,
+      p_user_id: userData.user.id,
     })
     if (upsertError) {
       console.error(upsertError)

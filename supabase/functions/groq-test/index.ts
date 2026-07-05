@@ -47,12 +47,8 @@ Deno.serve(async (req) => {
       return json({ error: 'Perfil no encontrado' }, 404)
     }
 
-    const { data: conexion, error: conexionError } = await admin
-      .from('groq_conexion')
-      .select('api_key')
-      .eq('workspace_id', perfil.workspace_id)
-      .maybeSingle()
-    if (conexionError || !conexion) {
+    const { data: groqApiKey, error: conexionError } = await admin.rpc('get_groq_key', { p_workspace_id: perfil.workspace_id })
+    if (conexionError || !groqApiKey) {
       return json({ error: 'La IA no está conectada en este workspace' }, 400)
     }
 
@@ -61,7 +57,7 @@ Deno.serve(async (req) => {
 
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${conexion.api_key}`, 'Content-Type': 'application/json' },
+      headers: { Authorization: `Bearer ${groqApiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ model: GROQ_MODEL, messages: [{ role: 'user', content: texto }] }),
     })
     const groqJson = await groqRes.json()

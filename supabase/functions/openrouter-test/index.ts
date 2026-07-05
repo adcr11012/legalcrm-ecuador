@@ -47,12 +47,8 @@ Deno.serve(async (req) => {
       return json({ error: 'Perfil no encontrado' }, 404)
     }
 
-    const { data: conexion, error: conexionError } = await admin
-      .from('openrouter_conexion')
-      .select('api_key')
-      .eq('workspace_id', perfil.workspace_id)
-      .maybeSingle()
-    if (conexionError || !conexion) {
+    const { data: orApiKey, error: conexionError } = await admin.rpc('get_openrouter_key', { p_workspace_id: perfil.workspace_id })
+    if (conexionError || !orApiKey) {
       return json({ error: 'La lectura de imágenes no está conectada en este workspace' }, 400)
     }
 
@@ -61,7 +57,7 @@ Deno.serve(async (req) => {
 
     const orRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${conexion.api_key}`, 'Content-Type': 'application/json' },
+      headers: { Authorization: `Bearer ${orApiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ model: VISION_MODEL, messages: [{ role: 'user', content: texto }] }),
     })
     const orJson = await orRes.json()
