@@ -22,13 +22,9 @@ export function CaseSidebar({
   loadingMore?: boolean
 }) {
   const [query, setQuery] = useState('')
-  const [etiqueta, setEtiqueta] = useState<string | null>(null)
   const { isMobile } = useDevice()
 
-  const todasEtiquetas = Array.from(new Set(casos.flatMap((c) => c.etiquetas ?? []))).sort()
-
   const filtered = casos.filter((c) => {
-    if (etiqueta && !(c.etiquetas ?? []).includes(etiqueta)) return false
     const q = query.toLowerCase()
     if (!q) return true
     return c.titulo.toLowerCase().includes(q) || (c.materia ?? '').toLowerCase().includes(q)
@@ -47,21 +43,6 @@ export function CaseSidebar({
               className="w-full bg-transparent text-[15px] text-ink outline-none placeholder:text-muted"
             />
           </div>
-          {todasEtiquetas.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {todasEtiquetas.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setEtiqueta(etiqueta === t ? null : t)}
-                  className={`rounded-full px-2.5 py-1 text-[12px] transition ${
-                    etiqueta === t ? 'bg-accent text-white' : 'border border-border text-muted hover:bg-soft'
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
         <div className="flex-1 overflow-y-auto px-4 py-3 pb-[76px] space-y-2">
           {filtered.map((c) => (
@@ -113,21 +94,6 @@ export function CaseSidebar({
             className="w-full bg-transparent text-[12px] text-ink outline-none placeholder:text-mute2"
           />
         </div>
-        {todasEtiquetas.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
-            {todasEtiquetas.map((t) => (
-              <button
-                key={t}
-                onClick={() => setEtiqueta(etiqueta === t ? null : t)}
-                className={`rounded-full px-2 py-0.5 text-[10px] transition ${
-                  etiqueta === t ? 'bg-accent text-white' : 'border border-border text-muted hover:bg-soft'
-                }`}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       <div className="flex-1 overflow-y-auto">
