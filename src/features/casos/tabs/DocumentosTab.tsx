@@ -525,7 +525,7 @@ export function DocumentosTab({
     }
 
     return (
-      <div>
+      <div className="pb-[80px]">
         <div className="mb-4 flex items-center justify-between">
           <span className="text-[13px] text-muted">{documentos.length} documento{documentos.length === 1 ? '' : 's'}</span>
           {puedeSubir && (
