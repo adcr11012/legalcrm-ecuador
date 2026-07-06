@@ -395,7 +395,7 @@ export function CaseDetail({
           etapas={etapas}
           personas={personas.map(p => ({ nombre: nombrePersona(p, usersById), rol: p.rol }))}
           plazos={plazos}
-          tareas={tareas}
+          tareas={plazos.filter(p => p.tipo === 'tarea').map(p => ({ id: p.id, workspace_id: p.workspace_id ?? '', caso_id: p.caso_id, titulo: p.titulo, descripcion: p.descripcion, asignado_a: p.asignado_a, fecha_limite: p.fecha, estado: p.estado === 'completada' ? 'completada' : p.estado === 'en_progreso' ? 'en_progreso' : 'pendiente' as const, created_by: null, created_at: p.created_at }))}
           documentos={documentos}
           onClose={() => setInformeOpen(false)}
         />

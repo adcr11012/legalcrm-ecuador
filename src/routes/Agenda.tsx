@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { listAllPlazos } from '@/features/casos/plazosApi'
-import { listAllTareasPendientes } from '@/features/casos/tareasApi'
 import { listCasos } from '@/features/casos/api'
 import { diasRestantes, clasificarUrgencia, labelDias, URGENCIA_CLASS } from '@/features/casos/plazoUrgencia'
 import { SemaforoDot } from '@/features/casos/SemaforoDot'
-import type { Caso, Plazo, Tarea } from '@/types/database'
+import type { Caso, Plazo, TipoPlazo } from '@/types/database'
 
 const DIAS_SEMANA = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
 
@@ -26,14 +25,37 @@ function buildMonthGrid(month: Date): (Date | null)[] {
   return cells
 }
 
-type EventoAgenda =
-  | { tipo: 'plazo'; fecha: string; plazo: Plazo }
-  | { tipo: 'tarea'; fecha: string; tarea: Tarea }
+const TIPO_LABEL: Record<TipoPlazo, string> = {
+  audiencia: 'Audiencia',
+  plazo:     'Plazo',
+  tarea:     'Tarea',
+  otro:      'Otro',
+}
+
+const TIPO_ICON: Record<TipoPlazo, string> = {
+  audiencia: 'ti-gavel',
+  plazo:     'ti-clock',
+  tarea:     'ti-checkbox',
+  otro:      'ti-calendar',
+}
+
+const TIPO_COLOR: Record<TipoPlazo, string> = {
+  audiencia: 'bg-orange-100 text-orange-500',
+  plazo:     'bg-danger-soft text-danger',
+  tarea:     'bg-accent-soft text-accent',
+  otro:      'bg-soft text-muted',
+}
+
+const TIPO_BADGE: Record<TipoPlazo, string> = {
+  audiencia: 'bg-orange-100 text-orange-600',
+  plazo:     'bg-danger-soft text-danger',
+  tarea:     'bg-accent-soft text-accent',
+  otro:      'bg-soft text-muted',
+}
 
 export default function Agenda() {
   const navigate = useNavigate()
   const [plazos, setPlazos] = useState<Plazo[]>([])
-  const [tareas, setTareas] = useState<Tarea[]>([])
   const [casosById, setCasosById] = useState<Map<string, Caso>>(new Map())
   const [month, setMonth] = useState(() => startOfMonth(new Date()))
   const [loading, setLoading] = useState(true)
@@ -43,9 +65,8 @@ export default function Agenda() {
     setLoading(true)
     setError(null)
     try {
-      const [pl, tr, casos] = await Promise.all([listAllPlazos(), listAllTareasPendientes(), listCasos()])
+      const [pl, casos] = await Promise.all([listAllPlazos(), listCasos()])
       setPlazos(pl)
-      setTareas(tr)
       setCasosById(new Map(casos.map((c) => [c.id, c])))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo cargar la agenda.')
@@ -54,32 +75,24 @@ export default function Agenda() {
     }
   }, [])
 
-  useEffect(() => {
-    load()
-  }, [load])
+  useEffect(() => { load() }, [load])
 
   const todayStr = toDateStr(new Date())
   const grid = useMemo(() => buildMonthGrid(month), [month])
 
-  // Fechas con algún evento para el calendario
   const eventDates = useMemo(() => {
     const set = new Set<string>()
     plazos.forEach((p) => set.add(p.fecha))
-    tareas.forEach((t) => { if (t.fecha_limite) set.add(t.fecha_limite) })
     return set
-  }, [plazos, tareas])
+  }, [plazos])
 
-  // Agrupar todos los eventos futuros por fecha
   const proximos = useMemo(() => {
-    const eventos: EventoAgenda[] = [
-      ...plazos.filter((p) => p.fecha >= todayStr).map((p): EventoAgenda => ({ tipo: 'plazo', fecha: p.fecha, plazo: p })),
-      ...tareas.filter((t) => t.fecha_limite && t.fecha_limite >= todayStr).map((t): EventoAgenda => ({ tipo: 'tarea', fecha: t.fecha_limite!, tarea: t })),
-    ]
-    eventos.sort((a, b) => a.fecha.localeCompare(b.fecha))
-    const grupos = new Map<string, EventoAgenda[]>()
-    for (const ev of eventos) grupos.set(ev.fecha, [...(grupos.get(ev.fecha) ?? []), ev])
+    const activos = plazos.filter((p) => p.fecha >= todayStr && p.estado !== 'completada')
+    activos.sort((a, b) => a.fecha.localeCompare(b.fecha))
+    const grupos = new Map<string, Plazo[]>()
+    for (const p of activos) grupos.set(p.fecha, [...(grupos.get(p.fecha) ?? []), p])
     return grupos
-  }, [plazos, tareas, todayStr])
+  }, [plazos, todayStr])
 
   function labelFecha(fechaStr: string) {
     const dias = diasRestantes(fechaStr)
@@ -144,16 +157,16 @@ export default function Agenda() {
 
         {/* Leyenda */}
         <div className="mt-4 flex flex-col gap-1.5 border-t border-border pt-3">
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-mute2 mb-1">Tipo</div>
-          <div className="flex items-center gap-2 text-[11px] text-mute2">
-            <span className="flex h-5 w-5 items-center justify-center rounded-[4px] bg-orange-100"><i className="ti ti-clock text-[11px] text-orange-500" /></span>
-            Plazo / Audiencia
-          </div>
-          <div className="flex items-center gap-2 text-[11px] text-mute2">
-            <span className="flex h-5 w-5 items-center justify-center rounded-[4px] bg-accent-soft"><i className="ti ti-checkbox text-[11px] text-accent" /></span>
-            Tarea pendiente
-          </div>
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-mute2 mt-2 mb-1">Urgencia</div>
+          <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-mute2">Tipo</div>
+          {(Object.keys(TIPO_LABEL) as TipoPlazo[]).map(t => (
+            <div key={t} className="flex items-center gap-2 text-[11px] text-mute2">
+              <span className={`flex h-5 w-5 items-center justify-center rounded-[4px] ${TIPO_COLOR[t]}`}>
+                <i className={`ti ${TIPO_ICON[t]} text-[11px]`} />
+              </span>
+              {TIPO_LABEL[t]}
+            </div>
+          ))}
+          <div className="mb-1 mt-2 text-[10px] font-semibold uppercase tracking-wide text-mute2">Urgencia</div>
           <div className="flex items-center gap-2 text-[11px] text-mute2">
             <span className="h-2.5 w-2.5 rounded-full bg-danger" /> 0–7 días
           </div>
@@ -168,60 +181,38 @@ export default function Agenda() {
 
       {/* Lista de eventos próximos */}
       <div className="flex-1 overflow-y-auto p-3 sm:p-5">
-        {Array.from(proximos.entries()).map(([fecha, eventos]) => (
+        {Array.from(proximos.entries()).map(([fecha, items]) => (
           <div key={fecha} className="mb-5">
             <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-mute2">{labelFecha(fecha)}</div>
             <div className="flex flex-col gap-2">
-              {eventos.map((ev) => {
-                if (ev.tipo === 'plazo') {
-                  const p = ev.plazo
-                  const dias = diasRestantes(p.fecha)
-                  const urgencia = clasificarUrgencia(dias)
-                  const caso = casosById.get(p.caso_id)
-                  return (
-                    <button
-                      key={`p-${p.id}`}
-                      onClick={() => caso && navigate(`/casos/${caso.id}`)}
-                      className="flex items-center gap-3 rounded-[10px] border border-border bg-surface px-3 py-3 text-left transition hover:bg-soft"
-                    >
-                      <SemaforoDot urgencia={urgencia} />
-                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[6px] bg-orange-100 text-orange-500">
-                        <i className="ti ti-clock text-[15px]" />
+              {items.map((p) => {
+                const dias = diasRestantes(p.fecha)
+                const urgencia = clasificarUrgencia(dias)
+                const caso = casosById.get(p.caso_id)
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => caso && navigate(`/casos/${caso.id}`)}
+                    className="flex items-center gap-3 rounded-[10px] border border-border bg-surface px-3 py-3 text-left transition hover:bg-soft"
+                  >
+                    <SemaforoDot urgencia={urgencia} />
+                    <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[6px] ${TIPO_COLOR[p.tipo]}`}>
+                      <i className={`ti ${TIPO_ICON[p.tipo]} text-[15px]`} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${TIPO_BADGE[p.tipo]}`}>
+                          {TIPO_LABEL[p.tipo]}
+                        </span>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-[13px] font-semibold text-ink">{p.titulo}</div>
-                        <div className="mt-0.5 text-[11px] text-muted">{caso?.titulo ?? 'Caso no disponible'}</div>
-                      </div>
-                      <span className={`flex-shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${URGENCIA_CLASS[urgencia]}`}>
-                        {labelDias(dias)}
-                      </span>
-                    </button>
-                  )
-                } else {
-                  const t = ev.tarea
-                  const caso = casosById.get(t.caso_id)
-                  const dias = diasRestantes(t.fecha_limite!)
-                  const urgencia = clasificarUrgencia(dias)
-                  return (
-                    <button
-                      key={`t-${t.id}`}
-                      onClick={() => caso && navigate(`/casos/${caso.id}`)}
-                      className="flex items-center gap-3 rounded-[10px] border border-border bg-surface px-3 py-3 text-left transition hover:bg-soft"
-                    >
-                      <SemaforoDot urgencia={urgencia} />
-                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[6px] bg-accent-soft text-accent">
-                        <i className="ti ti-checkbox text-[15px]" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-[13px] font-semibold text-ink">{t.titulo}</div>
-                        <div className="mt-0.5 text-[11px] text-muted">{caso?.titulo ?? 'Caso no disponible'}</div>
-                      </div>
-                      <span className={`flex-shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${URGENCIA_CLASS[urgencia]}`}>
-                        {labelDias(dias)}
-                      </span>
-                    </button>
-                  )
-                }
+                      <div className="text-[13px] font-semibold text-ink">{p.titulo}</div>
+                      <div className="mt-0.5 text-[11px] text-muted">{caso?.titulo ?? 'Caso no disponible'}</div>
+                    </div>
+                    <span className={`flex-shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${URGENCIA_CLASS[urgencia]}`}>
+                      {labelDias(dias)}
+                    </span>
+                  </button>
+                )
               })}
             </div>
           </div>
@@ -229,7 +220,7 @@ export default function Agenda() {
 
         {proximos.size === 0 && (
           <div className="rounded-[10px] border border-dashed border-border p-8 text-center text-[13px] text-muted">
-            No hay plazos ni tareas próximas.
+            No hay eventos próximos en la agenda.
           </div>
         )}
       </div>
