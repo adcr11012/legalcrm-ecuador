@@ -179,6 +179,18 @@ export function InfoTab({
           )}
         </div>
         <div className="sm:col-span-3 rounded-[10px] border border-border bg-surface p-3">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-mute2">Etiquetas</div>
+          {caso.etiquetas.length > 0 ? (
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {caso.etiquetas.map((t) => (
+                <span key={t} className="rounded-full bg-soft px-2 py-0.5 text-[11px] text-muted">{t}</span>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-1 text-[13px] italic text-muted">Sin etiquetas</div>
+          )}
+        </div>
+        <div className="sm:col-span-3 rounded-[10px] border border-border bg-surface p-3">
           <div className="text-[10px] font-semibold uppercase tracking-wide text-mute2">Juzgado / Tribunal</div>
           <div className={`mt-1 text-[13px] font-medium ${caso.juzgado ? 'text-ink' : 'italic text-muted'}`}>
             {caso.juzgado || 'Sin asignar'}
