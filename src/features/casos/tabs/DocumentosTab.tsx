@@ -495,6 +495,35 @@ export function DocumentosTab({
   const docsSinCarpeta = documentos.filter(d => !d.carpeta_id)
 
   if (isMobile) {
+    const { root: mRoot, children: mChildren } = buildTree(carpetasProp)
+    const docsSinCarpetaMobile = documentos.filter(d => !d.carpeta_id)
+
+    function MobileCarpetaSection({ carpeta, depth }: { carpeta: Carpeta; depth: number }) {
+      const [open, setOpen] = useState(true)
+      const docs = documentos.filter(d => d.carpeta_id === carpeta.id)
+      const subs = mChildren[carpeta.id] ?? []
+      return (
+        <div style={{ marginLeft: depth * 12 }}>
+          <button onClick={() => setOpen(v => !v)}
+            className="mb-2 flex w-full items-center gap-2 rounded-[10px] border border-border bg-surface px-4 py-2.5">
+            <i className={`ti ${open ? 'ti-folder-open' : 'ti-folder'} text-[18px] text-muted`} />
+            <span className="flex-1 truncate text-left text-[14px] font-medium text-ink">{carpeta.nombre}</span>
+            <span className="text-[12px] text-muted">{docs.length}</span>
+            <i className={`ti ${open ? 'ti-chevron-down' : 'ti-chevron-right'} text-[14px] text-muted`} />
+          </button>
+          {open && (
+            <div className="mb-3 flex flex-col gap-2 pl-2">
+              {docs.map(d => <MobileDocRow key={d.id} d={d} casoId={casoId} workspaceId={workspaceId} />)}
+              {subs.map(sub => <MobileCarpetaSection key={sub.id} carpeta={sub} depth={depth + 1} />)}
+              {docs.length === 0 && subs.length === 0 && (
+                <div className="rounded-[10px] border border-dashed border-border py-4 text-center text-[12px] text-mute2">Carpeta vacía</div>
+              )}
+            </div>
+          )}
+        </div>
+      )
+    }
+
     return (
       <div>
         <div className="mb-4 flex items-center justify-between">
@@ -506,15 +535,24 @@ export function DocumentosTab({
           )}
         </div>
 
-        {documentos.length === 0 ? (
+        {documentos.length === 0 && carpetasProp.length === 0 ? (
           <div className="rounded-[12px] border border-dashed border-border py-10 text-center text-[13px] text-mute2">
             Sin documentos cargados.
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            {documentos.map(d => (
-              <MobileDocRow key={d.id} d={d} casoId={casoId} workspaceId={workspaceId} />
-            ))}
+            {mRoot.map(c => <MobileCarpetaSection key={c.id} carpeta={c} depth={0} />)}
+            {docsSinCarpetaMobile.length > 0 && (
+              <>
+                {carpetasProp.length > 0 && (
+                  <div className="mb-1 flex items-center gap-2 px-1">
+                    <i className="ti ti-file text-[16px] text-muted" />
+                    <span className="text-[13px] font-medium text-muted">Sin carpeta</span>
+                  </div>
+                )}
+                {docsSinCarpetaMobile.map(d => <MobileDocRow key={d.id} d={d} casoId={casoId} workspaceId={workspaceId} />)}
+              </>
+            )}
           </div>
         )}
       </div>
