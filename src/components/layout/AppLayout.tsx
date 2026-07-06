@@ -28,7 +28,7 @@ function AppLayoutInner() {
   return (
     <div className="flex h-screen bg-bg">
       {!isMobile && <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen((v) => !v)} />}
-      <div className="flex h-screen min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <Topbar action={action} sidebarOpen={isMobile ? false : sidebarOpen} />
         <div className="relative flex flex-1 overflow-hidden">
           <PageActionContext.Provider value={setAction}>
@@ -39,7 +39,7 @@ function AppLayoutInner() {
         {isRealMobileForced && (
           <button
             onClick={() => setForceFullView(false)}
-            className="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 shadow-lg text-[13px] font-semibold text-white"
+            className="fixed bottom-20 right-4 z-50 flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 shadow-lg text-[13px] font-semibold text-white"
           >
             <i className="ti ti-device-mobile text-[16px]" />
             Vista móvil

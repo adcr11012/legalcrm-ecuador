@@ -1,8 +1,7 @@
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useDevice } from '@/context/DeviceModeContext'
 import { supabase } from '@/lib/supabase'
-import { useNavigate } from 'react-router-dom'
 
 const NAV = [
   { to: '/dashboard', icon: 'ti-layout-dashboard', label: 'Inicio' },
@@ -11,10 +10,10 @@ const NAV = [
 ]
 
 const MORE_LINKS = [
-  { to: '/clientes',     icon: 'ti-users',          label: 'Clientes',      blocked: true  },
-  { to: '/usuarios',     icon: 'ti-user-cog',       label: 'Usuarios',      blocked: true  },
-  { to: '/drive',        icon: 'ti-brand-google-drive', label: 'Drive',     blocked: true  },
-  { to: '/configuracion',icon: 'ti-settings',       label: 'Configuración', blocked: true  },
+  { to: '/clientes',      icon: 'ti-users',              label: 'Clientes',      blocked: true },
+  { to: '/usuarios',      icon: 'ti-user-cog',           label: 'Usuarios',      blocked: true },
+  { to: '/drive',         icon: 'ti-brand-google-drive', label: 'Drive',         blocked: true },
+  { to: '/configuracion', icon: 'ti-settings',           label: 'Configuración', blocked: true },
 ]
 
 export function MobileBottomNav() {
@@ -27,8 +26,12 @@ export function MobileBottomNav() {
 
   return (
     <>
-      {/* Bottom nav bar */}
-      <nav className="flex h-[60px] flex-shrink-0 items-center border-t border-border bg-surface">
+      {/* Spacer so content isn't hidden behind fixed nav */}
+      <div className="h-[60px] flex-shrink-0" />
+
+      {/* Fixed bottom nav */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 flex h-[60px] items-center border-t border-border bg-surface"
+           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         {NAV.map(({ to, icon, label }) => {
           const active = pathname === to || (to !== '/dashboard' && pathname.startsWith(to))
           return (
@@ -39,7 +42,6 @@ export function MobileBottomNav() {
             </NavLink>
           )
         })}
-        {/* Más */}
         <button
           onClick={() => setMoreOpen(v => !v)}
           className={`flex flex-1 flex-col items-center justify-center gap-[3px] py-2 transition ${isMore || moreOpen ? 'text-accent' : 'text-muted'}`}>
@@ -55,7 +57,7 @@ export function MobileBottomNav() {
           <div className="fixed bottom-[60px] left-0 right-0 z-50 rounded-t-[20px] border-t border-border bg-surface px-4 pb-6 pt-4 shadow-xl">
             <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
             <div className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted">Otras secciones</div>
-            <div className="grid grid-cols-2 gap-2 mb-4">
+            <div className="mb-4 grid grid-cols-2 gap-2">
               {MORE_LINKS.map(({ to, icon, label, blocked }) => (
                 <button key={to}
                   onClick={() => { navigate(to); setMoreOpen(false) }}
@@ -68,7 +70,7 @@ export function MobileBottomNav() {
                 </button>
               ))}
             </div>
-            <div className="border-t border-border pt-3 space-y-1">
+            <div className="space-y-1 border-t border-border pt-3">
               <button
                 onClick={() => { setForceFullView(true); setMoreOpen(false) }}
                 className="flex w-full items-center gap-3 rounded-[10px] px-3 py-3 text-left transition hover:bg-soft">
