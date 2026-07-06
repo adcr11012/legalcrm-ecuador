@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Caso, Etapa } from '@/types/database'
 import { EtapaPill } from '@/features/casos/etapaDisplay'
 import { MATERIA_LABEL } from '@/features/casos/materias'
+import { useDevice } from '@/context/DeviceModeContext'
 
 export function CaseSidebar({
   casos,
@@ -15,12 +16,53 @@ export function CaseSidebar({
   onSelect: (id: string) => void
 }) {
   const [query, setQuery] = useState('')
+  const { isMobile } = useDevice()
 
   const filtered = casos.filter((c) => {
     const q = query.toLowerCase()
     if (!q) return true
     return c.titulo.toLowerCase().includes(q) || (c.materia ?? '').toLowerCase().includes(q)
   })
+
+  if (isMobile) {
+    return (
+      <div className="flex h-full w-full flex-col bg-bg">
+        <div className="border-b border-border px-4 py-3">
+          <div className="flex items-center gap-2 rounded-[10px] bg-surface border border-border px-3 py-2.5">
+            <i className="ti ti-search text-[16px] text-muted" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Buscar caso..."
+              className="w-full bg-transparent text-[15px] text-ink outline-none placeholder:text-muted"
+            />
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
+          {filtered.map((c) => (
+            <button
+              key={c.id}
+              onClick={() => onSelect(c.id)}
+              className={`block w-full rounded-[12px] border p-4 text-left transition ${
+                c.id === selectedId
+                  ? 'border-accent bg-accent-soft'
+                  : 'border-border bg-surface hover:bg-soft'
+              }`}
+            >
+              <div className="text-[15px] font-semibold text-ink leading-snug">{c.titulo}</div>
+              <div className="mt-1 text-[13px] text-muted">{MATERIA_LABEL[c.materia ?? 'otro']}</div>
+              <div className="mt-2">
+                <EtapaPill etapa={c.etapa_id ? etapasById.get(c.etapa_id) : null} />
+              </div>
+            </button>
+          ))}
+          {filtered.length === 0 && (
+            <div className="py-10 text-center text-[14px] text-muted">Sin resultados.</div>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-full w-full flex-shrink-0 flex-col border-r border-border bg-surface lg:w-[270px]">

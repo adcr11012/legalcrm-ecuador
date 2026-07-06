@@ -1,4 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@/features/auth/AuthProvider'
+import { useDevice } from '@/context/DeviceModeContext'
+import { listAllPlazos } from '@/features/casos/plazosApi'
+import type { Plazo } from '@/types/database'
 import { listCasos } from '@/features/casos/api'
 import { listPersonasForCasos } from '@/features/casos/personasApi'
 import { listHistorialReciente } from '@/features/casos/historialApi'
@@ -19,6 +24,10 @@ type Stats = {
 }
 
 export default function Dashboard() {
+  const { isMobile } = useDevice()
+  const { profile } = useAuth()
+  const navigate = useNavigate()
+  const [plazosProximos, setPlazosProximos] = useState<Plazo[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
   const [historial, setHistorial] = useState<HistorialEntry[]>([])
   const [casosById, setCasosById] = useState<Map<string, Caso>>(new Map())
@@ -33,7 +42,7 @@ export default function Dashboard() {
     setLoading(true)
     setError(null)
     try {
-      const [casos, users, hist, audiencias, clientesActivos, documentos, etapasData] = await Promise.all([
+      const [casos, users, hist, audiencias, clientesActivos, documentos, etapasData, todosPlazos] = await Promise.all([
         listCasos(),
         listWorkspaceUsers(),
         listHistorialReciente(10),
@@ -41,7 +50,15 @@ export default function Dashboard() {
         countClientesActivos(),
         countDocumentos(),
         listEtapas(),
+        listAllPlazos(),
       ])
+
+      const hoy = new Date().toISOString().slice(0, 10)
+      const proximos = todosPlazos
+        .filter(p => p.fecha >= hoy)
+        .sort((a, b) => a.fecha.localeCompare(b.fecha))
+        .slice(0, 5)
+      setPlazosProximos(proximos)
 
       const personas = await listPersonasForCasos(casos.map((c) => c.id))
 
@@ -86,6 +103,78 @@ export default function Dashboard() {
   if (loading) return <div className="flex-1 p-5 text-[13px] text-muted">Cargando dashboard…</div>
   if (error) return <div className="flex-1 p-5 text-[13px] text-danger">{error}</div>
   if (!stats) return null
+
+  const hoy = new Date()
+  const diasRestantes = (fecha: string) => {
+    const diff = Math.round((new Date(fecha + 'T00:00:00').getTime() - hoy.setHours(0,0,0,0)) / 86400000)
+    if (diff === 0) return { label: 'Hoy', color: 'text-danger' }
+    if (diff === 1) return { label: 'Mañana', color: 'text-warn' }
+    if (diff <= 3) return { label: `${diff} días`, color: 'text-warn' }
+    return { label: `${diff} días`, color: 'text-muted' }
+  }
+
+  const greeting = (() => {
+    const h = new Date().getHours()
+    if (h < 12) return 'Buenos días'
+    if (h < 18) return 'Buenas tardes'
+    return 'Buenas noches'
+  })()
+
+  if (isMobile) {
+    return (
+      <div className="flex-1 overflow-y-auto px-4 py-5">
+        <div className="mb-1 text-[19px] font-semibold text-ink">{greeting}{profile?.nombre ? `, ${profile.nombre.split(' ')[0]}` : ''}</div>
+        <div className="mb-5 text-[13px] text-muted">
+          {new Date().toLocaleDateString('es-EC', { weekday: 'long', day: 'numeric', month: 'long' })}
+        </div>
+
+        {/* Stats 2 columnas */}
+        <div className="mb-5 grid grid-cols-2 gap-3">
+          {[
+            { icon: 'ti-briefcase', label: 'Casos activos', value: stats.casosActivos, color: 'bg-accent-soft text-accent' },
+            { icon: 'ti-clock',     label: 'Plazos próximos', value: stats.audienciasProximas, color: 'bg-danger-soft text-danger' },
+            { icon: 'ti-users',     label: 'Clientes', value: stats.clientesActivos, color: 'bg-success-soft text-success' },
+            { icon: 'ti-files',     label: 'Documentos', value: stats.documentos, color: 'bg-soft text-muted' },
+          ].map(s => (
+            <div key={s.label} className="rounded-[12px] border border-border bg-surface p-4">
+              <div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-[8px] ${s.color}`}>
+                <i className={`ti ${s.icon} text-[18px]`} />
+              </div>
+              <div className="text-[24px] font-bold text-ink">{s.value}</div>
+              <div className="mt-0.5 text-[11px] uppercase tracking-wide text-muted">{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Plazos próximos */}
+        <div className="mb-3 text-[15px] font-semibold text-ink">Plazos próximos</div>
+        {plazosProximos.length === 0 ? (
+          <div className="rounded-[12px] border border-border bg-surface py-8 text-center text-[13px] text-muted">
+            Sin plazos próximos
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {plazosProximos.map(p => {
+              const { label, color } = diasRestantes(p.fecha)
+              const dotColor = color === 'text-danger' ? 'bg-danger' : color === 'text-warn' ? 'bg-warn' : 'bg-border'
+              return (
+                <button key={p.id}
+                  onClick={() => navigate(`/casos/${p.caso_id}`)}
+                  className="flex items-center gap-3 rounded-[12px] border border-border bg-surface px-4 py-3 text-left transition hover:bg-soft">
+                  <div className={`h-2.5 w-2.5 flex-shrink-0 rounded-full ${dotColor}`} />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-[14px] font-medium text-ink">{p.descripcion}</div>
+                    <div className="text-[12px] text-muted">{p.tipo}</div>
+                  </div>
+                  <div className={`text-[12px] font-semibold flex-shrink-0 ${color}`}>{label}</div>
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    )
+  }
 
   const maxCarga = Math.max(1, ...Array.from(personasByAbogado.values()).map((v) => v.length))
 
