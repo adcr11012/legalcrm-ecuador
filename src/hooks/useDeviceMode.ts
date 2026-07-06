@@ -10,18 +10,23 @@ export type DeviceMode = 'mobile' | 'tablet' | 'desktop'
 
 export function useDeviceMode() {
   const [width, setWidth] = useState(getWidth)
-  const [forceFullView, setForceFullViewState] = useState(
-    () => localStorage.getItem(FORCE_KEY) === '1'
-  )
+
+  // ?mobile in URL resets forceFullView and forces mobile mode
+  const urlForceMobile = new URLSearchParams(window.location.search).has('mobile')
+
+  const [forceFullView, setForceFullViewState] = useState(() => {
+    if (urlForceMobile) {
+      localStorage.setItem(FORCE_KEY, '0')
+      return false
+    }
+    return localStorage.getItem(FORCE_KEY) === '1'
+  })
 
   useEffect(() => {
     const handler = () => setWidth(getWidth())
     window.addEventListener('resize', handler)
     return () => window.removeEventListener('resize', handler)
   }, [])
-
-  // ?mobile in URL forces mobile mode (useful for browsers in desktop mode)
-  const urlForceMobile = new URLSearchParams(window.location.search).has('mobile')
 
   const mode: DeviceMode = (width < 768 || urlForceMobile) ? 'mobile' : width < 1024 ? 'tablet' : 'desktop'
 
