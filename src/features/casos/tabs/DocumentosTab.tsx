@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import type { Carpeta, Documento } from '@/types/database'
 import { getDocumentoProxyUrl, registrarAccesoDocumento, compartirDocumento } from '@/features/casos/documentosApi'
 import { moverDocumento, createCarpeta, deleteCarpeta, renameCarpeta, reindexCarpetas } from '@/features/casos/carpetasApi'
+import { useDevice } from '@/context/DeviceModeContext'
 
 function iconFor(nombre: string) {
   const ext = nombre.split('.').pop()?.toLowerCase()
@@ -69,6 +70,54 @@ function FolderPicker({ carpetas, value, onChange }: {
           )),
         ])}
       </select>
+    </div>
+  )
+}
+
+function MobileDocRow({ d, casoId, workspaceId }: { d: Documento; casoId: string; workspaceId: string }) {
+  const [abriendo, setAbriendo] = useState(false)
+  const [errorDoc, setErrorDoc] = useState<string | null>(null)
+  const { icon, bg, fg } = iconFor(d.nombre)
+
+  async function abrirDoc() {
+    setErrorDoc(null)
+    setAbriendo(true)
+    const w = window.open('', '_blank')
+    try {
+      const url = await getDocumentoProxyUrl(d.id)
+      if (w) w.location.href = url
+      registrarAccesoDocumento({ documento_id: d.id, workspace_id: workspaceId, accion: 'apertura', nombre_doc: d.nombre, caso_id: casoId })
+    } catch (err) {
+      if (w) w.close()
+      setErrorDoc(err instanceof Error ? err.message : String(err))
+    } finally { setAbriendo(false) }
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      {errorDoc && (
+        <div className="flex items-center gap-2 rounded-[8px] bg-danger-soft px-3 py-2 text-[12px] text-danger">
+          <i className="ti ti-alert-circle" />
+          <span className="flex-1">{errorDoc}</span>
+          <button onClick={() => setErrorDoc(null)}><i className="ti ti-x" /></button>
+        </div>
+      )}
+      <button
+        onClick={d.drive_file_id ? abrirDoc : undefined}
+        disabled={abriendo || !d.drive_file_id}
+        className="flex items-center gap-3 rounded-[12px] border border-border bg-surface px-4 py-3 text-left transition active:scale-[0.98] disabled:opacity-60"
+      >
+        <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[8px] ${bg} ${fg}`}>
+          <i className={`ti ${icon} text-[20px]`} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-[14px] font-medium text-ink">{d.nombre}</div>
+          <div className="mt-0.5 text-[12px] text-muted">{new Date(d.created_at).toLocaleDateString('es-EC')}</div>
+        </div>
+        {d.drive_file_id && (
+          <i className={`ti ${abriendo ? 'ti-loader-2 animate-spin' : 'ti-eye'} flex-shrink-0 text-[18px] text-muted`} />
+        )}
+      </button>
     </div>
   )
 }
@@ -391,6 +440,7 @@ export function DocumentosTab({
   const [nuevaCarpetaNombre, setNuevaCarpetaNombre] = useState('')
   const [nuevaCarpetaParent, setNuevaCarpetaParent] = useState<string | null>(null)
   const [creando, setCreando] = useState(false)
+  const { isMobile } = useDevice()
 
   const { root, children } = buildTree(carpetasProp)
 
@@ -443,6 +493,33 @@ export function DocumentosTab({
   }
 
   const docsSinCarpeta = documentos.filter(d => !d.carpeta_id)
+
+  if (isMobile) {
+    return (
+      <div>
+        <div className="mb-4 flex items-center justify-between">
+          <span className="text-[13px] text-muted">{documentos.length} documento{documentos.length === 1 ? '' : 's'}</span>
+          {puedeSubir && (
+            <button onClick={onOpenAdd} className="inline-flex items-center gap-2 rounded-[10px] bg-accent px-4 py-2 text-[13px] font-medium text-white transition hover:bg-accent-hover">
+              <i className="ti ti-upload text-[16px]" /> Subir
+            </button>
+          )}
+        </div>
+
+        {documentos.length === 0 ? (
+          <div className="rounded-[12px] border border-dashed border-border py-10 text-center text-[13px] text-mute2">
+            Sin documentos cargados.
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {documentos.map(d => (
+              <MobileDocRow key={d.id} d={d} casoId={casoId} workspaceId={workspaceId} />
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div>
