@@ -22,13 +22,11 @@ function sectionFor(pathname: string): string {
 export function Topbar({ action, sidebarOpen }: { action: PageAction; sidebarOpen: boolean }) {
   const { pathname } = useLocation()
   const title = TITLES[sectionFor(pathname)] ?? ''
-  const { isMobile, width, mode } = useDevice()
+  const { isMobile } = useDevice()
 
   if (isMobile) {
     return (
       <div className="relative flex h-[56px] flex-shrink-0 items-center justify-between border-b border-border bg-surface px-4">
-        {/* DEBUG — remove after testing */}
-        <div className="absolute top-0 left-0 bg-black/70 text-white text-[9px] px-1 z-50">{width}px {mode}</div>
         <div className="flex items-center gap-2">
           <img src="/LOGO.png" alt="TSADOQ" className="h-7 w-auto object-contain" />
           <span className="text-[16px] font-bold text-ink">TSADOQ</span>
@@ -50,8 +48,6 @@ export function Topbar({ action, sidebarOpen }: { action: PageAction; sidebarOpe
 
   return (
     <div className="relative flex h-[52px] flex-shrink-0 items-center border-b border-border bg-surface px-3 sm:px-5">
-      {/* DEBUG — remove after testing */}
-      <div className="absolute top-0 left-0 bg-red-600/80 text-white text-[9px] px-1 z-50">{width}px {mode}</div>
       <div className="min-w-0 flex-1 truncate text-[15px] font-semibold text-ink">{title}</div>
 
       {!sidebarOpen && (
