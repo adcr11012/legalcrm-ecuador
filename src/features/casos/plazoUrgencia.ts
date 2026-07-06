@@ -1,4 +1,4 @@
-export type Urgencia = 'urgente' | 'proximo' | 'normal'
+export type Urgencia = 'rojo' | 'amarillo' | 'verde'
 
 export function diasRestantes(fecha: string): number {
   const hoy = new Date()
@@ -7,10 +7,11 @@ export function diasRestantes(fecha: string): number {
   return Math.round((objetivo.getTime() - hoy.getTime()) / 86_400_000)
 }
 
+// Semáforo: rojo 0-7 días, amarillo 8-29 días, verde 30+ días
 export function clasificarUrgencia(dias: number): Urgencia {
-  if (dias <= 2) return 'urgente'
-  if (dias <= 7) return 'proximo'
-  return 'normal'
+  if (dias <= 7) return 'rojo'
+  if (dias <= 29) return 'amarillo'
+  return 'verde'
 }
 
 export function labelDias(dias: number): string {
@@ -21,13 +22,19 @@ export function labelDias(dias: number): string {
 }
 
 export const URGENCIA_CLASS: Record<Urgencia, string> = {
-  urgente: 'bg-danger-soft text-danger',
-  proximo: 'bg-warn-soft text-warn',
-  normal: 'bg-[#f2f1ee] text-muted',
+  rojo:     'bg-danger-soft text-danger',
+  amarillo: 'bg-warn-soft text-warn',
+  verde:    'bg-success-soft text-success',
 }
 
 export const URGENCIA_BORDER: Record<Urgencia, string> = {
-  urgente: 'border-l-[3px] border-l-danger',
-  proximo: 'border-l-[3px] border-l-warn',
-  normal: '',
+  rojo:     'border-l-[3px] border-l-danger',
+  amarillo: 'border-l-[3px] border-l-warn',
+  verde:    'border-l-[3px] border-l-success',
+}
+
+export const URGENCIA_DOT: Record<Urgencia, string> = {
+  rojo:     'bg-danger',
+  amarillo: 'bg-warn',
+  verde:    'bg-success',
 }

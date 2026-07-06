@@ -5,6 +5,7 @@ import { useDevice } from '@/context/DeviceModeContext'
 import { listAllPlazos } from '@/features/casos/plazosApi'
 import type { Plazo } from '@/types/database'
 import { listCasos } from '@/features/casos/api'
+import { diasRestantes, clasificarUrgencia, labelDias, URGENCIA_CLASS, URGENCIA_DOT } from '@/features/casos/plazoUrgencia'
 import { listPersonasForCasos } from '@/features/casos/personasApi'
 import { listHistorialReciente } from '@/features/casos/historialApi'
 import { countDocumentos } from '@/features/casos/documentosApi'
@@ -105,13 +106,6 @@ export default function Dashboard() {
   if (!stats) return null
 
   const hoy = new Date()
-  const diasRestantes = (fecha: string) => {
-    const diff = Math.round((new Date(fecha + 'T00:00:00').getTime() - hoy.setHours(0,0,0,0)) / 86400000)
-    if (diff === 0) return { label: 'Hoy', color: 'text-danger' }
-    if (diff === 1) return { label: 'Mañana', color: 'text-warn' }
-    if (diff <= 3) return { label: `${diff} días`, color: 'text-warn' }
-    return { label: `${diff} días`, color: 'text-muted' }
-  }
 
   const greeting = (() => {
     const h = new Date().getHours()
@@ -155,18 +149,18 @@ export default function Dashboard() {
         ) : (
           <div className="flex flex-col gap-2">
             {plazosProximos.map(p => {
-              const { label, color } = diasRestantes(p.fecha)
-              const dotColor = color === 'text-danger' ? 'bg-danger' : color === 'text-warn' ? 'bg-warn' : 'bg-border'
+              const dias = diasRestantes(p.fecha)
+              const urgencia = clasificarUrgencia(dias)
               return (
                 <button key={p.id}
                   onClick={() => navigate(`/casos/${p.caso_id}`)}
                   className="flex items-center gap-3 rounded-[12px] border border-border bg-surface px-4 py-3 text-left transition hover:bg-soft">
-                  <div className={`h-2.5 w-2.5 flex-shrink-0 rounded-full ${dotColor}`} />
+                  <div className={`h-2.5 w-2.5 flex-shrink-0 rounded-full ${URGENCIA_DOT[urgencia]}`} />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-[14px] font-medium text-ink">{p.descripcion}</div>
                     <div className="text-[12px] text-muted">{p.tipo}</div>
                   </div>
-                  <div className={`text-[12px] font-semibold flex-shrink-0 ${color}`}>{label}</div>
+                  <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium flex-shrink-0 ${URGENCIA_CLASS[urgencia]}`}>{labelDias(dias)}</span>
                 </button>
               )
             })}

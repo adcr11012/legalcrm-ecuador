@@ -129,9 +129,13 @@ export default function Agenda() {
                 }`}
               >
                 {d.getDate()}
-                {hasEvent && (
-                  <span className={`absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full ${isToday ? 'bg-white' : 'bg-warn'}`} />
-                )}
+                {hasEvent && (() => {
+                  const evs = proximos.get(dStr) ?? []
+                  const minDias = Math.min(...evs.map(ev => diasRestantes(ev.fecha)))
+                  const urg = clasificarUrgencia(minDias)
+                  const dotCls = isToday ? 'bg-white' : urg === 'rojo' ? 'bg-danger' : urg === 'amarillo' ? 'bg-warn' : 'bg-success'
+                  return <span className={`absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full ${dotCls}`} />
+                })()}
               </div>
             )
           })}
