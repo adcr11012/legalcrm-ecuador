@@ -122,7 +122,7 @@ export default function Dashboard() {
 
   if (isMobile) {
     return (
-      <div className="flex-1 overflow-y-auto px-4 py-5">
+      <div className="flex-1 overflow-y-auto px-4 py-5 pb-[76px]">
         <div className="mb-1 text-[19px] font-semibold text-ink">{greeting}{profile?.nombre ? `, ${profile.nombre.split(' ')[0]}` : ''}</div>
         <div className="mb-5 text-[13px] text-muted">
           {new Date().toLocaleDateString('es-EC', { weekday: 'long', day: 'numeric', month: 'long' })}

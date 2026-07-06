@@ -30,7 +30,7 @@ function AppLayoutInner() {
       {!isMobile && <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen((v) => !v)} />}
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <Topbar action={action} sidebarOpen={isMobile ? false : sidebarOpen} />
-        <div className={`relative flex flex-1 overflow-hidden ${isMobile ? 'pb-[60px]' : ''}`}>
+        <div className="relative flex flex-1 overflow-hidden">
           <PageActionContext.Provider value={setAction}>
             <Outlet />
           </PageActionContext.Provider>

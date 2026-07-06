@@ -38,7 +38,7 @@ export function CaseSidebar({
             />
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
+        <div className="flex-1 overflow-y-auto px-4 py-3 pb-[76px] space-y-2">
           {filtered.map((c) => (
             <button
               key={c.id}
