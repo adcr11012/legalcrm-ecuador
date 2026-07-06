@@ -25,9 +25,6 @@ export function MobileBottomNav() {
 
   return (
     <>
-      {/* Spacer so content isn't hidden behind fixed nav */}
-      <div className="h-[60px] flex-shrink-0" />
-
       {/* Fixed bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 flex h-[60px] items-center border-t border-border bg-surface"
            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
