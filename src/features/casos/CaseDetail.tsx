@@ -28,6 +28,7 @@ import { InformeCaso } from '@/features/casos/InformeCaso'
 import { nombrePersona } from '@/features/casos/personaDisplay'
 import { MATERIA_LABEL } from '@/features/casos/materias'
 import type { Carpeta, Caso, CasoAnticipo, CasoGasto, CasoHora, CasoPersona, Documento, Etapa, HistorialEntry, Plazo, Tarea, Usuario } from '@/types/database'
+import { useDevice } from '@/context/DeviceModeContext'
 
 const TABS = [
   { key: 'info', label: 'Información', icon: 'ti-info-circle' },
@@ -199,7 +200,13 @@ export function CaseDetail({
     onDeleted?.()
   }
 
-  const visibleTabs = TABS.filter((t) => t.key !== 'notas' || showNotas)
+  const { isMobile } = useDevice()
+  const MOBILE_TABS = new Set(['info', 'tareas', 'docs', 'plazos', 'notas'])
+  const visibleTabs = TABS.filter((t) => {
+    if (t.key === 'notas' && !showNotas) return false
+    if (isMobile && !MOBILE_TABS.has(t.key)) return false
+    return true
+  })
 
   return (
     <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-bg">
@@ -230,7 +237,7 @@ export function CaseDetail({
           >
             <i className="ti ti-file-description" /> <span className="hidden sm:inline">Informe</span>
           </button>
-          {puedeEditar && (
+          {puedeEditar && !isMobile && (
             <button
               onClick={() => setEditOpen(true)}
               className="flex items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[12px] text-muted transition hover:bg-soft"
@@ -238,7 +245,7 @@ export function CaseDetail({
               <i className="ti ti-edit" /> <span className="hidden sm:inline">Editar</span>
             </button>
           )}
-          {esAdmin && (
+          {esAdmin && !isMobile && (
             <button
               onClick={onDeleteCaso}
               className="flex items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[12px] text-muted transition hover:bg-danger-soft hover:text-danger"

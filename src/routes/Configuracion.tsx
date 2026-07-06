@@ -9,6 +9,7 @@ import { OpenRouterSettings } from '@/features/workspace/OpenRouterSettings'
 import { AuditoriaDocumentos } from '@/features/workspace/AuditoriaDocumentos'
 import { getTema, setTema, type Tema } from '@/lib/theme'
 import type { Workspace } from '@/types/database'
+import { MobileBlock } from '@/components/mobile/MobileBlock'
 
 const TEMAS: { value: Tema; label: string; icon: string }[] = [
   { value: 'claro', label: 'Claro', icon: 'ti-sun' },
@@ -97,6 +98,7 @@ export default function Configuracion() {
   }
 
   return (
+    <MobileBlock feature="Configuración">
     <div className="flex-1 overflow-y-auto p-5">
       <div className="max-w-[560px]">
         <div className="mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-mute2">Apariencia</div>
@@ -237,5 +239,6 @@ export default function Configuracion() {
         {error && <p className="mt-3 text-[11px] text-danger">{error}</p>}
       </div>
     </div>
+    </MobileBlock>
   )
 }

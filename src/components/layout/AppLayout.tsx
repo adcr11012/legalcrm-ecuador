@@ -3,6 +3,8 @@ import { Outlet } from 'react-router-dom'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Topbar } from '@/components/layout/Topbar'
 import { PageActionContext, type PageAction } from '@/components/layout/PageActionContext'
+import { DeviceModeProvider } from '@/context/DeviceModeContext'
+import { MobileFullViewButton } from '@/components/mobile/MobileFullViewButton'
 
 export function AppLayout() {
   const [action, setAction] = useState<PageAction>(null)
@@ -22,16 +24,19 @@ export function AppLayout() {
   }, [])
 
   return (
-    <div className="flex h-screen bg-bg">
-      <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen((v) => !v)} />
-      <div className="flex h-screen min-w-0 flex-1 flex-col">
-        <Topbar action={action} sidebarOpen={sidebarOpen} />
-        <div className="relative flex flex-1 overflow-hidden">
-          <PageActionContext.Provider value={setAction}>
-            <Outlet />
-          </PageActionContext.Provider>
+    <DeviceModeProvider>
+      <div className="flex h-screen bg-bg">
+        <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen((v) => !v)} />
+        <div className="flex h-screen min-w-0 flex-1 flex-col">
+          <Topbar action={action} sidebarOpen={sidebarOpen} />
+          <div className="relative flex flex-1 overflow-hidden">
+            <PageActionContext.Provider value={setAction}>
+              <Outlet />
+            </PageActionContext.Provider>
+          </div>
         </div>
+        <MobileFullViewButton />
       </div>
-    </div>
+    </DeviceModeProvider>
   )
 }

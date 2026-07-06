@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getDriveEstado, type DriveEstado } from '@/features/workspace/driveApi'
+import { MobileBlock } from '@/components/mobile/MobileBlock'
 
 export default function Drive() {
   const navigate = useNavigate()
@@ -11,6 +12,7 @@ export default function Drive() {
   }, [])
 
   return (
+    <MobileBlock feature="Google Drive">
     <div className="flex flex-1 items-center justify-center p-5">
       <div className="max-w-[380px] text-center">
         <i className="ti ti-brand-google-drive mb-4 block text-[52px] text-mute2" />
@@ -30,5 +32,6 @@ export default function Drive() {
         </button>
       </div>
     </div>
+    </MobileBlock>
   )
 }

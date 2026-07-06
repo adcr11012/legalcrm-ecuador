@@ -7,6 +7,7 @@ import { listPersonasPorUsuarios } from '@/features/casos/personasApi'
 import { listInvitacionesPendientes, deleteInvitacion } from '@/features/usuarios/invitacionesApi'
 import { InvitarUsuarioModal } from '@/features/usuarios/InvitarUsuarioModal'
 import type { Invitacion, RolUsuario, Usuario } from '@/types/database'
+import { MobileBlock } from '@/components/mobile/MobileBlock'
 
 const ROL_LABEL: Record<RolUsuario, string> = {
   administrador: 'Administrador',
@@ -106,6 +107,7 @@ export default function Usuarios() {
   if (error) return <div className="flex-1 p-5 text-[13px] text-danger">{error}</div>
 
   return (
+    <MobileBlock feature="Gestión de usuarios">
     <div className="flex-1 overflow-y-auto p-5">
       <div className="mb-4 flex items-center justify-between">
         <div>
@@ -234,5 +236,6 @@ export default function Usuarios() {
         onCreated={(inv) => setInvitaciones((prev) => [inv, ...prev])}
       />
     </div>
+    </MobileBlock>
   )
 }

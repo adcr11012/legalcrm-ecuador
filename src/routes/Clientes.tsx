@@ -5,6 +5,7 @@ import { listClientes } from '@/features/clientes/api'
 import { ClienteFormModal } from '@/features/clientes/ClienteFormModal'
 import { ClienteSidebar } from '@/features/clientes/ClienteSidebar'
 import { ClienteDetail } from '@/features/clientes/ClienteDetail'
+import { MobileBlock } from '@/components/mobile/MobileBlock'
 import type { Cliente } from '@/types/database'
 
 export default function Clientes() {
@@ -37,6 +38,7 @@ export default function Clientes() {
   if (error) return <div className="flex-1 p-5 text-[13px] text-danger">{error}</div>
 
   return (
+    <MobileBlock feature="Gestión de clientes">
     <div className="flex flex-1 overflow-hidden">
       {clientes.length === 0 ? (
         <div className="flex flex-1 items-center justify-center text-[13px] text-muted">
@@ -71,5 +73,6 @@ export default function Clientes() {
         }}
       />
     </div>
+    </MobileBlock>
   )
 }
