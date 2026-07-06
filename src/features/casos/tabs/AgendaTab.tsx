@@ -168,7 +168,7 @@ function AgendaItem({
 }
 
 export function AgendaTab({
-  plazos: plazosInit, casoId, workspaceId, puedeEditar, usersById, users: _users, onOpenAdd, onPlazosChange,
+  plazos: plazosInit, casoId: _casoId, workspaceId: _workspaceId, puedeEditar, usersById, users: _users, onOpenAdd, onPlazosChange,
 }: {
   plazos: Plazo[]
   casoId: string

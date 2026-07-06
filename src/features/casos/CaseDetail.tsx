@@ -176,11 +176,6 @@ export function CaseDetail({
     }
   }
 
-  async function onDeletePlazo(id: string) {
-    await deletePlazo(id)
-    setPlazos((prev) => prev.filter((p) => p.id !== id))
-  }
-
   async function onDeleteCaso() {
     if (!confirm(`¿Eliminar el caso "${caso!.titulo}"? Esta acción no se puede deshacer.`)) return
     const docsConArchivo = documentos.filter((d) => d.drive_file_id)

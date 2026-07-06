@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { Plazo, TipoPlazo, EstadoAgenda } from '@/types/database'
+import type { Plazo, TipoPlazo } from '@/types/database'
 
 export async function listPlazos(casoId: string): Promise<Plazo[]> {
   const { data, error } = await supabase.from('plazos').select('*').eq('caso_id', casoId).order('fecha')

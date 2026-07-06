@@ -105,8 +105,6 @@ export default function Dashboard() {
   if (error) return <div className="flex-1 p-5 text-[13px] text-danger">{error}</div>
   if (!stats) return null
 
-  const hoy = new Date()
-
   const greeting = (() => {
     const h = new Date().getHours()
     if (h < 12) return 'Buenos días'
