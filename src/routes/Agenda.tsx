@@ -143,13 +143,24 @@ export default function Agenda() {
 
         {/* Leyenda */}
         <div className="mt-4 flex flex-col gap-1.5 border-t border-border pt-3">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-mute2 mb-1">Tipo</div>
           <div className="flex items-center gap-2 text-[11px] text-mute2">
-            <span className="h-2.5 w-2.5 rounded-sm bg-danger/20 border border-danger/40" />
+            <span className="flex h-5 w-5 items-center justify-center rounded-[4px] bg-orange-100"><i className="ti ti-clock text-[11px] text-orange-500" /></span>
             Plazo / Audiencia
           </div>
           <div className="flex items-center gap-2 text-[11px] text-mute2">
-            <span className="h-2.5 w-2.5 rounded-sm bg-accent-soft border border-accent/30" />
+            <span className="flex h-5 w-5 items-center justify-center rounded-[4px] bg-accent-soft"><i className="ti ti-checkbox text-[11px] text-accent" /></span>
             Tarea pendiente
+          </div>
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-mute2 mt-2 mb-1">Urgencia</div>
+          <div className="flex items-center gap-2 text-[11px] text-mute2">
+            <span className="h-2.5 w-2.5 rounded-full bg-danger" /> 0–7 días
+          </div>
+          <div className="flex items-center gap-2 text-[11px] text-mute2">
+            <span className="h-2.5 w-2.5 rounded-full bg-warn" /> 8–29 días
+          </div>
+          <div className="flex items-center gap-2 text-[11px] text-mute2">
+            <span className="h-2.5 w-2.5 rounded-full bg-success" /> 30+ días
           </div>
         </div>
       </div>
@@ -172,13 +183,15 @@ export default function Agenda() {
                       onClick={() => caso && navigate(`/casos/${caso.id}`)}
                       className={`flex items-center gap-3.5 rounded-[10px] border border-border bg-surface px-4 py-3 text-left transition hover:border-mute2/40 ${URGENCIA_BORDER[urgencia]}`}
                     >
-                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[6px] bg-danger/10 text-danger">
+                      {/* Ícono fijo: plazo = naranja/reloj */}
+                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[6px] bg-orange-100 text-orange-500">
                         <i className="ti ti-clock text-[15px]" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="text-[13px] font-semibold text-ink">{p.titulo}</div>
                         <div className="mt-0.5 text-[11px] text-muted">{caso?.titulo ?? 'Caso no disponible'}</div>
                       </div>
+                      {/* Semáforo de urgencia */}
                       <span className={`flex-shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${URGENCIA_CLASS[urgencia]}`}>
                         {labelDias(dias)}
                       </span>
@@ -195,13 +208,15 @@ export default function Agenda() {
                       onClick={() => caso && navigate(`/casos/${caso.id}`)}
                       className={`flex items-center gap-3.5 rounded-[10px] border border-border bg-surface px-4 py-3 text-left transition hover:border-mute2/40 ${URGENCIA_BORDER[urgencia]}`}
                     >
-                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[6px] bg-soft text-muted">
+                      {/* Ícono fijo: tarea = azul/checkbox */}
+                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[6px] bg-accent-soft text-accent">
                         <i className="ti ti-checkbox text-[15px]" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="text-[13px] font-semibold text-ink">{t.titulo}</div>
                         <div className="mt-0.5 text-[11px] text-muted">{caso?.titulo ?? 'Caso no disponible'}</div>
                       </div>
+                      {/* Semáforo de urgencia */}
                       <span className={`flex-shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${URGENCIA_CLASS[urgencia]}`}>
                         {labelDias(dias)}
                       </span>
