@@ -210,21 +210,21 @@ export function CaseDetail({
 
   return (
     <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-bg">
-      <div className="flex flex-shrink-0 flex-wrap items-start justify-between gap-3 border-b border-border bg-surface px-3 pb-3.5 pt-4 sm:px-5">
-        <div className="flex min-w-0 items-start gap-2">
+      <div className={`flex flex-shrink-0 flex-wrap items-start justify-between gap-3 border-b border-border bg-surface ${isMobile ? 'px-4 pb-4 pt-4' : 'px-3 pb-3.5 pt-4 sm:px-5'}`}>
+        <div className="flex min-w-0 items-start gap-3">
           {onBack && (
             <button
               onClick={onBack}
-              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[6px] text-muted transition hover:bg-soft hover:text-ink lg:hidden"
+              className={`flex flex-shrink-0 items-center justify-center rounded-[10px] text-muted transition hover:bg-soft hover:text-ink lg:hidden ${isMobile ? 'h-9 w-9' : 'h-7 w-7 rounded-[6px]'}`}
             >
-              <i className="ti ti-arrow-left" />
+              <i className={`ti ti-arrow-left ${isMobile ? 'text-[20px]' : ''}`} />
             </button>
           )}
           <div className="min-w-0">
-            <div className="truncate text-[17px] font-bold tracking-tight text-ink sm:text-[19px]">{caso.titulo}</div>
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
+            <div className={`truncate font-bold tracking-tight text-ink ${isMobile ? 'text-[18px] leading-snug' : 'text-[17px] sm:text-[19px]'}`}>{caso.titulo}</div>
+            <div className="mt-2 flex flex-wrap gap-1.5">
               <EtapaPill etapa={caso.etapa_id ? etapas.find((e) => e.id === caso.etapa_id) : null} />
-              <span className="inline-block rounded-full border border-border bg-soft px-2 py-0.5 text-[10px] font-medium text-muted">
+              <span className={`inline-block rounded-full border border-border bg-soft px-2 py-0.5 font-medium text-muted ${isMobile ? 'text-[12px]' : 'text-[10px]'}`}>
                 {MATERIA_LABEL[caso.materia ?? 'otro']}
               </span>
             </div>
@@ -233,9 +233,9 @@ export function CaseDetail({
         <div className="flex flex-shrink-0 gap-2">
           <button
             onClick={() => setInformeOpen(true)}
-            className="flex items-center gap-1.5 rounded-[6px] border border-border px-3 py-1.5 text-[12px] text-muted transition hover:bg-soft"
+            className={`flex items-center gap-1.5 rounded-[8px] border border-border text-muted transition hover:bg-soft ${isMobile ? 'px-3 py-2 text-[13px]' : 'px-3 py-1.5 text-[12px]'}`}
           >
-            <i className="ti ti-file-description" /> <span className="hidden sm:inline">Informe</span>
+            <i className="ti ti-file-description" /> <span className={isMobile ? '' : 'hidden sm:inline'}>Informe</span>
           </button>
           {puedeEditar && !isMobile && (
             <button
@@ -256,7 +256,7 @@ export function CaseDetail({
         </div>
       </div>
 
-      <div className="flex flex-shrink-0 gap-0 overflow-x-auto border-b border-border bg-surface px-3 sm:px-5">
+      <div className={`flex flex-shrink-0 gap-0 overflow-x-auto border-b border-border bg-surface ${isMobile ? 'px-2' : 'px-3 sm:px-5'}`}>
         {visibleTabs.map((t) => {
           const isActive = tab === t.key
           const tareasCount = t.key === 'tareas' ? tareas.filter((x) => x.estado !== 'completada').length : 0
@@ -265,12 +265,16 @@ export function CaseDetail({
               key={t.key}
               onClick={() => setTab(t.key)}
               title={t.label}
-              className={`relative flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2.5 text-[13px] transition ${
+              className={`relative flex items-center gap-1.5 whitespace-nowrap border-b-2 transition ${
                 isActive ? 'border-accent font-medium text-accent' : 'border-transparent text-muted hover:text-ink'
-              }`}
+              } ${isMobile ? 'flex-col gap-[3px] px-3 py-2.5 text-[10px]' : 'px-3 py-2.5 text-[13px]'}`}
             >
-              <i className={`ti ${t.icon} text-[16px]`} />
-              {isActive && <span>{t.label}</span>}
+              <i className={`ti ${t.icon} ${isMobile ? 'text-[20px]' : 'text-[16px]'}`} />
+              {isMobile ? (
+                <span>{t.label}</span>
+              ) : (
+                isActive && <span>{t.label}</span>
+              )}
               {t.key === 'tareas' && tareasCount > 0 && (
                 <span className={`rounded-full px-1.5 text-[10px] ${isActive ? 'bg-accent/20 text-accent' : 'bg-accent-soft text-accent'}`}>
                   {tareasCount}
