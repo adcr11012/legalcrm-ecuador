@@ -9,7 +9,8 @@ import { MobileBottomNav } from '@/components/mobile/MobileBottomNav'
 function AppLayoutInner() {
   const [action, setAction] = useState<PageAction>(null)
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024)
-  const { isMobile } = useDevice()
+  const { isMobile, mode, forceFullView, setForceFullView } = useDevice()
+  const isRealMobileForced = mode === 'mobile' && forceFullView
 
   useEffect(() => {
     let wasDesktop = window.innerWidth >= 1024
@@ -35,6 +36,15 @@ function AppLayoutInner() {
           </PageActionContext.Provider>
         </div>
         {isMobile && <MobileBottomNav />}
+        {isRealMobileForced && (
+          <button
+            onClick={() => setForceFullView(false)}
+            className="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-full bg-accent px-4 py-2.5 shadow-lg text-[13px] font-semibold text-white"
+          >
+            <i className="ti ti-device-mobile text-[16px]" />
+            Vista móvil
+          </button>
+        )}
       </div>
     </div>
   )
