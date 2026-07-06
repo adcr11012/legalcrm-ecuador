@@ -20,7 +20,10 @@ export function useDeviceMode() {
     return () => window.removeEventListener('resize', handler)
   }, [])
 
-  const mode: DeviceMode = width < 768 ? 'mobile' : width < 1024 ? 'tablet' : 'desktop'
+  // ?mobile in URL forces mobile mode (useful for browsers in desktop mode)
+  const urlForceMobile = new URLSearchParams(window.location.search).has('mobile')
+
+  const mode: DeviceMode = (width < 768 || urlForceMobile) ? 'mobile' : width < 1024 ? 'tablet' : 'desktop'
 
   function setForceFullView(value: boolean) {
     localStorage.setItem(FORCE_KEY, value ? '1' : '0')
@@ -31,5 +34,5 @@ export function useDeviceMode() {
   const isTablet = mode === 'tablet'
   const isDesktop = mode === 'desktop' || forceFullView
 
-  return { mode, isMobile, isTablet, isDesktop, forceFullView, setForceFullView }
+  return { mode, isMobile, isTablet, isDesktop, forceFullView, setForceFullView, width }
 }

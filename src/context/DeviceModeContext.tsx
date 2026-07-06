@@ -8,6 +8,7 @@ type DeviceModeContextValue = {
   isDesktop: boolean
   forceFullView: boolean
   setForceFullView: (v: boolean) => void
+  width: number
 }
 
 const DeviceModeContext = createContext<DeviceModeContextValue | null>(null)
