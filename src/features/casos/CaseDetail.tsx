@@ -4,8 +4,7 @@ import { getCaso, updateCaso, updateEtapaCaso, deleteCaso } from '@/features/cas
 import { listPersonas, removePersona } from '@/features/casos/personasApi'
 import { listDocumentos, toggleVisibilidad, deleteDocumento, deleteDocumentosCaso, leerDocumentoAhora, registrarAccesoDocumento } from '@/features/casos/documentosApi'
 import { renameDriveFile } from '@/features/workspace/driveApi'
-import { listPlazos, deletePlazo } from '@/features/casos/plazosApi'
-import { listTareas } from '@/features/casos/tareasApi'
+import { listPlazos } from '@/features/casos/plazosApi'
 import { listHistorial } from '@/features/casos/historialApi'
 import { listWorkspaceUsers } from '@/features/users/api'
 import { listEtapas } from '@/features/casos/etapasApi'
@@ -14,8 +13,7 @@ import { listCarpetas } from '@/features/casos/carpetasApi'
 import { EtapaPill } from '@/features/casos/etapaDisplay'
 import { InfoTab } from '@/features/casos/tabs/InfoTab'
 import { DocumentosTab } from '@/features/casos/tabs/DocumentosTab'
-import { PlazosTab } from '@/features/casos/tabs/PlazosTab'
-import { TareasTab } from '@/features/casos/tabs/TareasTab'
+import { AgendaTab } from '@/features/casos/tabs/AgendaTab'
 import { HistorialTab } from '@/features/casos/tabs/HistorialTab'
 import { NotasTab } from '@/features/casos/tabs/NotasTab'
 import { IATab } from '@/features/casos/tabs/IATab'
@@ -27,18 +25,17 @@ import { CasoFormModal } from '@/features/casos/CasoFormModal'
 import { InformeCaso } from '@/features/casos/InformeCaso'
 import { nombrePersona } from '@/features/casos/personaDisplay'
 import { MATERIA_LABEL } from '@/features/casos/materias'
-import type { Carpeta, Caso, CasoAnticipo, CasoGasto, CasoHora, CasoPersona, Documento, Etapa, HistorialEntry, Plazo, Tarea, Usuario } from '@/types/database'
+import type { Carpeta, Caso, CasoAnticipo, CasoGasto, CasoHora, CasoPersona, Documento, Etapa, HistorialEntry, Plazo, Usuario } from '@/types/database'
 import { useDevice } from '@/context/DeviceModeContext'
 
 const TABS = [
-  { key: 'info', label: 'Información', icon: 'ti-info-circle' },
-  { key: 'tareas', label: 'Tareas', icon: 'ti-checkbox' },
-  { key: 'docs', label: 'Documentos', icon: 'ti-files' },
-  { key: 'plazos', label: 'Plazos', icon: 'ti-clock' },
-  { key: 'pagos', label: 'Pagos', icon: 'ti-cash' },
-  { key: 'hist', label: 'Historial', icon: 'ti-history' },
-  { key: 'notas', label: 'Notas', icon: 'ti-notes' },
-  { key: 'ia', label: 'IA', icon: 'ti-sparkles' },
+  { key: 'info',    label: 'Información', icon: 'ti-info-circle' },
+  { key: 'agenda',  label: 'Agenda',      icon: 'ti-calendar-event' },
+  { key: 'docs',    label: 'Documentos',  icon: 'ti-files' },
+  { key: 'pagos',   label: 'Pagos',       icon: 'ti-cash' },
+  { key: 'hist',    label: 'Historial',   icon: 'ti-history' },
+  { key: 'notas',   label: 'Notas',       icon: 'ti-notes' },
+  { key: 'ia',      label: 'IA',          icon: 'ti-sparkles' },
 ] as const
 
 type TabKey = (typeof TABS)[number]['key']
@@ -57,7 +54,6 @@ export function CaseDetail({
   const [personas, setPersonas] = useState<CasoPersona[]>([])
   const [documentos, setDocumentos] = useState<Documento[]>([])
   const [plazos, setPlazos] = useState<Plazo[]>([])
-  const [tareas, setTareas] = useState<Tarea[]>([])
   const [historial, setHistorial] = useState<HistorialEntry[]>([])
   const [anticipos, setAnticipos] = useState<CasoAnticipo[]>([])
   const [gastos, setGastos] = useState<CasoGasto[]>([])
@@ -81,7 +77,7 @@ export function CaseDetail({
     setError(null)
     setTab('info')
     try {
-      const [c, p, d, pl, h, u, e, tr, ant, gas, hor, carp] = await Promise.all([
+      const [c, p, d, pl, h, u, e, ant, gas, hor, carp] = await Promise.all([
         getCaso(casoId),
         listPersonas(casoId),
         listDocumentos(casoId),
@@ -89,7 +85,6 @@ export function CaseDetail({
         listHistorial(casoId),
         listWorkspaceUsers(),
         listEtapas(),
-        listTareas(casoId),
         listAnticipos(casoId),
         listGastos(casoId),
         listHoras(casoId),
@@ -100,7 +95,6 @@ export function CaseDetail({
       setDocumentos(d)
       setPlazos(pl)
       setHistorial(h)
-      setTareas(tr)
       setAnticipos(ant)
       setGastos(gas)
       setHoras(hor)
@@ -201,7 +195,7 @@ export function CaseDetail({
   }
 
   const { isMobile } = useDevice()
-  const MOBILE_TABS = new Set(['info', 'tareas', 'docs', 'plazos', 'notas'])
+  const MOBILE_TABS = new Set(['info', 'agenda', 'docs', 'notas'])
   const visibleTabs = TABS.filter((t) => {
     if (t.key === 'notas' && !showNotas) return false
     if (isMobile && !MOBILE_TABS.has(t.key)) return false
@@ -259,7 +253,7 @@ export function CaseDetail({
       <div className={`flex flex-shrink-0 gap-0 overflow-x-auto border-b border-border bg-surface ${isMobile ? 'px-2' : 'px-3 sm:px-5'}`}>
         {visibleTabs.map((t) => {
           const isActive = tab === t.key
-          const tareasCount = t.key === 'tareas' ? tareas.filter((x) => x.estado !== 'completada').length : 0
+          const agendaCount = t.key === 'agenda' ? plazos.filter(p => p.estado !== 'completada').length : 0
           return (
             <button
               key={t.key}
@@ -275,16 +269,13 @@ export function CaseDetail({
               ) : (
                 isActive && <span>{t.label}</span>
               )}
-              {t.key === 'tareas' && tareasCount > 0 && (
+              {t.key === 'agenda' && agendaCount > 0 && (
                 <span className={`rounded-full px-1.5 text-[10px] ${isActive ? 'bg-accent/20 text-accent' : 'bg-accent-soft text-accent'}`}>
-                  {tareasCount}
+                  {agendaCount}
                 </span>
               )}
               {t.key === 'docs' && documentos.length > 0 && !isActive && (
                 <span className="rounded-full bg-soft px-1.5 text-[10px] text-mute2">{documentos.length}</span>
-              )}
-              {t.key === 'plazos' && plazos.length > 0 && !isActive && (
-                <span className="rounded-full bg-soft px-1.5 text-[10px] text-mute2">{plazos.length}</span>
               )}
             </button>
           )
@@ -317,14 +308,16 @@ export function CaseDetail({
             }}
           />
         )}
-        {tab === 'tareas' && (
-          <TareasTab
-            tareas={tareas}
+        {tab === 'agenda' && (
+          <AgendaTab
+            plazos={plazos}
             casoId={caso.id}
             workspaceId={caso.workspace_id}
             puedeEditar={puedeEditar}
             usersById={usersById}
-            onTareasChange={setTareas}
+            users={Array.from(usersById.values())}
+            onOpenAdd={() => setAddPlazoOpen(true)}
+            onPlazosChange={setPlazos}
           />
         )}
         {tab === 'docs' && (
@@ -346,9 +339,6 @@ export function CaseDetail({
               setCarpetas(carp)
             }}
           />
-        )}
-        {tab === 'plazos' && (
-          <PlazosTab plazos={plazos} puedeEditar={puedeEditar} onOpenAdd={() => setAddPlazoOpen(true)} onDelete={onDeletePlazo} />
         )}
         {tab === 'pagos' && (
           <PagosTab
@@ -380,6 +370,8 @@ export function CaseDetail({
         open={addPlazoOpen}
         onClose={() => setAddPlazoOpen(false)}
         casoId={caso.id}
+        workspaceId={caso.workspace_id}
+        users={Array.from(usersById.values())}
         onAdded={(p) => setPlazos((prev) => [...prev, p].sort((a, b) => a.fecha.localeCompare(b.fecha)))}
       />
       <AddDocumentoModal

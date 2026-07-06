@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { Plazo, TipoPlazo } from '@/types/database'
+import type { Plazo, TipoPlazo, EstadoAgenda } from '@/types/database'
 
 export async function listPlazos(casoId: string): Promise<Plazo[]> {
   const { data, error } = await supabase.from('plazos').select('*').eq('caso_id', casoId).order('fecha')
@@ -9,12 +9,20 @@ export async function listPlazos(casoId: string): Promise<Plazo[]> {
 
 export async function createPlazo(input: {
   caso_id: string
+  workspace_id: string
   titulo: string
   descripcion?: string | null
   fecha: string
   tipo: TipoPlazo
+  asignado_a?: string | null
 }): Promise<Plazo> {
   const { data, error } = await supabase.from('plazos').insert(input).select('*').single()
+  if (error) throw error
+  return data
+}
+
+export async function updatePlazo(id: string, patch: Partial<Pick<Plazo, 'estado' | 'nota' | 'titulo' | 'descripcion' | 'fecha' | 'asignado_a'>>): Promise<Plazo> {
+  const { data, error } = await supabase.from('plazos').update(patch).eq('id', id).select('*').single()
   if (error) throw error
   return data
 }

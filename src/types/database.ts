@@ -14,7 +14,8 @@ export type Materia =
 export type EtapaColor = 'neutral' | 'accent' | 'warn' | 'danger' | 'success' | 'purple'
 export type RolPersona = 'abogado' | 'cliente' | 'otro'
 export type Visibilidad = 'privado' | 'compartido'
-export type TipoPlazo = 'audiencia' | 'plazo' | 'otro'
+export type TipoPlazo = 'audiencia' | 'plazo' | 'tarea' | 'otro'
+export type EstadoAgenda = 'pendiente' | 'en_progreso' | 'completada' | 'vencida'
 export type EstadoCliente = 'activo' | 'inactivo' | 'potencial'
 export type TipoCliente = 'persona_natural' | 'empresa'
 export type RolUsuario = 'administrador' | 'master' | 'limitado'
@@ -168,10 +169,14 @@ export type Carpeta = {
 export type Plazo = {
   id: string
   caso_id: string
+  workspace_id: string
   titulo: string
   descripcion: string | null
   fecha: string
   tipo: TipoPlazo
+  estado: EstadoAgenda
+  asignado_a: string | null
+  nota: string | null
   alertado: boolean
   created_at: string
 }
