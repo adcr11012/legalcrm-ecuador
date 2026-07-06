@@ -1,5 +1,5 @@
 import type { Plazo } from '@/types/database'
-import { diasRestantes, clasificarUrgencia, labelDias, URGENCIA_CLASS, URGENCIA_BORDER } from '@/features/casos/plazoUrgencia'
+import { diasRestantes, clasificarUrgencia, labelDias, URGENCIA_CLASS, SemaforoDot } from '@/features/casos/plazoUrgencia'
 
 const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 
@@ -21,17 +21,15 @@ export function PlazosTab({
         const urgencia = clasificarUrgencia(dias)
         const fecha = new Date(p.fecha + 'T00:00:00')
         return (
-          <div
-            key={p.id}
-            className={`flex items-center gap-3.5 rounded-[10px] border border-border bg-surface px-4 py-3 ${URGENCIA_BORDER[urgencia]}`}
-          >
+          <div key={p.id} className="flex items-center gap-3 rounded-[10px] border border-border bg-surface px-3 py-3">
+            <SemaforoDot urgencia={urgencia} />
             <div className="min-w-[42px] text-center">
               <div className="text-[22px] font-bold leading-none text-ink">{fecha.getDate()}</div>
               <div className="text-[10px] uppercase text-mute2">{MESES[fecha.getMonth()]}</div>
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-[13px] font-medium text-ink">{p.titulo}</div>
-              <div className="mt-0.5 text-[11px] text-muted">{p.descripcion || ' '}</div>
+              <div className="mt-0.5 text-[11px] text-muted">{p.descripcion || ' '}</div>
             </div>
             <div className="flex flex-shrink-0 items-center gap-2">
               <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${URGENCIA_CLASS[urgencia]}`}>

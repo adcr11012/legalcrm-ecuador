@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { listAllPlazos } from '@/features/casos/plazosApi'
 import { listAllTareasPendientes } from '@/features/casos/tareasApi'
 import { listCasos } from '@/features/casos/api'
-import { diasRestantes, clasificarUrgencia, labelDias, URGENCIA_CLASS, URGENCIA_BORDER } from '@/features/casos/plazoUrgencia'
+import { diasRestantes, clasificarUrgencia, labelDias, URGENCIA_CLASS, URGENCIA_BORDER, SemaforoDot } from '@/features/casos/plazoUrgencia'
 import type { Caso, Plazo, Tarea } from '@/types/database'
 
 const DIAS_SEMANA = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
@@ -181,9 +181,9 @@ export default function Agenda() {
                     <button
                       key={`p-${p.id}`}
                       onClick={() => caso && navigate(`/casos/${caso.id}`)}
-                      className={`flex items-center gap-3.5 rounded-[10px] border border-border bg-surface px-4 py-3 text-left transition hover:border-mute2/40 ${URGENCIA_BORDER[urgencia]}`}
+                      className="flex items-center gap-3 rounded-[10px] border border-border bg-surface px-3 py-3 text-left transition hover:bg-soft"
                     >
-                      {/* Ícono fijo: plazo = naranja/reloj */}
+                      <SemaforoDot urgencia={urgencia} />
                       <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[6px] bg-orange-100 text-orange-500">
                         <i className="ti ti-clock text-[15px]" />
                       </div>
@@ -191,7 +191,6 @@ export default function Agenda() {
                         <div className="text-[13px] font-semibold text-ink">{p.titulo}</div>
                         <div className="mt-0.5 text-[11px] text-muted">{caso?.titulo ?? 'Caso no disponible'}</div>
                       </div>
-                      {/* Semáforo de urgencia */}
                       <span className={`flex-shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${URGENCIA_CLASS[urgencia]}`}>
                         {labelDias(dias)}
                       </span>
@@ -206,9 +205,9 @@ export default function Agenda() {
                     <button
                       key={`t-${t.id}`}
                       onClick={() => caso && navigate(`/casos/${caso.id}`)}
-                      className={`flex items-center gap-3.5 rounded-[10px] border border-border bg-surface px-4 py-3 text-left transition hover:border-mute2/40 ${URGENCIA_BORDER[urgencia]}`}
+                      className="flex items-center gap-3 rounded-[10px] border border-border bg-surface px-3 py-3 text-left transition hover:bg-soft"
                     >
-                      {/* Ícono fijo: tarea = azul/checkbox */}
+                      <SemaforoDot urgencia={urgencia} />
                       <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[6px] bg-accent-soft text-accent">
                         <i className="ti ti-checkbox text-[15px]" />
                       </div>
@@ -216,7 +215,6 @@ export default function Agenda() {
                         <div className="text-[13px] font-semibold text-ink">{t.titulo}</div>
                         <div className="mt-0.5 text-[11px] text-muted">{caso?.titulo ?? 'Caso no disponible'}</div>
                       </div>
-                      {/* Semáforo de urgencia */}
                       <span className={`flex-shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${URGENCIA_CLASS[urgencia]}`}>
                         {labelDias(dias)}
                       </span>
