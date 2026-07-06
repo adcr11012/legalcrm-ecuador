@@ -187,25 +187,24 @@ export default function Agenda() {
                 } else {
                   const t = ev.tarea
                   const caso = casosById.get(t.caso_id)
-                  const vencida = t.fecha_limite! < todayStr
+                  const dias = diasRestantes(t.fecha_limite!)
+                  const urgencia = clasificarUrgencia(dias)
                   return (
                     <button
                       key={`t-${t.id}`}
                       onClick={() => caso && navigate(`/casos/${caso.id}`)}
-                      className={`flex items-center gap-3.5 rounded-[10px] border bg-surface px-4 py-3 text-left transition hover:border-mute2/40 ${vencida ? 'border-danger/40' : 'border-accent/30'}`}
+                      className={`flex items-center gap-3.5 rounded-[10px] border border-border bg-surface px-4 py-3 text-left transition hover:border-mute2/40 ${URGENCIA_BORDER[urgencia]}`}
                     >
-                      <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[6px] ${vencida ? 'bg-danger/10 text-danger' : 'bg-accent-soft text-accent'}`}>
+                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[6px] bg-soft text-muted">
                         <i className="ti ti-checkbox text-[15px]" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="text-[13px] font-semibold text-ink">{t.titulo}</div>
                         <div className="mt-0.5 text-[11px] text-muted">{caso?.titulo ?? 'Caso no disponible'}</div>
                       </div>
-                      {vencida && (
-                        <span className="flex-shrink-0 rounded-full bg-danger/10 px-2 py-0.5 text-[11px] font-medium text-danger">
-                          Vencida
-                        </span>
-                      )}
+                      <span className={`flex-shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${URGENCIA_CLASS[urgencia]}`}>
+                        {labelDias(dias)}
+                      </span>
                     </button>
                   )
                 }
