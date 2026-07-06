@@ -10,10 +10,9 @@ const NAV = [
 ]
 
 const MORE_LINKS = [
-  { to: '/clientes',      icon: 'ti-users',              label: 'Clientes',      blocked: true },
-  { to: '/usuarios',      icon: 'ti-user-cog',           label: 'Usuarios',      blocked: true },
-  { to: '/drive',         icon: 'ti-brand-google-drive', label: 'Drive',         blocked: true },
-  { to: '/configuracion', icon: 'ti-settings',           label: 'Configuración', blocked: true },
+  { to: '/clientes',      icon: 'ti-users',    label: 'Clientes',      blocked: true },
+  { to: '/usuarios',      icon: 'ti-user-cog', label: 'Usuarios',      blocked: true },
+  { to: '/configuracion', icon: 'ti-settings', label: 'Configuración', blocked: true },
 ]
 
 export function MobileBottomNav() {
