@@ -122,6 +122,7 @@ export type Caso = {
   honorarios_monto: number | null
   honorarios_forma_pago: HonorariosFormaPago | null
   honorarios_notas: string | null
+  etiquetas: string[]
   created_by: string
   created_at: string
   updated_at: string

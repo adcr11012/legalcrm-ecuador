@@ -1,0 +1,2 @@
+ALTER TABLE casos
+  ADD COLUMN IF NOT EXISTS etiquetas text[] NOT NULL DEFAULT '{}';

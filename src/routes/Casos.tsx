@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { usePageAction } from '@/components/layout/PageActionContext'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { useDevice } from '@/context/DeviceModeContext'
-import { listCasos, updateEtapaCaso } from '@/features/casos/api'
+import { listCasos, listCasosPage, updateEtapaCaso } from '@/features/casos/api'
 import { listPersonasForCasos } from '@/features/casos/personasApi'
 import { listEtapas } from '@/features/casos/etapasApi'
 import { listWorkspaceUsers } from '@/features/users/api'
@@ -28,29 +28,39 @@ export default function Casos() {
   const [modalOpen, setModalOpen] = useState(false)
   const [view, setView] = useState<'list' | 'kanban'>('list')
   const [kanbanModalCasoId, setKanbanModalCasoId] = useState<string | null>(null)
+  const [total, setTotal] = useState(0)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [fullyLoaded, setFullyLoaded] = useState(false)
+
+  const PAGE_SIZE = 60
 
   const etapasById = new Map(etapas.map((e) => [e.id, e]))
+
+  async function loadPersonasYEtapas(casosData: Caso[]) {
+    const [personas, users, etapasData] = await Promise.all([
+      listPersonasForCasos(casosData.map((c) => c.id)),
+      listWorkspaceUsers(),
+      listEtapas(),
+    ])
+    const pMap = new Map<string, CasoPersona[]>()
+    for (const p of personas) {
+      pMap.set(p.caso_id, [...(pMap.get(p.caso_id) ?? []), p])
+    }
+    setPersonasByCaso(pMap)
+    setUsersById(new Map(users.map((u) => [u.id, u])))
+    setEtapas(etapasData)
+  }
 
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      const data = await listCasos()
+      const { casos: data, total: totalCount } = await listCasosPage(0, PAGE_SIZE)
       setCasos(data)
+      setTotal(totalCount)
+      setFullyLoaded(data.length >= totalCount)
       if (!id && data[0]) navigate(`/casos/${data[0].id}`, { replace: true })
-
-      const [personas, users, etapasData] = await Promise.all([
-        listPersonasForCasos(data.map((c) => c.id)),
-        listWorkspaceUsers(),
-        listEtapas(),
-      ])
-      const pMap = new Map<string, CasoPersona[]>()
-      for (const p of personas) {
-        pMap.set(p.caso_id, [...(pMap.get(p.caso_id) ?? []), p])
-      }
-      setPersonasByCaso(pMap)
-      setUsersById(new Map(users.map((u) => [u.id, u])))
-      setEtapas(etapasData)
+      await loadPersonasYEtapas(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudieron cargar los casos.')
     } finally {
@@ -61,6 +71,38 @@ export default function Casos() {
   useEffect(() => {
     load()
   }, [load])
+
+  async function onLoadMore() {
+    setLoadingMore(true)
+    try {
+      const { casos: nextPage } = await listCasosPage(casos.length, PAGE_SIZE)
+      const merged = [...casos, ...nextPage]
+      setCasos(merged)
+      setFullyLoaded(merged.length >= total)
+      await loadPersonasYEtapas(merged)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudieron cargar más casos.')
+    } finally {
+      setLoadingMore(false)
+    }
+  }
+
+  // El Kanban necesita ver todos los casos para agrupar por etapa correctamente.
+  useEffect(() => {
+    if (view !== 'kanban' || fullyLoaded || loading) return
+    ;(async () => {
+      setLoadingMore(true)
+      try {
+        const data = await listCasos()
+        setCasos(data)
+        setTotal(data.length)
+        setFullyLoaded(true)
+        await loadPersonasYEtapas(data)
+      } finally {
+        setLoadingMore(false)
+      }
+    })()
+  }, [view, fullyLoaded, loading])
 
   usePageAction(
     profile
@@ -119,7 +161,15 @@ export default function Casos() {
       ) : (
         <div className="flex flex-1 overflow-hidden">
           <div className={`${id ? 'hidden lg:flex' : 'flex'} w-full lg:w-auto`}>
-            <CaseSidebar casos={casos} etapasById={etapasById} selectedId={id ?? null} onSelect={(cid) => navigate(`/casos/${cid}`)} />
+            <CaseSidebar
+              casos={casos}
+              etapasById={etapasById}
+              selectedId={id ?? null}
+              onSelect={(cid) => navigate(`/casos/${cid}`)}
+              hasMore={!fullyLoaded}
+              onLoadMore={onLoadMore}
+              loadingMore={loadingMore}
+            />
           </div>
           <div className={`${id ? 'flex' : 'hidden lg:flex'} min-w-0 flex-1`}>
             {id ? (

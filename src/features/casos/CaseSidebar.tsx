@@ -9,16 +9,26 @@ export function CaseSidebar({
   etapasById,
   selectedId,
   onSelect,
+  hasMore,
+  onLoadMore,
+  loadingMore,
 }: {
   casos: Caso[]
   etapasById: Map<string, Etapa>
   selectedId: string | null
   onSelect: (id: string) => void
+  hasMore?: boolean
+  onLoadMore?: () => void
+  loadingMore?: boolean
 }) {
   const [query, setQuery] = useState('')
+  const [etiqueta, setEtiqueta] = useState<string | null>(null)
   const { isMobile } = useDevice()
 
+  const todasEtiquetas = Array.from(new Set(casos.flatMap((c) => c.etiquetas ?? []))).sort()
+
   const filtered = casos.filter((c) => {
+    if (etiqueta && !(c.etiquetas ?? []).includes(etiqueta)) return false
     const q = query.toLowerCase()
     if (!q) return true
     return c.titulo.toLowerCase().includes(q) || (c.materia ?? '').toLowerCase().includes(q)
@@ -37,6 +47,21 @@ export function CaseSidebar({
               className="w-full bg-transparent text-[15px] text-ink outline-none placeholder:text-muted"
             />
           </div>
+          {todasEtiquetas.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {todasEtiquetas.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setEtiqueta(etiqueta === t ? null : t)}
+                  className={`rounded-full px-2.5 py-1 text-[12px] transition ${
+                    etiqueta === t ? 'bg-accent text-white' : 'border border-border text-muted hover:bg-soft'
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className="flex-1 overflow-y-auto px-4 py-3 pb-[76px] space-y-2">
           {filtered.map((c) => (
@@ -51,13 +76,25 @@ export function CaseSidebar({
             >
               <div className="text-[15px] font-semibold text-ink leading-snug">{c.titulo}</div>
               <div className="mt-1 text-[13px] text-muted">{MATERIA_LABEL[c.materia ?? 'otro']}</div>
-              <div className="mt-2">
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
                 <EtapaPill etapa={c.etapa_id ? etapasById.get(c.etapa_id) : null} />
+                {(c.etiquetas ?? []).map((t) => (
+                  <span key={t} className="rounded-full bg-soft px-2 py-0.5 text-[10px] text-mute2">{t}</span>
+                ))}
               </div>
             </button>
           ))}
           {filtered.length === 0 && (
             <div className="py-10 text-center text-[14px] text-muted">Sin resultados.</div>
+          )}
+          {hasMore && (
+            <button
+              onClick={onLoadMore}
+              disabled={loadingMore}
+              className="w-full rounded-[10px] border border-border py-2.5 text-[13px] text-muted transition hover:bg-soft disabled:opacity-50"
+            >
+              {loadingMore ? 'Cargando…' : 'Cargar más casos'}
+            </button>
           )}
         </div>
       </div>
@@ -76,6 +113,21 @@ export function CaseSidebar({
             className="w-full bg-transparent text-[12px] text-ink outline-none placeholder:text-mute2"
           />
         </div>
+        {todasEtiquetas.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {todasEtiquetas.map((t) => (
+              <button
+                key={t}
+                onClick={() => setEtiqueta(etiqueta === t ? null : t)}
+                className={`rounded-full px-2 py-0.5 text-[10px] transition ${
+                  etiqueta === t ? 'bg-accent text-white' : 'border border-border text-muted hover:bg-soft'
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto">
@@ -89,14 +141,27 @@ export function CaseSidebar({
           >
             <div className="text-[12px] font-semibold text-ink">{c.titulo}</div>
             <div className="mt-0.5 text-[11px] text-muted">{MATERIA_LABEL[c.materia ?? 'otro']}</div>
-            <div className="mt-1.5">
+            <div className="mt-1.5 flex flex-wrap items-center gap-1">
               <EtapaPill etapa={c.etapa_id ? etapasById.get(c.etapa_id) : null} />
+              {(c.etiquetas ?? []).map((t) => (
+                <span key={t} className="rounded-full bg-soft px-1.5 py-0.5 text-[9px] text-mute2">{t}</span>
+              ))}
             </div>
           </button>
         ))}
 
         {filtered.length === 0 && (
           <div className="p-4 text-center text-[12px] text-mute2">Sin resultados.</div>
+        )}
+
+        {hasMore && (
+          <button
+            onClick={onLoadMore}
+            disabled={loadingMore}
+            className="w-full border-t border-border py-2.5 text-[12px] text-muted transition hover:bg-soft disabled:opacity-50"
+          >
+            {loadingMore ? 'Cargando…' : 'Cargar más casos'}
+          </button>
         )}
       </div>
     </div>

@@ -33,6 +33,7 @@ export function CasoFormModal({
   const [numeroCausa, setNumeroCausa] = useState('')
   const [juzgado, setJuzgado] = useState('')
   const [fechaInicio, setFechaInicio] = useState('')
+  const [etiquetas, setEtiquetas] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -45,6 +46,7 @@ export function CasoFormModal({
     setNumeroCausa(caso?.numero_causa ?? '')
     setJuzgado(caso?.juzgado ?? '')
     setFechaInicio(caso?.fecha_inicio ?? '')
+    setEtiquetas(caso?.etiquetas.join(', ') ?? '')
     setError(null)
   }, [open, caso])
 
@@ -56,6 +58,7 @@ export function CasoFormModal({
     setNumeroCausa('')
     setJuzgado('')
     setFechaInicio('')
+    setEtiquetas('')
     setError(null)
   }
 
@@ -64,6 +67,7 @@ export function CasoFormModal({
     if (!profile) return
     setError(null)
     setLoading(true)
+    const etiquetasArr = etiquetas.split(',').map((t) => t.trim()).filter(Boolean)
     try {
       if (editing && caso) {
         const updated = await updateCaso(caso.id, {
@@ -73,6 +77,7 @@ export function CasoFormModal({
           numero_causa: numeroCausa || null,
           juzgado: juzgado || null,
           fecha_inicio: fechaInicio || null,
+          etiquetas: etiquetasArr,
         })
         onUpdated?.(updated)
       } else {
@@ -91,6 +96,7 @@ export function CasoFormModal({
           cliente_id: cliente.id,
           es_contencioso: !autoNoContencioso,
           rol_cliente: materia === 'asesoria' ? 'cliente' : autoNoContencioso ? 'solicitante' : null,
+          etiquetas: etiquetasArr,
         })
         // Vincula al cliente y al creador (como abogado responsable) — baja fricción.
         await addPersonaCliente(created.id, cliente.id, cliente.nombre)
@@ -167,6 +173,11 @@ export function CasoFormModal({
             <ClienteCombobox value={cliente} onChange={setCliente} />
           </div>
         )}
+
+        <div>
+          <label className={labelClass}>Etiquetas (separadas por coma)</label>
+          <input value={etiquetas} onChange={(e) => setEtiquetas(e.target.value)} className={inputClass} placeholder="Externo, Pro bono, Urgente" />
+        </div>
 
         {editing && (
           <>

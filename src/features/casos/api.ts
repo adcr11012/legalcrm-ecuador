@@ -13,10 +13,34 @@ export type NuevoCaso = {
   numero_causa?: string | null
   juzgado?: string | null
   fecha_inicio?: string | null
+  etiquetas?: string[]
 }
 
 export async function listCasos(): Promise<Caso[]> {
   const { data, error } = await supabase.from('casos').select('*').order('created_at', { ascending: false })
+  if (error) throw error
+  return data
+}
+
+export async function listCasosPage(offset: number, limit: number): Promise<{ casos: Caso[]; total: number }> {
+  const { data, error, count } = await supabase
+    .from('casos')
+    .select('*', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1)
+  if (error) throw error
+  return { casos: data, total: count ?? 0 }
+}
+
+export async function searchCasos(query: string): Promise<Caso[]> {
+  const q = query.replace(/[,()%]/g, ' ').trim()
+  if (!q) return []
+  const { data, error } = await supabase
+    .from('casos')
+    .select('*')
+    .or(`titulo.ilike.%${q}%,numero_causa.ilike.%${q}%`)
+    .order('created_at', { ascending: false })
+    .limit(100)
   if (error) throw error
   return data
 }
