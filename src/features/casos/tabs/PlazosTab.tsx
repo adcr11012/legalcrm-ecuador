@@ -1,5 +1,6 @@
 import type { Plazo } from '@/types/database'
-import { diasRestantes, clasificarUrgencia, labelDias, URGENCIA_CLASS, SemaforoDot } from '@/features/casos/plazoUrgencia'
+import { diasRestantes, clasificarUrgencia, labelDias, URGENCIA_CLASS } from '@/features/casos/plazoUrgencia'
+import { SemaforoDot } from '@/features/casos/SemaforoDot'
 
 const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 

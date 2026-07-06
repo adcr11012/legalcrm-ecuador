@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { listAllPlazos } from '@/features/casos/plazosApi'
 import { listAllTareasPendientes } from '@/features/casos/tareasApi'
 import { listCasos } from '@/features/casos/api'
-import { diasRestantes, clasificarUrgencia, labelDias, URGENCIA_CLASS, URGENCIA_BORDER, SemaforoDot } from '@/features/casos/plazoUrgencia'
+import { diasRestantes, clasificarUrgencia, labelDias, URGENCIA_CLASS } from '@/features/casos/plazoUrgencia'
+import { SemaforoDot } from '@/features/casos/SemaforoDot'
 import type { Caso, Plazo, Tarea } from '@/types/database'
 
 const DIAS_SEMANA = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
