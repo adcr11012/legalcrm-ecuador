@@ -28,6 +28,7 @@ export function AddPlazoModal({
   const [asignadoA, setAsignadoA] = useState('')
   const [personas, setPersonas] = useState<PersonaConEmail[]>([])
   const [notificarA, setNotificarA] = useState<Set<string>>(new Set())
+  const [notificarExternos, setNotificarExternos] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [syncWarning, setSyncWarning] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -46,9 +47,10 @@ export function AddPlazoModal({
       setTipo(plazo.tipo)
       setAsignadoA(plazo.asignado_a ?? '')
       setNotificarA(new Set(plazo.notificar_a ?? []))
+      setNotificarExternos((plazo.notificar_externos ?? []).join(', '))
     } else {
       setTitulo(''); setDescripcion(''); setFecha('')
-      setTipo('plazo'); setAsignadoA(''); setNotificarA(new Set())
+      setTipo('plazo'); setAsignadoA(''); setNotificarA(new Set()); setNotificarExternos('')
     }
     setError(null)
     setSyncWarning(null)
@@ -62,7 +64,7 @@ export function AddPlazoModal({
 
   function reset() {
     setTitulo(''); setDescripcion(''); setFecha('')
-    setTipo('plazo'); setAsignadoA(''); setNotificarA(new Set()); setError(null)
+    setTipo('plazo'); setAsignadoA(''); setNotificarA(new Set()); setNotificarExternos(''); setError(null)
   }
 
   function toggleNotificar(id: string) {
@@ -79,8 +81,9 @@ export function AddPlazoModal({
     setError(null)
     setSyncWarning(null)
     setLoading(true)
+    const externosArr = notificarExternos.split(',').map((e) => e.trim()).filter(Boolean)
     try {
-      const notificarSeleccionados = notificarA.size > 0
+      const notificarSeleccionados = notificarA.size > 0 || externosArr.length > 0
       if (editing && plazo) {
         const updated = await updatePlazo(plazo.id, {
           titulo,
@@ -89,6 +92,7 @@ export function AddPlazoModal({
           tipo,
           asignado_a: asignadoA || null,
           notificar_a: Array.from(notificarA),
+          notificar_externos: externosArr,
         })
         onUpdated?.(updated)
         if (notificarSeleccionados && updated._calendarSync && !updated._calendarSync.sincronizado) {
@@ -106,6 +110,7 @@ export function AddPlazoModal({
           tipo,
           asignado_a: asignadoA || null,
           notificar_a: Array.from(notificarA),
+          notificar_externos: externosArr,
         })
         onAdded(nuevo)
         if (notificarSeleccionados && nuevo._calendarSync && !nuevo._calendarSync.sincronizado) {
@@ -186,6 +191,19 @@ export function AddPlazoModal({
             </p>
           </div>
         )}
+
+        <div>
+          <label className={labelClass}>Notificar a externos (opcional)</label>
+          <input
+            value={notificarExternos}
+            onChange={(e) => setNotificarExternos(e.target.value)}
+            className={inputClass}
+            placeholder="correo1@ejemplo.com, correo2@ejemplo.com"
+          />
+          <p className="mt-1 text-[11px] text-mute2">
+            Correos separados por coma de personas que no están registradas en el caso (ej. un perito, un testigo).
+          </p>
+        </div>
 
         {syncWarning && (
           <div className="rounded-[6px] border border-warn/20 bg-warn-soft px-3 py-2 text-[12px] text-warn">

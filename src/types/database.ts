@@ -188,6 +188,7 @@ export type Plazo = {
   alertado: boolean
   google_event_id: string | null
   notificar_a: string[]
+  notificar_externos: string[]
   created_at: string
 }
 

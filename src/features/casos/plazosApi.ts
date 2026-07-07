@@ -18,6 +18,7 @@ export async function createPlazo(input: {
   tipo: TipoPlazo
   asignado_a?: string | null
   notificar_a?: string[]
+  notificar_externos?: string[]
 }): Promise<Plazo & { _calendarSync?: CalendarSyncResult }> {
   const { data, error } = await supabase.from('plazos').insert(input).select('*').single()
   if (error) throw error
@@ -27,11 +28,11 @@ export async function createPlazo(input: {
 
 export async function updatePlazo(
   id: string,
-  patch: Partial<Pick<Plazo, 'estado' | 'nota' | 'titulo' | 'descripcion' | 'fecha' | 'tipo' | 'asignado_a' | 'notificar_a'>>,
+  patch: Partial<Pick<Plazo, 'estado' | 'nota' | 'titulo' | 'descripcion' | 'fecha' | 'tipo' | 'asignado_a' | 'notificar_a' | 'notificar_externos'>>,
 ): Promise<Plazo & { _calendarSync?: CalendarSyncResult }> {
   const { data, error } = await supabase.from('plazos').update(patch).eq('id', id).select('*').single()
   if (error) throw error
-  if ('fecha' in patch || 'titulo' in patch || 'descripcion' in patch || 'notificar_a' in patch) {
+  if ('fecha' in patch || 'titulo' in patch || 'descripcion' in patch || 'notificar_a' in patch || 'notificar_externos' in patch) {
     const sync = await syncPlazoConCalendar(data.id).catch((err) => ({ sincronizado: false, motivo: err instanceof Error ? err.message : 'Error de red' }))
     return { ...data, _calendarSync: sync }
   }

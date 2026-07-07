@@ -117,7 +117,9 @@ Deno.serve(async (req) => {
     }
 
     // accion === 'upsert'
-    const emails = await resolverEmails(plazo.notificar_a ?? [])
+    const emailsPersonas = await resolverEmails(plazo.notificar_a ?? [])
+    const emailsExternos = (plazo.notificar_externos ?? []).filter(Boolean)
+    const emails = Array.from(new Set([...emailsPersonas, ...emailsExternos]))
     const attendees = emails.map((email) => ({ email }))
 
     const eventBody = {
