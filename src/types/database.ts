@@ -30,6 +30,13 @@ export type Workspace = {
   created_at: string
 }
 
+export type Grupo = {
+  id: string
+  workspace_id: string
+  nombre: string
+  created_at: string
+}
+
 export type Usuario = {
   id: string
   workspace_id: string
@@ -268,6 +275,8 @@ export type Database = {
       caso_gastos: Table<CasoGasto>
       caso_horas: Table<CasoHora>
       auditoria_documentos: Table<AuditoriaDocumento>
+      grupos: Table<Grupo>
+      grupo_usuarios: Table<{ grupo_id: string; user_id: string }>
     }
     Views: { [_ in never]: never }
     Functions: {

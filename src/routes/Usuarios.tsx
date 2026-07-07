@@ -6,6 +6,8 @@ import { listWorkspaceUsers, setRolUsuario, removeUsuario } from '@/features/use
 import { listPersonasPorUsuarios } from '@/features/casos/personasApi'
 import { listInvitacionesPendientes, deleteInvitacion } from '@/features/usuarios/invitacionesApi'
 import { InvitarUsuarioModal } from '@/features/usuarios/InvitarUsuarioModal'
+import { listGrupos, type GrupoConMiembros } from '@/features/users/gruposApi'
+import { GruposSection } from '@/features/users/GruposSection'
 import type { Invitacion, RolUsuario, Usuario } from '@/types/database'
 import { MobileBlock } from '@/components/mobile/MobileBlock'
 
@@ -47,6 +49,7 @@ export default function Usuarios() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [casosPorUsuario, setCasosPorUsuario] = useState<Map<string, number>>(new Map())
   const [invitaciones, setInvitaciones] = useState<Invitacion[]>([])
+  const [grupos, setGrupos] = useState<GrupoConMiembros[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
@@ -65,7 +68,10 @@ export default function Usuarios() {
         counts.set(p.user_id, (counts.get(p.user_id) ?? 0) + 1)
       }
       setCasosPorUsuario(counts)
-      if (esAdmin) setInvitaciones(await listInvitacionesPendientes())
+      if (esAdmin) {
+        setInvitaciones(await listInvitacionesPendientes())
+        setGrupos(await listGrupos())
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudieron cargar los usuarios.')
     } finally {
@@ -194,6 +200,10 @@ export default function Usuarios() {
           <strong>Master</strong>: todo excepto gestión de usuarios ·{' '}
           <strong>Limitado</strong>: solo ve sus casos asignados
         </div>
+      )}
+
+      {esAdmin && profile && (
+        <GruposSection workspaceId={profile.workspace_id} grupos={grupos} setGrupos={setGrupos} usuarios={usuarios} />
       )}
 
       {esAdmin && invitaciones.length > 0 && (
