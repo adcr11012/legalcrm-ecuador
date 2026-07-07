@@ -123,7 +123,7 @@ Deno.serve(async (req) => {
     const attendees = emails.map((email) => ({ email }))
 
     const eventBody = {
-      summary: plazo.titulo,
+      summary: `TSADOQ - ${plazo.titulo}`,
       description: plazo.descripcion ?? undefined,
       start: { date: plazo.fecha },
       end: { date: plazo.fecha },
