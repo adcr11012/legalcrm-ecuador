@@ -359,6 +359,7 @@ export function CaseDetail({
         open={addPersonaOpen}
         onClose={() => setAddPersonaOpen(false)}
         casoId={caso.id}
+        personasExistentes={personas}
         onAdded={(p) => setPersonas((prev) => [...prev, p])}
       />
       <AddPlazoModal

@@ -3,23 +3,26 @@ import { Modal } from '@/components/Modal'
 import { addPersonaInterna, addPersonaCliente } from '@/features/casos/personasApi'
 import { listWorkspaceUsers } from '@/features/users/api'
 import { listClientes } from '@/features/clientes/api'
+import { listGrupos, type GrupoConMiembros } from '@/features/users/gruposApi'
 import type { CasoPersona, Cliente, RolPersona, Usuario } from '@/types/database'
 
 const inputClass =
   'w-full rounded-[8px] border border-border bg-bg px-3 py-2.5 text-[13px] text-ink outline-none transition focus:border-accent'
 const labelClass = 'mb-1 block text-[11px] font-semibold uppercase tracking-wide text-mute2'
 
-type Tipo = 'workspace' | 'cliente'
+type Tipo = 'workspace' | 'cliente' | 'grupo'
 
 export function AddPersonaModal({
   open,
   onClose,
   casoId,
+  personasExistentes,
   onAdded,
 }: {
   open: boolean
   onClose: () => void
   casoId: string
+  personasExistentes?: CasoPersona[]
   onAdded: (p: CasoPersona) => void
 }) {
   const [tipo, setTipo] = useState<Tipo>('workspace')
@@ -27,6 +30,8 @@ export function AddPersonaModal({
   const [userId, setUserId] = useState('')
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [clienteId, setClienteId] = useState('')
+  const [grupos, setGrupos] = useState<GrupoConMiembros[]>([])
+  const [grupoId, setGrupoId] = useState('')
   const [rol, setRol] = useState<RolPersona>('abogado')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -45,6 +50,12 @@ export function AddPersonaModal({
         if (c[0]) setClienteId(c[0].id)
       })
       .catch(() => {})
+    listGrupos()
+      .then((g) => {
+        setGrupos(g)
+        if (g[0]) setGrupoId(g[0].id)
+      })
+      .catch(() => {})
   }, [open])
 
   function reset() {
@@ -58,14 +69,24 @@ export function AddPersonaModal({
     setError(null)
     setLoading(true)
     try {
-      let persona: CasoPersona
-      if (tipo === 'workspace') {
-        persona = await addPersonaInterna(casoId, userId, rol)
+      if (tipo === 'grupo') {
+        const grupo = grupos.find((g) => g.id === grupoId)
+        const yaAsignados = new Set((personasExistentes ?? []).map((p) => p.user_id).filter(Boolean))
+        const nuevos = (grupo?.userIds ?? []).filter((uid) => !yaAsignados.has(uid))
+        if (nuevos.length === 0) {
+          setError('Todos los miembros de este grupo ya están asignados al caso.')
+          setLoading(false)
+          return
+        }
+        for (const uid of nuevos) {
+          onAdded(await addPersonaInterna(casoId, uid, rol))
+        }
+      } else if (tipo === 'workspace') {
+        onAdded(await addPersonaInterna(casoId, userId, rol))
       } else {
         const cliente = clientes.find((c) => c.id === clienteId)
-        persona = await addPersonaCliente(casoId, clienteId, cliente?.nombre ?? '')
+        onAdded(await addPersonaCliente(casoId, clienteId, cliente?.nombre ?? ''))
       }
-      onAdded(persona)
       reset()
       onClose()
     } catch (err) {
@@ -100,6 +121,13 @@ export function AddPersonaModal({
           >
             <i className="ti ti-users mr-1 text-[11px]" />Cliente
           </button>
+          <button
+            type="button"
+            onClick={() => setTipo('grupo')}
+            className={`flex-1 rounded-[5px] py-1.5 text-[12px] transition ${tipo === 'grupo' ? 'bg-surface text-ink shadow-sm' : 'text-muted'}`}
+          >
+            <i className="ti ti-users-group mr-1 text-[11px]" />Grupo
+          </button>
         </div>
 
         {tipo === 'workspace' && (
@@ -133,6 +161,23 @@ export function AddPersonaModal({
           </div>
         )}
 
+        {tipo === 'grupo' && (
+          <div>
+            <label className={labelClass}>Grupo</label>
+            <select value={grupoId} onChange={(e) => setGrupoId(e.target.value)} className={inputClass} required>
+              {grupos.length === 0 && <option value="">Sin grupos creados</option>}
+              {grupos.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.nombre} ({g.userIds.length} {g.userIds.length === 1 ? 'miembro' : 'miembros'})
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-[11px] text-mute2">
+              Se añadirán todos los miembros del grupo que aún no estén en el caso.
+            </p>
+          </div>
+        )}
+
         {tipo !== 'cliente' && (
           <div>
             <label className={labelClass}>Rol en el caso</label>
@@ -162,7 +207,10 @@ export function AddPersonaModal({
           <button
             type="submit"
             disabled={
-              loading || (tipo === 'workspace' && !userId) || (tipo === 'cliente' && !clienteId)
+              loading ||
+              (tipo === 'workspace' && !userId) ||
+              (tipo === 'cliente' && !clienteId) ||
+              (tipo === 'grupo' && !grupoId)
             }
             className="rounded-[8px] bg-accent px-4 py-2 text-[13px] font-medium text-white transition hover:bg-accent-hover disabled:opacity-60"
           >
