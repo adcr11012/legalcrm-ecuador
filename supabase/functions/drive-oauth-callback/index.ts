@@ -42,13 +42,13 @@ Deno.serve(async (req) => {
 
     const { data: perfil, error: perfilError } = await admin
       .from('users')
-      .select('workspace_id, es_admin, nombre')
+      .select('workspace_id, rol, nombre')
       .eq('id', userData.user.id)
       .single()
     if (perfilError || !perfil) {
       return json({ error: 'Perfil no encontrado' }, 404)
     }
-    if (!perfil.es_admin) {
+    if (perfil.rol !== 'administrador') {
       return json({ error: 'Solo un administrador puede conectar Google Drive' }, 403)
     }
 
