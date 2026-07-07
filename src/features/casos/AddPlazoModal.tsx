@@ -29,6 +29,7 @@ export function AddPlazoModal({
   const [personas, setPersonas] = useState<PersonaConEmail[]>([])
   const [notificarA, setNotificarA] = useState<Set<string>>(new Set())
   const [error, setError] = useState<string | null>(null)
+  const [syncWarning, setSyncWarning] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -50,6 +51,7 @@ export function AddPlazoModal({
       setTipo('plazo'); setAsignadoA(''); setNotificarA(new Set())
     }
     setError(null)
+    setSyncWarning(null)
   }, [open, plazo])
 
   useEffect(() => {
@@ -75,8 +77,10 @@ export function AddPlazoModal({
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
     setError(null)
+    setSyncWarning(null)
     setLoading(true)
     try {
+      const notificarSeleccionados = notificarA.size > 0
       if (editing && plazo) {
         const updated = await updatePlazo(plazo.id, {
           titulo,
@@ -87,6 +91,11 @@ export function AddPlazoModal({
           notificar_a: Array.from(notificarA),
         })
         onUpdated?.(updated)
+        if (notificarSeleccionados && updated._calendarSync && !updated._calendarSync.sincronizado) {
+          setSyncWarning(updated._calendarSync.motivo ?? 'No se pudo sincronizar con Google Calendar.')
+          setLoading(false)
+          return
+        }
       } else {
         const nuevo = await createPlazo({
           caso_id: casoId,
@@ -99,6 +108,11 @@ export function AddPlazoModal({
           notificar_a: Array.from(notificarA),
         })
         onAdded(nuevo)
+        if (notificarSeleccionados && nuevo._calendarSync && !nuevo._calendarSync.sincronizado) {
+          setSyncWarning(nuevo._calendarSync.motivo ?? 'No se pudo sincronizar con Google Calendar.')
+          setLoading(false)
+          return
+        }
       }
       reset()
       onClose()
@@ -173,6 +187,12 @@ export function AddPlazoModal({
           </div>
         )}
 
+        {syncWarning && (
+          <div className="rounded-[6px] border border-warn/20 bg-warn-soft px-3 py-2 text-[12px] text-warn">
+            El {editing ? 'plazo se actualizó' : 'plazo se guardó'}, pero no se pudo sincronizar con Google Calendar: {syncWarning}
+          </div>
+        )}
+
         {error && (
           <div className="rounded-[6px] border border-danger/20 bg-danger-soft px-3 py-2 text-[12px] text-danger">{error}</div>
         )}
@@ -180,12 +200,14 @@ export function AddPlazoModal({
         <div className="mt-1 flex justify-end gap-2">
           <button type="button" onClick={() => { reset(); onClose() }}
             className="rounded-[8px] border border-border px-4 py-2 text-[13px] text-muted transition hover:bg-soft">
-            Cancelar
+            {syncWarning ? 'Cerrar' : 'Cancelar'}
           </button>
-          <button type="submit" disabled={loading}
-            className="rounded-[8px] bg-accent px-4 py-2 text-[13px] font-medium text-white transition hover:bg-accent-hover disabled:opacity-60">
-            {loading ? 'Guardando…' : editing ? 'Guardar cambios' : 'Agregar'}
-          </button>
+          {!syncWarning && (
+            <button type="submit" disabled={loading}
+              className="rounded-[8px] bg-accent px-4 py-2 text-[13px] font-medium text-white transition hover:bg-accent-hover disabled:opacity-60">
+              {loading ? 'Guardando…' : editing ? 'Guardar cambios' : 'Agregar'}
+            </button>
+          )}
         </div>
       </form>
     </Modal>
