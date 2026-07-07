@@ -2,11 +2,34 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { listAllPlazos } from '@/features/casos/plazosApi'
 import { listCasos } from '@/features/casos/api'
+import { listWorkspaceUsers } from '@/features/users/api'
 import { diasRestantes, clasificarUrgencia, labelDias, URGENCIA_CLASS } from '@/features/casos/plazoUrgencia'
 import { SemaforoDot } from '@/features/casos/SemaforoDot'
-import type { Caso, Plazo, TipoPlazo } from '@/types/database'
+import type { Caso, EstadoAgenda, Plazo, TipoPlazo, Usuario } from '@/types/database'
 
 const DIAS_SEMANA = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
+const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+
+const ESTADO_LABEL: Record<EstadoAgenda, string> = {
+  pendiente:    'Pendiente',
+  en_progreso:  'En progreso',
+  completada:   'Completada',
+  vencida:      'Vencida',
+}
+
+const ESTADO_COLOR: Record<EstadoAgenda, string> = {
+  pendiente:   'bg-soft text-muted',
+  en_progreso: 'bg-accent-soft text-accent',
+  completada:  'bg-success-soft text-success',
+  vencida:     'bg-danger-soft text-danger',
+}
+
+function calcularEstado(p: Plazo): EstadoAgenda {
+  if (p.estado === 'completada') return 'completada'
+  if (p.tipo === 'tarea' && p.estado === 'en_progreso') return 'en_progreso'
+  if (p.tipo !== 'tarea' && diasRestantes(p.fecha) < 0) return 'vencida'
+  return p.estado === 'vencida' ? 'vencida' : p.estado
+}
 
 function toDateStr(d: Date) {
   return d.toISOString().slice(0, 10)
@@ -57,6 +80,7 @@ export default function Agenda() {
   const navigate = useNavigate()
   const [plazos, setPlazos] = useState<Plazo[]>([])
   const [casosById, setCasosById] = useState<Map<string, Caso>>(new Map())
+  const [usersById, setUsersById] = useState<Map<string, Usuario>>(new Map())
   const [month, setMonth] = useState(() => startOfMonth(new Date()))
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -65,9 +89,10 @@ export default function Agenda() {
     setLoading(true)
     setError(null)
     try {
-      const [pl, casos] = await Promise.all([listAllPlazos(), listCasos()])
+      const [pl, casos, users] = await Promise.all([listAllPlazos(), listCasos(), listWorkspaceUsers()])
       setPlazos(pl)
       setCasosById(new Map(casos.map((c) => [c.id, c])))
+      setUsersById(new Map(users.map((u) => [u.id, u])))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo cargar la agenda.')
     } finally {
@@ -188,7 +213,10 @@ export default function Agenda() {
               {items.map((p) => {
                 const dias = diasRestantes(p.fecha)
                 const urgencia = clasificarUrgencia(dias)
+                const estado = calcularEstado(p)
+                const fechaObj = new Date(p.fecha + 'T00:00:00')
                 const caso = casosById.get(p.caso_id)
+                const asignado = p.asignado_a ? usersById.get(p.asignado_a) : null
                 return (
                   <button
                     key={p.id}
@@ -196,18 +224,35 @@ export default function Agenda() {
                     className="flex items-center gap-3 rounded-[10px] border border-border bg-surface px-3 py-3 text-left transition hover:bg-soft"
                   >
                     <SemaforoDot urgencia={urgencia} />
-                    <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[6px] ${TIPO_COLOR[p.tipo]}`}>
-                      <i className={`ti ${TIPO_ICON[p.tipo]} text-[15px]`} />
+
+                    <div className="min-w-[40px] text-center">
+                      <div className="text-[20px] font-bold leading-none text-ink">{fechaObj.getDate()}</div>
+                      <div className="text-[10px] uppercase text-mute2">{MESES[fechaObj.getMonth()]}</div>
                     </div>
+
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 mb-0.5">
+                      <div className="mb-0.5 flex flex-wrap items-center gap-1.5">
                         <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${TIPO_BADGE[p.tipo]}`}>
                           {TIPO_LABEL[p.tipo]}
                         </span>
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${ESTADO_COLOR[estado]}`}>
+                          {ESTADO_LABEL[estado]}
+                        </span>
                       </div>
-                      <div className="text-[13px] font-semibold text-ink">{p.titulo}</div>
+                      <div className="text-[13px] font-medium text-ink">{p.titulo}</div>
                       <div className="mt-0.5 text-[11px] text-muted">{caso?.titulo ?? 'Caso no disponible'}</div>
+                      {asignado && (
+                        <div className="mt-1 flex items-center gap-1 text-[11px] text-muted">
+                          <i className="ti ti-user text-[11px]" /> {asignado.nombre}
+                        </div>
+                      )}
+                      {p.nota && (
+                        <div className="mt-1.5 rounded-[6px] bg-warn-soft px-2 py-1 text-[11px] text-warn">
+                          <i className="ti ti-notes mr-1" />{p.nota}
+                        </div>
+                      )}
                     </div>
+
                     <span className={`flex-shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${URGENCIA_CLASS[urgencia]}`}>
                       {labelDias(dias)}
                     </span>
