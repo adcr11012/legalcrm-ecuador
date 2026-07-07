@@ -67,6 +67,7 @@ export function CaseDetail({
 
   const [addPersonaOpen, setAddPersonaOpen] = useState(false)
   const [addPlazoOpen, setAddPlazoOpen] = useState(false)
+  const [editingPlazo, setEditingPlazo] = useState<Plazo | null>(null)
   const [addDocOpen, setAddDocOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [informeOpen, setInformeOpen] = useState(false)
@@ -312,6 +313,7 @@ export function CaseDetail({
             usersById={usersById}
             users={Array.from(usersById.values())}
             onOpenAdd={() => setAddPlazoOpen(true)}
+            onOpenEdit={(p) => setEditingPlazo(p)}
             onPlazosChange={setPlazos}
           />
         )}
@@ -363,12 +365,14 @@ export function CaseDetail({
         onAdded={(p) => setPersonas((prev) => [...prev, p])}
       />
       <AddPlazoModal
-        open={addPlazoOpen}
-        onClose={() => setAddPlazoOpen(false)}
+        open={addPlazoOpen || Boolean(editingPlazo)}
+        onClose={() => { setAddPlazoOpen(false); setEditingPlazo(null) }}
         casoId={caso.id}
         workspaceId={caso.workspace_id}
         users={Array.from(usersById.values())}
+        plazo={editingPlazo}
         onAdded={(p) => setPlazos((prev) => [...prev, p].sort((a, b) => a.fecha.localeCompare(b.fecha)))}
+        onUpdated={(p) => setPlazos((prev) => prev.map((x) => (x.id === p.id ? p : x)).sort((a, b) => a.fecha.localeCompare(b.fecha)))}
       />
       <AddDocumentoModal
         open={addDocOpen}

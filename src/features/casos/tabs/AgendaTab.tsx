@@ -42,13 +42,14 @@ function calcularEstado(p: Plazo): EstadoAgenda {
 }
 
 function AgendaItem({
-  p, puedeEditar, usersById, onChange, onDelete,
+  p, puedeEditar, usersById, onChange, onDelete, onEdit,
 }: {
   p: Plazo
   puedeEditar: boolean
   usersById: Map<string, Usuario>
   onChange: (updated: Plazo) => void
   onDelete: (id: string) => void
+  onEdit: (p: Plazo) => void
 }) {
   const [notaOpen, setNotaOpen] = useState(false)
   const [notaVal, setNotaVal] = useState(p.nota ?? '')
@@ -114,6 +115,11 @@ function AgendaItem({
           </span>
           {puedeEditar && (
             <div className="flex gap-1">
+              <button onClick={() => onEdit(p)}
+                className="flex h-6 w-6 items-center justify-center rounded-[5px] border border-border text-muted transition hover:bg-soft"
+                title="Editar">
+                <i className="ti ti-edit text-[12px]" />
+              </button>
               {/* Nota (para vencidos o cualquiera) */}
               <button onClick={() => setNotaOpen(v => !v)}
                 className="flex h-6 w-6 items-center justify-center rounded-[5px] border border-border text-muted transition hover:bg-soft"
@@ -168,7 +174,7 @@ function AgendaItem({
 }
 
 export function AgendaTab({
-  plazos: plazosInit, casoId: _casoId, workspaceId: _workspaceId, puedeEditar, usersById, users: _users, onOpenAdd, onPlazosChange,
+  plazos: plazosInit, casoId: _casoId, workspaceId: _workspaceId, puedeEditar, usersById, users: _users, onOpenAdd, onOpenEdit, onPlazosChange,
 }: {
   plazos: Plazo[]
   casoId: string
@@ -177,6 +183,7 @@ export function AgendaTab({
   usersById: Map<string, Usuario>
   users: Usuario[]
   onOpenAdd: () => void
+  onOpenEdit: (p: Plazo) => void
   onPlazosChange: (plazos: Plazo[]) => void
 }) {
   const [plazos, setPlazos] = useState(plazosInit)
@@ -201,14 +208,14 @@ export function AgendaTab({
   return (
     <div className="flex flex-col gap-2">
       {activos.map(p => (
-        <AgendaItem key={p.id} p={p} puedeEditar={puedeEditar} usersById={usersById} onChange={handleChange} onDelete={handleDelete} />
+        <AgendaItem key={p.id} p={p} puedeEditar={puedeEditar} usersById={usersById} onChange={handleChange} onDelete={handleDelete} onEdit={onOpenEdit} />
       ))}
 
       {cerrados.length > 0 && (
         <>
           <div className="mt-2 mb-1 text-[11px] font-semibold uppercase tracking-wide text-mute2">Completados</div>
           {cerrados.map(p => (
-            <AgendaItem key={p.id} p={p} puedeEditar={puedeEditar} usersById={usersById} onChange={handleChange} onDelete={handleDelete} />
+            <AgendaItem key={p.id} p={p} puedeEditar={puedeEditar} usersById={usersById} onChange={handleChange} onDelete={handleDelete} onEdit={onOpenEdit} />
           ))}
         </>
       )}

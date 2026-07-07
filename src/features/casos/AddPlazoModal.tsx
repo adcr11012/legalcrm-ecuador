@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Modal } from '@/components/Modal'
-import { createPlazo } from '@/features/casos/plazosApi'
+import { createPlazo, updatePlazo } from '@/features/casos/plazosApi'
 import { listPersonasConEmail, type PersonaConEmail } from '@/features/casos/personasApi'
 import type { Plazo, TipoPlazo, Usuario } from '@/types/database'
 
@@ -9,15 +9,18 @@ const inputClass =
 const labelClass = 'mb-1 block text-[11px] font-semibold uppercase tracking-wide text-mute2'
 
 export function AddPlazoModal({
-  open, onClose, casoId, workspaceId, users, onAdded,
+  open, onClose, casoId, workspaceId, users, plazo, onAdded, onUpdated,
 }: {
   open: boolean
   onClose: () => void
   casoId: string
   workspaceId: string
   users: Usuario[]
+  plazo?: Plazo | null
   onAdded: (p: Plazo) => void
+  onUpdated?: (p: Plazo) => void
 }) {
+  const editing = Boolean(plazo)
   const [titulo, setTitulo] = useState('')
   const [descripcion, setDescripcion] = useState('')
   const [fecha, setFecha] = useState('')
@@ -34,10 +37,26 @@ export function AddPlazoModal({
   }, [open, casoId])
 
   useEffect(() => {
-    if (!asignadoA) return
+    if (!open) return
+    if (plazo) {
+      setTitulo(plazo.titulo)
+      setDescripcion(plazo.descripcion ?? '')
+      setFecha(plazo.fecha)
+      setTipo(plazo.tipo)
+      setAsignadoA(plazo.asignado_a ?? '')
+      setNotificarA(new Set(plazo.notificar_a ?? []))
+    } else {
+      setTitulo(''); setDescripcion(''); setFecha('')
+      setTipo('plazo'); setAsignadoA(''); setNotificarA(new Set())
+    }
+    setError(null)
+  }, [open, plazo])
+
+  useEffect(() => {
+    if (!asignadoA || editing) return
     const persona = personas.find((p) => p.userId === asignadoA)
     if (persona) setNotificarA((prev) => new Set(prev).add(persona.casoPersonaId))
-  }, [asignadoA, personas])
+  }, [asignadoA, personas, editing])
 
   function reset() {
     setTitulo(''); setDescripcion(''); setFecha('')
@@ -58,28 +77,40 @@ export function AddPlazoModal({
     setError(null)
     setLoading(true)
     try {
-      const plazo = await createPlazo({
-        caso_id: casoId,
-        workspace_id: workspaceId,
-        titulo,
-        descripcion: descripcion || null,
-        fecha,
-        tipo,
-        asignado_a: asignadoA || null,
-        notificar_a: Array.from(notificarA),
-      })
-      onAdded(plazo)
+      if (editing && plazo) {
+        const updated = await updatePlazo(plazo.id, {
+          titulo,
+          descripcion: descripcion || null,
+          fecha,
+          tipo,
+          asignado_a: asignadoA || null,
+          notificar_a: Array.from(notificarA),
+        })
+        onUpdated?.(updated)
+      } else {
+        const nuevo = await createPlazo({
+          caso_id: casoId,
+          workspace_id: workspaceId,
+          titulo,
+          descripcion: descripcion || null,
+          fecha,
+          tipo,
+          asignado_a: asignadoA || null,
+          notificar_a: Array.from(notificarA),
+        })
+        onAdded(nuevo)
+      }
       reset()
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo agregar.')
+      setError(err instanceof Error ? err.message : 'No se pudo guardar.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <Modal open={open} onClose={() => { reset(); onClose() }} title="Agregar a la agenda">
+    <Modal open={open} onClose={() => { reset(); onClose() }} title={editing ? 'Editar agenda' : 'Agregar a la agenda'}>
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -153,7 +184,7 @@ export function AddPlazoModal({
           </button>
           <button type="submit" disabled={loading}
             className="rounded-[8px] bg-accent px-4 py-2 text-[13px] font-medium text-white transition hover:bg-accent-hover disabled:opacity-60">
-            {loading ? 'Guardando…' : 'Agregar'}
+            {loading ? 'Guardando…' : editing ? 'Guardar cambios' : 'Agregar'}
           </button>
         </div>
       </form>

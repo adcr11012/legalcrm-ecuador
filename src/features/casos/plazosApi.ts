@@ -25,7 +25,7 @@ export async function createPlazo(input: {
 
 export async function updatePlazo(
   id: string,
-  patch: Partial<Pick<Plazo, 'estado' | 'nota' | 'titulo' | 'descripcion' | 'fecha' | 'asignado_a' | 'notificar_a'>>,
+  patch: Partial<Pick<Plazo, 'estado' | 'nota' | 'titulo' | 'descripcion' | 'fecha' | 'tipo' | 'asignado_a' | 'notificar_a'>>,
 ): Promise<Plazo> {
   const { data, error } = await supabase.from('plazos').update(patch).eq('id', id).select('*').single()
   if (error) throw error
