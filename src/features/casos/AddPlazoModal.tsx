@@ -29,6 +29,7 @@ export function AddPlazoModal({
   const [personas, setPersonas] = useState<PersonaConEmail[]>([])
   const [notificarA, setNotificarA] = useState<Set<string>>(new Set())
   const [notificarExternos, setNotificarExternos] = useState('')
+  const [recordatoriosActivos, setRecordatoriosActivos] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [syncWarning, setSyncWarning] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -48,9 +49,10 @@ export function AddPlazoModal({
       setAsignadoA(plazo.asignado_a ?? '')
       setNotificarA(new Set(plazo.notificar_a ?? []))
       setNotificarExternos((plazo.notificar_externos ?? []).join(', '))
+      setRecordatoriosActivos(plazo.recordatorios_activos ?? false)
     } else {
       setTitulo(''); setDescripcion(''); setFecha('')
-      setTipo('plazo'); setAsignadoA(''); setNotificarA(new Set()); setNotificarExternos('')
+      setTipo('plazo'); setAsignadoA(''); setNotificarA(new Set()); setNotificarExternos(''); setRecordatoriosActivos(false)
     }
     setError(null)
     setSyncWarning(null)
@@ -64,7 +66,7 @@ export function AddPlazoModal({
 
   function reset() {
     setTitulo(''); setDescripcion(''); setFecha('')
-    setTipo('plazo'); setAsignadoA(''); setNotificarA(new Set()); setNotificarExternos(''); setError(null)
+    setTipo('plazo'); setAsignadoA(''); setNotificarA(new Set()); setNotificarExternos(''); setRecordatoriosActivos(false); setError(null)
   }
 
   function toggleNotificar(id: string) {
@@ -93,6 +95,7 @@ export function AddPlazoModal({
           asignado_a: asignadoA || null,
           notificar_a: Array.from(notificarA),
           notificar_externos: externosArr,
+          recordatorios_activos: recordatoriosActivos,
         })
         onUpdated?.(updated)
         if (notificarSeleccionados && updated._calendarSync && !updated._calendarSync.sincronizado) {
@@ -111,6 +114,7 @@ export function AddPlazoModal({
           asignado_a: asignadoA || null,
           notificar_a: Array.from(notificarA),
           notificar_externos: externosArr,
+          recordatorios_activos: recordatoriosActivos,
         })
         onAdded(nuevo)
         if (notificarSeleccionados && nuevo._calendarSync && !nuevo._calendarSync.sincronizado) {
@@ -202,6 +206,20 @@ export function AddPlazoModal({
           />
           <p className="mt-1 text-[11px] text-mute2">
             Correos separados por coma de personas que no están registradas en el caso (ej. un perito, un testigo).
+          </p>
+        </div>
+
+        <div className="rounded-[8px] border border-border bg-bg p-2.5">
+          <label className="flex items-center gap-2 text-[13px] font-medium text-ink">
+            <input
+              type="checkbox"
+              checked={recordatoriosActivos}
+              onChange={(e) => setRecordatoriosActivos(e.target.checked)}
+            />
+            Habilitar recordatorios automáticos
+          </label>
+          <p className="mt-1 text-[11px] text-mute2">
+            Se enviarán recordatorios por correo a 30 días, 8 días y 48 horas antes de la fecha, a todos los notificados arriba.
           </p>
         </div>
 

@@ -38,6 +38,95 @@ async function enviarCorreo(to: string[], asunto: string, html: string) {
   }
 }
 
+function diasEntre(hoy: string, fecha: string): number {
+  const a = new Date(hoy + 'T00:00:00Z').getTime()
+  const b = new Date(fecha + 'T00:00:00Z').getTime()
+  return Math.round((b - a) / 86400000)
+}
+
+async function resolverEmailsPersonas(casoPersonaIds: string[]): Promise<string[]> {
+  if (casoPersonaIds.length === 0) return []
+  const { data: personas } = await supabase.from('caso_personas').select('*').in('id', casoPersonaIds)
+  if (!personas || personas.length === 0) return []
+
+  const userIds = personas.filter((p) => p.user_id).map((p) => p.user_id)
+  const clienteIds = personas.filter((p) => p.cliente_id).map((p) => p.cliente_id)
+
+  const [usersRes, clientesRes] = await Promise.all([
+    userIds.length > 0 ? supabase.from('users').select('id, email').in('id', userIds) : Promise.resolve({ data: [] }),
+    clienteIds.length > 0 ? supabase.from('clientes').select('id, email').in('id', clienteIds) : Promise.resolve({ data: [] }),
+  ])
+  const usersById = new Map((usersRes.data ?? []).map((u: { id: string; email: string }) => [u.id, u.email]))
+  const clientesById = new Map((clientesRes.data ?? []).map((c: { id: string; email: string | null }) => [c.id, c.email]))
+
+  const emails = new Set<string>()
+  for (const p of personas) {
+    if (p.user_id && usersById.has(p.user_id)) emails.add(usersById.get(p.user_id))
+    else if (p.cliente_id && clientesById.get(p.cliente_id)) emails.add(clientesById.get(p.cliente_id)!)
+    else if (p.email_externo) emails.add(p.email_externo)
+  }
+  return Array.from(emails).filter(Boolean)
+}
+
+// Recordatorios escalonados (opt-in por plazo): 30 días, 8 días, 48 horas antes.
+// Solo se evalúan a partir del día siguiente a la creación, para no duplicar
+// el aviso inicial de agendamiento con el primer recordatorio.
+async function procesarRecordatoriosEscalonados(hoy: string) {
+  const { data: plazos, error } = await supabase
+    .from('plazos')
+    .select('*, casos!inner(titulo)')
+    .eq('recordatorios_activos', true)
+    .gte('fecha', hoy)
+    .lt('created_at', hoy)
+
+  if (error) {
+    console.error(error)
+    return 0
+  }
+
+  const etapas = [
+    { campo: 'aviso_48h_enviado', maxDias: 2, label: '48 horas' },
+    { campo: 'aviso_8_enviado', maxDias: 8, label: '8 días' },
+    { campo: 'aviso_30_enviado', maxDias: 30, label: '30 días' },
+  ] as const
+
+  let enviados = 0
+
+  for (const plazo of plazos ?? []) {
+    const caso = (plazo as { casos: { titulo: string } }).casos
+    const dias = diasEntre(hoy, plazo.fecha)
+
+    for (const etapa of etapas) {
+      if (dias <= etapa.maxDias && !plazo[etapa.campo]) {
+        const emailsPersonas = await resolverEmailsPersonas(plazo.notificar_a ?? [])
+        const emailsExternos = (plazo.notificar_externos ?? []).filter(Boolean)
+        const destinatarios = Array.from(new Set([...emailsPersonas, ...emailsExternos]))
+
+        if (destinatarios.length > 0) {
+          const fechaFmt = new Date(plazo.fecha + 'T00:00:00Z').toLocaleDateString('es-EC', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          })
+          await enviarCorreo(
+            destinatarios,
+            `Recordatorio (quedan ${dias} días): ${plazo.titulo} — ${caso.titulo}`,
+            `<p>Recordatorio de <strong>${plazo.titulo}</strong> en <strong>${caso.titulo}</strong>:</p>
+             <p>Fecha: ${fechaFmt} (quedan ${dias} día${dias === 1 ? '' : 's'})</p>
+             <p>— TSADOQ</p>`,
+          )
+          enviados++
+        }
+
+        await supabase.from('plazos').update({ [etapa.campo]: true }).eq('id', plazo.id)
+        break // un solo aviso por día, el más urgente que aplique
+      }
+    }
+  }
+
+  return enviados
+}
+
 Deno.serve(async () => {
   const hoy = todayISO()
 
@@ -117,7 +206,9 @@ Deno.serve(async () => {
     }
   }
 
-  return new Response(JSON.stringify({ ok: true, alertados }), {
+  const recordatoriosEnviados = await procesarRecordatoriosEscalonados(hoy)
+
+  return new Response(JSON.stringify({ ok: true, alertados, recordatoriosEnviados }), {
     headers: { 'Content-Type': 'application/json' },
   })
 })

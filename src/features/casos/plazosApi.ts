@@ -19,6 +19,7 @@ export async function createPlazo(input: {
   asignado_a?: string | null
   notificar_a?: string[]
   notificar_externos?: string[]
+  recordatorios_activos?: boolean
 }): Promise<Plazo & { _calendarSync?: CalendarSyncResult }> {
   const { data, error } = await supabase.from('plazos').insert(input).select('*').single()
   if (error) throw error
@@ -28,7 +29,7 @@ export async function createPlazo(input: {
 
 export async function updatePlazo(
   id: string,
-  patch: Partial<Pick<Plazo, 'estado' | 'nota' | 'titulo' | 'descripcion' | 'fecha' | 'tipo' | 'asignado_a' | 'notificar_a' | 'notificar_externos'>>,
+  patch: Partial<Pick<Plazo, 'estado' | 'nota' | 'titulo' | 'descripcion' | 'fecha' | 'tipo' | 'asignado_a' | 'notificar_a' | 'notificar_externos' | 'recordatorios_activos'>>,
 ): Promise<Plazo & { _calendarSync?: CalendarSyncResult }> {
   const { data, error } = await supabase.from('plazos').update(patch).eq('id', id).select('*').single()
   if (error) throw error

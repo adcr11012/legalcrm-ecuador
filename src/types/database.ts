@@ -189,6 +189,10 @@ export type Plazo = {
   google_event_id: string | null
   notificar_a: string[]
   notificar_externos: string[]
+  recordatorios_activos: boolean
+  aviso_30_enviado: boolean
+  aviso_8_enviado: boolean
+  aviso_48h_enviado: boolean
   created_at: string
 }
 
