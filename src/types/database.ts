@@ -186,6 +186,8 @@ export type Plazo = {
   asignado_a: string | null
   nota: string | null
   alertado: boolean
+  google_event_id: string | null
+  notificar_a: string[]
   created_at: string
 }
 

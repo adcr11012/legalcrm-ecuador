@@ -1,6 +1,7 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Modal } from '@/components/Modal'
 import { createPlazo } from '@/features/casos/plazosApi'
+import { listPersonasConEmail, type PersonaConEmail } from '@/features/casos/personasApi'
 import type { Plazo, TipoPlazo, Usuario } from '@/types/database'
 
 const inputClass =
@@ -22,12 +23,34 @@ export function AddPlazoModal({
   const [fecha, setFecha] = useState('')
   const [tipo, setTipo] = useState<TipoPlazo>('plazo')
   const [asignadoA, setAsignadoA] = useState('')
+  const [personas, setPersonas] = useState<PersonaConEmail[]>([])
+  const [notificarA, setNotificarA] = useState<Set<string>>(new Set())
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
+  useEffect(() => {
+    if (!open) return
+    listPersonasConEmail(casoId).then(setPersonas).catch(() => {})
+  }, [open, casoId])
+
+  useEffect(() => {
+    if (!asignadoA) return
+    const persona = personas.find((p) => p.userId === asignadoA)
+    if (persona) setNotificarA((prev) => new Set(prev).add(persona.casoPersonaId))
+  }, [asignadoA, personas])
+
   function reset() {
     setTitulo(''); setDescripcion(''); setFecha('')
-    setTipo('plazo'); setAsignadoA(''); setError(null)
+    setTipo('plazo'); setAsignadoA(''); setNotificarA(new Set()); setError(null)
+  }
+
+  function toggleNotificar(id: string) {
+    setNotificarA((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
   }
 
   async function onSubmit(e: FormEvent) {
@@ -43,6 +66,7 @@ export function AddPlazoModal({
         fecha,
         tipo,
         asignado_a: asignadoA || null,
+        notificar_a: Array.from(notificarA),
       })
       onAdded(plazo)
       reset()
@@ -91,6 +115,30 @@ export function AddPlazoModal({
               <option value="">Sin asignar</option>
               {users.map(u => <option key={u.id} value={u.id}>{u.nombre}</option>)}
             </select>
+          </div>
+        )}
+
+        {personas.length > 0 && (
+          <div>
+            <label className={labelClass}>Notificar a (Google Calendar)</label>
+            <div className="flex flex-col gap-1.5 rounded-[8px] border border-border bg-bg p-2.5">
+              {personas.map((p) => (
+                <label key={p.casoPersonaId} className="flex items-center gap-2 text-[12px] text-ink">
+                  <input
+                    type="checkbox"
+                    checked={notificarA.has(p.casoPersonaId)}
+                    onChange={() => toggleNotificar(p.casoPersonaId)}
+                    disabled={!p.email}
+                  />
+                  <span className={!p.email ? 'text-mute2' : ''}>
+                    {p.nombre}{!p.email && ' (sin email registrado)'}
+                  </span>
+                </label>
+              ))}
+            </div>
+            <p className="mt-1 text-[11px] text-mute2">
+              Se enviará una invitación de Google Calendar a los seleccionados, si la cuenta de Google está conectada.
+            </p>
           </div>
         )}
 

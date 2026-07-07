@@ -15,21 +15,54 @@ export async function createPlazo(input: {
   fecha: string
   tipo: TipoPlazo
   asignado_a?: string | null
+  notificar_a?: string[]
 }): Promise<Plazo> {
   const { data, error } = await supabase.from('plazos').insert(input).select('*').single()
   if (error) throw error
+  syncPlazoConCalendar(data.id).catch(() => {})
   return data
 }
 
-export async function updatePlazo(id: string, patch: Partial<Pick<Plazo, 'estado' | 'nota' | 'titulo' | 'descripcion' | 'fecha' | 'asignado_a'>>): Promise<Plazo> {
+export async function updatePlazo(
+  id: string,
+  patch: Partial<Pick<Plazo, 'estado' | 'nota' | 'titulo' | 'descripcion' | 'fecha' | 'asignado_a' | 'notificar_a'>>,
+): Promise<Plazo> {
   const { data, error } = await supabase.from('plazos').update(patch).eq('id', id).select('*').single()
   if (error) throw error
+  if ('fecha' in patch || 'titulo' in patch || 'descripcion' in patch || 'notificar_a' in patch) {
+    syncPlazoConCalendar(data.id).catch(() => {})
+  }
   return data
 }
 
 export async function deletePlazo(id: string): Promise<void> {
+  await cancelarSyncCalendar(id).catch(() => {})
   const { error } = await supabase.from('plazos').delete().eq('id', id)
   if (error) throw error
+}
+
+async function syncPlazoConCalendar(plazoId: string): Promise<void> {
+  const { data: session } = await supabase.auth.getSession()
+  const token = session.session?.access_token
+  if (!token) return
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/calendar-sync-event`
+  await fetch(url, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ plazo_id: plazoId, accion: 'upsert' }),
+  })
+}
+
+async function cancelarSyncCalendar(plazoId: string): Promise<void> {
+  const { data: session } = await supabase.auth.getSession()
+  const token = session.session?.access_token
+  if (!token) return
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/calendar-sync-event`
+  await fetch(url, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ plazo_id: plazoId, accion: 'cancelar' }),
+  })
 }
 
 export async function listAllPlazos(): Promise<Plazo[]> {

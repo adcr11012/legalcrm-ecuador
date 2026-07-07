@@ -141,7 +141,7 @@ export default function Configuracion() {
         </div>
 
         <div className="rounded-[10px] border border-border bg-surface p-3">
-          <label className={labelClass}>Google Drive</label>
+          <label className={labelClass}>Google Drive + Calendar</label>
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 text-[13px] text-muted">
               <span className={`h-1.5 w-1.5 rounded-full ${driveEstado.conectado ? 'bg-success' : 'bg-mute2'}`} />
@@ -167,6 +167,10 @@ export default function Configuracion() {
               </div>
             )}
           </div>
+          <p className="mt-2 text-[11px] text-mute2">
+            Esta misma cuenta se usa para agendar automáticamente en Google Calendar todo lo que se registre en la Agenda de cada caso.
+            {driveEstado.conectado && ' Si la conectaste antes de esta actualización, dale a "Reconectar" para habilitar el permiso de Calendar.'}
+          </p>
         </div>
 
         <div className="mt-2.5">

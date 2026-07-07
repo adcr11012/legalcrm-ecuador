@@ -3,7 +3,8 @@ import type { Documento } from '@/types/database'
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
 const REDIRECT_URI = `${window.location.origin}/drive/oauth-callback`
-const SCOPE = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email'
+const SCOPE =
+  'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/calendar.events'
 
 export function isGoogleDriveConfigured(): boolean {
   return Boolean(CLIENT_ID)
