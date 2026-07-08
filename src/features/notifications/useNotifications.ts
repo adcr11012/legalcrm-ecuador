@@ -41,8 +41,9 @@ export function useNotifications() {
       const umbralDias = workspace?.dias_anticipacion ?? 3
 
       const dePlazos: Notificacion[] = !mostrarPlazosEnApp ? [] : plazos
+        .filter((p) => p.estado !== 'completada')
         .map((p) => ({ p, dias: diasRestantes(p.fecha) }))
-        .filter(({ dias }) => dias <= umbralDias)
+        .filter(({ dias }) => dias >= 0 && dias <= umbralDias)
         .map(({ p, dias }) => ({
           id: `plazo-${p.id}`,
           tipo: 'plazo' as const,
