@@ -188,12 +188,15 @@ export default function Configuracion() {
           </>
         )}
 
-        <div className="mt-6 mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-mute2">Notificaciones</div>
+        <div className="mt-6 mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-mute2">Notificaciones en la app</div>
 
         <div className="mb-2.5 flex items-center justify-between rounded-[10px] border border-border bg-surface p-3">
           <div>
-            <div className="text-[13px] font-medium text-ink">Alertas de plazos por correo</div>
-            <div className="text-[11px] text-muted">Avisa a los usuarios asignados al caso y a los administradores antes de un vencimiento.</div>
+            <div className="text-[13px] font-medium text-ink">Mostrar plazos próximos en la campanita</div>
+            <div className="text-[11px] text-muted">
+              Incluye plazos, audiencias, tareas y otros próximos a vencer en las notificaciones dentro de la app.
+              El aviso por correo de audiencias/plazos con invitados ya lo maneja Google Calendar.
+            </div>
           </div>
           <button
             disabled={!puedeEditar}
@@ -227,6 +230,7 @@ export default function Configuracion() {
           ) : (
             <div className="text-[13px] font-medium text-ink">{workspace.dias_anticipacion} días antes</div>
           )}
+          <p className="mt-1.5 text-[11px] text-mute2">Cuántos días antes debe aparecer en la campanita.</p>
         </div>
 
         <div className="mt-6 mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-mute2">Alertas de inactividad</div>

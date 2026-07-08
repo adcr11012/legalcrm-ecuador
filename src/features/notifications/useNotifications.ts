@@ -4,6 +4,7 @@ import { listAllTareasPendientes } from '@/features/casos/tareasApi'
 import { listCasos } from '@/features/casos/api'
 import { listClientes } from '@/features/clientes/api'
 import { listInvitacionesPendientes } from '@/features/usuarios/invitacionesApi'
+import { getWorkspace } from '@/features/workspace/api'
 import { diasRestantes, labelDias } from '@/features/casos/plazoUrgencia'
 import { useAuth } from '@/features/auth/AuthProvider'
 
@@ -25,20 +26,23 @@ export function useNotifications() {
     if (!profile) return
     setLoading(true)
     try {
-      const [plazos, tareas, casos, clientes, invitaciones] = await Promise.all([
+      const [plazos, tareas, casos, clientes, invitaciones, workspace] = await Promise.all([
         listAllPlazos(),
         listAllTareasPendientes(),
         listCasos(),
         listClientes(),
         profile.rol === 'administrador' ? listInvitacionesPendientes() : Promise.resolve([]),
+        getWorkspace(profile.workspace_id),
       ])
       const casosById = new Map(casos.map((c) => [c.id, c]))
 
       const hoy = new Date().toISOString().slice(0, 10)
+      const mostrarPlazosEnApp = workspace?.notif_email ?? true
+      const umbralDias = workspace?.dias_anticipacion ?? 3
 
-      const dePlazos: Notificacion[] = plazos
+      const dePlazos: Notificacion[] = !mostrarPlazosEnApp ? [] : plazos
         .map((p) => ({ p, dias: diasRestantes(p.fecha) }))
-        .filter(({ dias }) => dias <= 3)
+        .filter(({ dias }) => dias <= umbralDias)
         .map(({ p, dias }) => ({
           id: `plazo-${p.id}`,
           tipo: 'plazo' as const,

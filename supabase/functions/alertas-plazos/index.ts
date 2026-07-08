@@ -1,7 +1,10 @@
 // Edge Function: alertas-plazos
-// Corre diariamente (vía cron). Busca plazos próximos a vencer dentro de la
-// ventana de anticipación configurada por cada workspace, envía un correo
-// vía Resend a los usuarios asignados al caso + administradores, y marca alertado=true.
+// Corre diariamente (vía cron). El aviso genérico de vencimiento por correo
+// se retiró de aquí — ahora vive como notificación en la app (campanita),
+// controlada por workspace.notif_email + dias_anticipacion. Google Calendar
+// se encarga del correo para audiencias/plazos con invitados. Esta función
+// se encarga de dos cosas que sí necesitan correo: recordatorios escalonados
+// opt-in por plazo (30d/8d/48h) y el resumen de inactividad para admins.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
@@ -218,14 +221,13 @@ Deno.serve(async () => {
 
   const { data: workspaces, error: wsError } = await supabase
     .from('workspaces')
-    .select('id, nombre, notif_email, dias_anticipacion, alertas_inactividad_activas, dias_inactividad_usuario, dias_inactividad_caso, alertas_inactividad_ultimo_envio')
+    .select('id, nombre, alertas_inactividad_activas, dias_inactividad_usuario, dias_inactividad_caso, alertas_inactividad_ultimo_envio')
 
   if (wsError) {
     console.error(wsError)
     return new Response(JSON.stringify({ error: wsError.message }), { status: 500 })
   }
 
-  let alertados = 0
   let resumenesInactividad = 0
 
   for (const ws of workspaces ?? []) {
@@ -234,76 +236,11 @@ Deno.serve(async () => {
       return false
     })
     if (resumenEnviado) resumenesInactividad++
-
-    if (!ws.notif_email) continue
-    const limite = addDays(hoy, ws.dias_anticipacion)
-
-    const { data: plazos, error: plazosError } = await supabase
-      .from('plazos')
-      .select('id, titulo, fecha, tipo, caso_id, casos!inner(id, titulo, workspace_id)')
-      .eq('alertado', false)
-      .gte('fecha', hoy)
-      .lte('fecha', limite)
-      .eq('casos.workspace_id', ws.id)
-
-    if (plazosError) {
-      console.error(plazosError)
-      continue
-    }
-
-    const { data: admins } = await supabase
-      .from('users')
-      .select('email')
-      .eq('workspace_id', ws.id)
-      .eq('rol', 'administrador')
-    const adminEmails = (admins ?? []).map((a) => a.email)
-
-    for (const plazo of plazos ?? []) {
-      const caso = (plazo as { casos: { id: string; titulo: string } }).casos
-
-      // Cualquier usuario del sistema vinculado al caso (sin importar su rol
-      // dentro del caso: abogado, cliente u otro) es un usuario real de la
-      // app y debe recibir el aviso — el rol de caso no filtra esto.
-      const { data: personas } = await supabase
-        .from('caso_personas')
-        .select('user_id')
-        .eq('caso_id', plazo.caso_id)
-        .not('user_id', 'is', null)
-
-      const userIds = (personas ?? []).map((p) => p.user_id).filter(Boolean) as string[]
-      let usuariosCasoEmails: string[] = []
-      if (userIds.length > 0) {
-        const { data: usuarios } = await supabase.from('users').select('email').in('id', userIds)
-        usuariosCasoEmails = (usuarios ?? []).map((u) => u.email)
-      }
-
-      const destinatarios = Array.from(new Set([...adminEmails, ...usuariosCasoEmails]))
-
-      if (destinatarios.length > 0) {
-        const fechaFmt = new Date(plazo.fecha + 'T00:00:00Z').toLocaleDateString('es-EC', {
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric',
-        })
-        await enviarCorreo(
-          destinatarios,
-          `Recordatorio: ${plazo.titulo} — ${caso.titulo}`,
-          `<p>Tienes un ${plazo.tipo} próximo en <strong>${caso.titulo}</strong>:</p>
-           <p><strong>${plazo.titulo}</strong><br>Fecha: ${fechaFmt}</p>
-           <p>— TSADOQ</p>`,
-        )
-        alertados++
-      } else {
-        console.log(`Plazo ${plazo.id} sin destinatarios (sin usuario asignado ni admin).`)
-      }
-
-      await supabase.from('plazos').update({ alertado: true }).eq('id', plazo.id)
-    }
   }
 
   const recordatoriosEnviados = await procesarRecordatoriosEscalonados(hoy)
 
-  return new Response(JSON.stringify({ ok: true, alertados, recordatoriosEnviados, resumenesInactividad }), {
+  return new Response(JSON.stringify({ ok: true, recordatoriosEnviados, resumenesInactividad }), {
     headers: { 'Content-Type': 'application/json' },
   })
 })
