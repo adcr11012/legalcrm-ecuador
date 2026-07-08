@@ -6,6 +6,7 @@ import { listDocumentos, toggleVisibilidad, deleteDocumento, deleteDocumentosCas
 import { renameDriveFile } from '@/features/workspace/driveApi'
 import { listPlazos } from '@/features/casos/plazosApi'
 import { listHistorial } from '@/features/casos/historialApi'
+import { listComentarios } from '@/features/casos/comentariosApi'
 import { listWorkspaceUsers } from '@/features/users/api'
 import { listEtapas } from '@/features/casos/etapasApi'
 import { listAnticipos, listGastos, listHoras } from '@/features/casos/pagosApi'
@@ -16,6 +17,7 @@ import { DocumentosTab } from '@/features/casos/tabs/DocumentosTab'
 import { AgendaTab } from '@/features/casos/tabs/AgendaTab'
 import { HistorialTab } from '@/features/casos/tabs/HistorialTab'
 import { NotasTab } from '@/features/casos/tabs/NotasTab'
+import { ComentariosTab } from '@/features/casos/tabs/ComentariosTab'
 import { IATab } from '@/features/casos/tabs/IATab'
 import { PagosTab } from '@/features/casos/tabs/PagosTab'
 import { AddPersonaModal } from '@/features/casos/AddPersonaModal'
@@ -25,7 +27,7 @@ import { CasoFormModal } from '@/features/casos/CasoFormModal'
 import { InformeCaso } from '@/features/casos/InformeCaso'
 import { nombrePersona } from '@/features/casos/personaDisplay'
 import { MATERIA_LABEL } from '@/features/casos/materias'
-import type { Carpeta, Caso, CasoAnticipo, CasoGasto, CasoHora, CasoPersona, Documento, Etapa, HistorialEntry, Plazo, Usuario } from '@/types/database'
+import type { Carpeta, Caso, CasoAnticipo, CasoComentario, CasoGasto, CasoHora, CasoPersona, Documento, Etapa, HistorialEntry, Plazo, Usuario } from '@/types/database'
 import { useDevice } from '@/context/DeviceModeContext'
 
 const TABS = [
@@ -33,6 +35,7 @@ const TABS = [
   { key: 'agenda',  label: 'Agenda',      icon: 'ti-calendar-event' },
   { key: 'docs',    label: 'Documentos',  icon: 'ti-files' },
   { key: 'pagos',   label: 'Pagos',       icon: 'ti-cash' },
+  { key: 'comentarios', label: 'Comentarios', icon: 'ti-message-circle' },
   { key: 'hist',    label: 'Historial',   icon: 'ti-history' },
   { key: 'notas',   label: 'Notas',       icon: 'ti-notes' },
   { key: 'ia',      label: 'IA',          icon: 'ti-sparkles' },
@@ -55,6 +58,7 @@ export function CaseDetail({
   const [documentos, setDocumentos] = useState<Documento[]>([])
   const [plazos, setPlazos] = useState<Plazo[]>([])
   const [historial, setHistorial] = useState<HistorialEntry[]>([])
+  const [comentarios, setComentarios] = useState<CasoComentario[]>([])
   const [anticipos, setAnticipos] = useState<CasoAnticipo[]>([])
   const [gastos, setGastos] = useState<CasoGasto[]>([])
   const [horas, setHoras] = useState<CasoHora[]>([])
@@ -78,7 +82,7 @@ export function CaseDetail({
     setError(null)
     setTab('info')
     try {
-      const [c, p, d, pl, h, u, e, ant, gas, hor, carp] = await Promise.all([
+      const [c, p, d, pl, h, u, e, ant, gas, hor, carp, com] = await Promise.all([
         getCaso(casoId),
         listPersonas(casoId),
         listDocumentos(casoId),
@@ -90,6 +94,7 @@ export function CaseDetail({
         listGastos(casoId),
         listHoras(casoId),
         listCarpetas(casoId).catch(() => [] as Carpeta[]),
+        listComentarios(casoId),
       ])
       setCaso(c)
       setPersonas(p)
@@ -100,6 +105,7 @@ export function CaseDetail({
       setGastos(gas)
       setHoras(hor)
       setCarpetas(carp)
+      setComentarios(com)
       setUsersById(new Map(u.map((x) => [x.id, x])))
       setEtapas(e)
     } catch (err) {
@@ -350,6 +356,16 @@ export function CaseDetail({
             onGastoDeleted={(id) => setGastos((prev) => prev.filter((g) => g.id !== id))}
             onHoraAdded={(h) => setHoras((prev) => [...prev, h].sort((x, y) => x.fecha.localeCompare(y.fecha)))}
             onHoraDeleted={(id) => setHoras((prev) => prev.filter((h) => h.id !== id))}
+          />
+        )}
+        {tab === 'comentarios' && profile && (
+          <ComentariosTab
+            comentarios={comentarios}
+            casoId={caso.id}
+            currentUserId={profile.id}
+            esAdmin={esAdmin}
+            usersById={usersById}
+            onChange={setComentarios}
           />
         )}
         {tab === 'hist' && <HistorialTab historial={historial} />}

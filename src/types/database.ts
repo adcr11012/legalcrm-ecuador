@@ -234,6 +234,27 @@ export type HistorialEntry = {
   created_at: string
 }
 
+export type CasoComentario = {
+  id: string
+  caso_id: string
+  user_id: string
+  contenido: string
+  created_at: string
+}
+
+export type DestinatarioTipo = 'todos' | 'grupo' | 'usuarios'
+
+export type Anuncio = {
+  id: string
+  workspace_id: string
+  autor_id: string
+  titulo: string
+  contenido: string
+  destinatario_tipo: DestinatarioTipo
+  destinatario_ids: string[]
+  created_at: string
+}
+
 export type Cliente = {
   id: string
   workspace_id: string
@@ -301,6 +322,9 @@ export type Database = {
       grupos: Table<Grupo>
       grupo_usuarios: Table<{ grupo_id: string; user_id: string }>
       avisos_admin: Table<AvisoAdmin>
+      caso_comentarios: Table<CasoComentario>
+      anuncios: Table<Anuncio>
+      anuncio_lecturas: Table<{ anuncio_id: string; user_id: string; leido_at: string }>
     }
     Views: { [_ in never]: never }
     Functions: {

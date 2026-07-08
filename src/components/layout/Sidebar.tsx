@@ -10,6 +10,7 @@ const PRINCIPAL = [
   { to: '/casos', icon: 'ti-briefcase', label: 'Casos' },
   { to: '/clientes', icon: 'ti-users', label: 'Clientes' },
   { to: '/agenda', icon: 'ti-calendar', label: 'Agenda' },
+  { to: '/anuncios', icon: 'ti-speakerphone', label: 'Anuncios' },
 ]
 
 const WORKSPACE = [
