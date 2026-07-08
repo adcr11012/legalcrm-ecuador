@@ -188,14 +188,18 @@ export default function Configuracion() {
           </>
         )}
 
-        <div className="mt-6 mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-mute2">Notificaciones en la app</div>
+        <div className="mt-6 mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-mute2">Notificaciones dentro de la app (campanita)</div>
+        <p className="mb-2.5 text-[11px] text-mute2">
+          Esto NO envía correos. Solo controla lo que aparece en la campanita 🔔 de notificaciones dentro de la app.
+          El correo de audiencias/plazos con invitados ya lo maneja Google Calendar (ver más abajo).
+        </p>
 
         <div className="mb-2.5 flex items-center justify-between rounded-[10px] border border-border bg-surface p-3">
           <div>
-            <div className="text-[13px] font-medium text-ink">Mostrar plazos próximos en la campanita</div>
+            <div className="text-[13px] font-medium text-ink">Mostrar agenda próxima en la campanita</div>
             <div className="text-[11px] text-muted">
-              Incluye plazos, audiencias, tareas y otros próximos a vencer en las notificaciones dentro de la app.
-              El aviso por correo de audiencias/plazos con invitados ya lo maneja Google Calendar.
+              Incluye todo lo agendado en la Agenda de cada caso — plazos, audiencias, tareas y otros —
+              que esté por vencer, en las notificaciones dentro de la app.
             </div>
           </div>
           <button
@@ -214,7 +218,7 @@ export default function Configuracion() {
         </div>
 
         <div className="rounded-[10px] border border-border bg-surface p-3">
-          <label className={labelClass}>Días de anticipación</label>
+          <label className={labelClass}>Con cuántos días de anticipación</label>
           {puedeEditar ? (
             <select
               value={workspace.dias_anticipacion}
@@ -230,7 +234,10 @@ export default function Configuracion() {
           ) : (
             <div className="text-[13px] font-medium text-ink">{workspace.dias_anticipacion} días antes</div>
           )}
-          <p className="mt-1.5 text-[11px] text-mute2">Cuántos días antes debe aparecer en la campanita.</p>
+          <p className="mt-1.5 text-[11px] text-mute2">
+            Define desde cuántos días antes un ítem de la Agenda empieza a aparecer en la campanita.
+            Ej. con "3 días antes", una tarea del 10 de julio aparece en la campanita a partir del 7 de julio.
+          </p>
         </div>
 
         <div className="mt-6 mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-mute2">Alertas de inactividad</div>
