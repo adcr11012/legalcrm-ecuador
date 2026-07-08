@@ -11,7 +11,6 @@ const Casos           = lazy(() => import('@/routes/Casos'))
 const Clientes        = lazy(() => import('@/routes/Clientes'))
 const Agenda          = lazy(() => import('@/routes/Agenda'))
 const Anuncios        = lazy(() => import('@/routes/Anuncios'))
-const Esatje          = lazy(() => import('@/routes/Esatje'))
 const Usuarios        = lazy(() => import('@/routes/Usuarios'))
 const Invite          = lazy(() => import('@/routes/Invite'))
 const Configuracion   = lazy(() => import('@/routes/Configuracion'))
@@ -22,6 +21,7 @@ const AdminDashboard     = lazy(() => import('@/routes/admin/AdminDashboard'))
 const AdminWorkspaces    = lazy(() => import('@/routes/admin/AdminWorkspaces'))
 const AdminWorkspaceDetail = lazy(() => import('@/routes/admin/AdminWorkspaceDetail'))
 const AdminBilling         = lazy(() => import('@/routes/admin/AdminBilling'))
+const AdminEsatje          = lazy(() => import('@/routes/admin/AdminEsatje'))
 
 function PageLoader() {
   return <div className="flex h-full flex-1 items-center justify-center text-[13px] text-muted">Cargando…</div>
@@ -49,7 +49,6 @@ function App() {
                 <Route path="/clientes/:id" element={<Clientes />} />
                 <Route path="/agenda" element={<Agenda />} />
                 <Route path="/anuncios" element={<Anuncios />} />
-                <Route path="/esatje" element={<Esatje />} />
                 <Route path="/usuarios" element={<Usuarios />} />
                 <Route path="/drive" element={<Drive />} />
                 <Route path="/configuracion" element={<Configuracion />} />
@@ -62,6 +61,7 @@ function App() {
               <Route path="workspaces" element={<AdminWorkspaces />} />
               <Route path="workspaces/:id" element={<AdminWorkspaceDetail />} />
               <Route path="billing" element={<AdminBilling />} />
+              <Route path="esatje" element={<AdminEsatje />} />
             </Route>
 
             <Route path="/" element={<Navigate to="/dashboard" replace />} />

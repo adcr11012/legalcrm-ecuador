@@ -1,21 +1,49 @@
 import { supabase } from '@/lib/supabase'
 import type { SatjeMovimiento } from '@/types/database'
 
-export type CasoParaExportar = { id: string; titulo: string; numero_causa: string }
+// Formato de los números de causa ecuatorianos: 13-17 dígitos, con
+// eventuales letras de sufijo (ej. "17297202605046G", "1104190908149CH").
+// Es una validación permisiva a propósito — solo descarta valores
+// claramente inválidos (vacíos, con espacios, muy cortos/largos), no un
+// validador estricto del formato oficial.
+export function esNumeroCausaValido(numero: string): boolean {
+  return /^\d{10,18}[A-Z]{0,3}$/.test(numero.trim())
+}
 
-// Casos activos (etapa no terminal) que tienen número de causa registrado —
-// son los que tiene sentido consultar en SATJE.
-export async function listCasosParaExportar(): Promise<CasoParaExportar[]> {
+export type CasoParaExportar = {
+  id: string
+  workspace_id: string
+  workspace_nombre: string
+  titulo: string
+  numero_causa: string
+}
+
+// Junta los números de causa de TODOS los workspaces que tengan la
+// sincronización SATJE activada en Configuración, excluyendo casos en
+// etapa terminal y números de causa con formato inválido. Requiere ser
+// superadmin (las políticas de RLS ya limitan el acceso cross-workspace).
+export async function listCasosParaExportarGlobal(): Promise<CasoParaExportar[]> {
+  const { data: workspaces, error: errWs } = await supabase
+    .from('workspaces')
+    .select('id, nombre')
+    .eq('satje_sincronizacion_activa', true)
+  if (errWs) throw errWs
+  const workspaceIds = (workspaces ?? []).map((w) => w.id)
+  if (workspaceIds.length === 0) return []
+  const nombrePorWorkspace = new Map((workspaces ?? []).map((w) => [w.id, w.nombre]))
+
   const { data: etapasTerminales, error: errEtapas } = await supabase
     .from('etapas')
     .select('id')
+    .in('workspace_id', workspaceIds)
     .eq('es_terminal', true)
   if (errEtapas) throw errEtapas
   const idsTerminales = (etapasTerminales ?? []).map((e) => e.id)
 
   let query = supabase
     .from('casos')
-    .select('id, titulo, numero_causa')
+    .select('id, workspace_id, titulo, numero_causa')
+    .in('workspace_id', workspaceIds)
     .not('numero_causa', 'is', null)
     .neq('numero_causa', '')
   if (idsTerminales.length > 0) {
@@ -23,7 +51,16 @@ export async function listCasosParaExportar(): Promise<CasoParaExportar[]> {
   }
   const { data, error } = await query
   if (error) throw error
-  return data as CasoParaExportar[]
+
+  return (data ?? [])
+    .filter((c) => c.numero_causa && esNumeroCausaValido(c.numero_causa))
+    .map((c) => ({
+      id: c.id,
+      workspace_id: c.workspace_id,
+      workspace_nombre: nombrePorWorkspace.get(c.workspace_id) ?? '—',
+      titulo: c.titulo,
+      numero_causa: c.numero_causa!,
+    }))
 }
 
 // Formato esperado del archivo de resultados que produce el programa local
@@ -34,36 +71,36 @@ export type ResultadoImportacion = {
 }
 
 export type ResumenImportacion = {
-  casosNoEncontrados: string[]
+  causasNoEncontradas: string[]
   movimientosNuevos: number
   movimientosYaExistentes: number
 }
 
-export async function importarResultadosSatje(
+export async function importarResultadosSatjeGlobal(
   resultados: ResultadoImportacion[],
   casos: CasoParaExportar[],
-  userId: string,
+  superadminId: string,
 ): Promise<ResumenImportacion> {
-  const casoIdPorNumero = new Map(casos.map((c) => [c.numero_causa, c.id]))
-  const resumen: ResumenImportacion = { casosNoEncontrados: [], movimientosNuevos: 0, movimientosYaExistentes: 0 }
+  const casoPorNumero = new Map(casos.map((c) => [c.numero_causa, c]))
+  const resumen: ResumenImportacion = { causasNoEncontradas: [], movimientosNuevos: 0, movimientosYaExistentes: 0 }
 
   for (const r of resultados) {
-    const casoId = casoIdPorNumero.get(r.numeroCausa)
-    if (!casoId) {
-      resumen.casosNoEncontrados.push(r.numeroCausa)
+    const caso = casoPorNumero.get(r.numeroCausa)
+    if (!caso) {
+      resumen.causasNoEncontradas.push(r.numeroCausa)
       continue
     }
     for (const m of r.movimientos) {
       const { error } = await supabase.from('satje_movimientos').insert({
-        caso_id: casoId,
+        caso_id: caso.id,
+        workspace_id: caso.workspace_id,
         numero_causa: r.numeroCausa,
         fecha_movimiento: m.fecha,
         tipo: m.tipo,
         descripcion: m.descripcion ?? null,
-        importado_por: userId,
+        importado_por: superadminId,
       })
       if (error) {
-        // Violación de la restricción única = ese movimiento ya se había importado antes.
         if (error.code === '23505') resumen.movimientosYaExistentes++
         else throw error
       } else {
@@ -75,7 +112,7 @@ export async function importarResultadosSatje(
   return resumen
 }
 
-export async function listMovimientosRecientes(limit = 30): Promise<SatjeMovimiento[]> {
+export async function listMovimientosRecientesGlobal(limit = 50): Promise<SatjeMovimiento[]> {
   const { data, error } = await supabase
     .from('satje_movimientos')
     .select('*')

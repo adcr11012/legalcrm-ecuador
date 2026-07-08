@@ -31,6 +31,7 @@ export type Workspace = {
   dias_inactividad_usuario: number
   dias_inactividad_caso: number
   alertas_inactividad_ultimo_envio: string | null
+  satje_sincronizacion_activa: boolean
   created_at: string
 }
 
@@ -238,6 +239,7 @@ export type HistorialEntry = {
 export type SatjeMovimiento = {
   id: string
   caso_id: string
+  workspace_id: string
   numero_causa: string
   fecha_movimiento: string
   tipo: string

@@ -60,6 +60,9 @@ export default function AdminLayout() {
           <NavLink to="/admin/billing" className={navItem}>
             <i className="ti ti-credit-card text-[16px]" /> Facturación
           </NavLink>
+          <NavLink to="/admin/esatje" className={navItem}>
+            <i className="ti ti-gavel text-[16px]" /> eSATJE
+          </NavLink>
         </div>
 
         {/* Pie: email + volver */}

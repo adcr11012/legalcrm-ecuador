@@ -296,6 +296,31 @@ export default function Configuracion() {
           </div>
         </div>
 
+        <div className="mt-6 mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-mute2">Consulta de causas judiciales (SATJE)</div>
+
+        <div className="flex items-center justify-between rounded-[10px] border border-border bg-surface p-3">
+          <div>
+            <div className="text-[13px] font-medium text-ink">Activar sincronización con SATJE</div>
+            <div className="text-[11px] text-muted">
+              Revisa automáticamente si hay movimientos nuevos en los casos activos con número de causa registrado,
+              y los agrega al historial de cada caso.
+            </div>
+          </div>
+          <button
+            disabled={!puedeEditar}
+            onClick={() => guardar({ satje_sincronizacion_activa: !workspace.satje_sincronizacion_activa })}
+            className={`relative h-6 w-11 flex-shrink-0 rounded-full transition disabled:opacity-60 ${
+              workspace.satje_sincronizacion_activa ? 'bg-accent' : 'bg-soft'
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition ${
+                workspace.satje_sincronizacion_activa ? 'left-[22px]' : 'left-0.5'
+              }`}
+            />
+          </button>
+        </div>
+
         {puedeEditar && (
           <>
             <div className="mt-6 mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-mute2">Auditoría LOPDP</div>
