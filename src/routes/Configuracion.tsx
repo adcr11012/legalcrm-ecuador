@@ -229,6 +229,63 @@ export default function Configuracion() {
           )}
         </div>
 
+        <div className="mt-6 mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-mute2">Alertas de inactividad</div>
+
+        <div className="mb-2.5 flex items-center justify-between rounded-[10px] border border-border bg-surface p-3">
+          <div>
+            <div className="text-[13px] font-medium text-ink">Activar alertas de inactividad</div>
+            <div className="text-[11px] text-muted">Avisa a los administradores sobre usuarios sin conectarse y casos sin movimiento.</div>
+          </div>
+          <button
+            disabled={!puedeEditar}
+            onClick={() => guardar({ alertas_inactividad_activas: !workspace.alertas_inactividad_activas })}
+            className={`relative h-6 w-11 flex-shrink-0 rounded-full transition disabled:opacity-60 ${
+              workspace.alertas_inactividad_activas ? 'bg-accent' : 'bg-soft'
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition ${
+                workspace.alertas_inactividad_activas ? 'left-[22px]' : 'left-0.5'
+              }`}
+            />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+          <div className="rounded-[10px] border border-border bg-surface p-3">
+            <label className={labelClass}>Usuario sin conectarse</label>
+            {puedeEditar ? (
+              <select
+                value={workspace.dias_inactividad_usuario}
+                onChange={(e) => guardar({ dias_inactividad_usuario: Number(e.target.value) })}
+                className={inputClass}
+              >
+                {[15, 30, 45, 60, 90].map((n) => (
+                  <option key={n} value={n}>{n} días</option>
+                ))}
+              </select>
+            ) : (
+              <div className="text-[13px] font-medium text-ink">{workspace.dias_inactividad_usuario} días</div>
+            )}
+          </div>
+          <div className="rounded-[10px] border border-border bg-surface p-3">
+            <label className={labelClass}>Caso sin movimiento</label>
+            {puedeEditar ? (
+              <select
+                value={workspace.dias_inactividad_caso}
+                onChange={(e) => guardar({ dias_inactividad_caso: Number(e.target.value) })}
+                className={inputClass}
+              >
+                {[7, 15, 30, 45, 60].map((n) => (
+                  <option key={n} value={n}>{n} días</option>
+                ))}
+              </select>
+            ) : (
+              <div className="text-[13px] font-medium text-ink">{workspace.dias_inactividad_caso} días</div>
+            )}
+          </div>
+        </div>
+
         {puedeEditar && (
           <>
             <div className="mt-6 mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-mute2">Auditoría LOPDP</div>

@@ -60,8 +60,13 @@ export function EtapasSettings() {
   }
 
   async function onTerminal(etapa: Etapa) {
-    const updated = await updateEtapa(etapa.id, { es_terminal: !etapa.es_terminal })
-    setEtapas((prev) => prev.map((e) => (e.id === updated.id ? updated : e)))
+    setError(null)
+    try {
+      const updated = await updateEtapa(etapa.id, { es_terminal: !etapa.es_terminal })
+      setEtapas((prev) => prev.map((e) => (e.id === updated.id ? updated : e)))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo actualizar la etapa.')
+    }
   }
 
   async function onMove(index: number, dir: -1 | 1) {

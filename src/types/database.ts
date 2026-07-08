@@ -27,6 +27,10 @@ export type Workspace = {
   plan: string
   notif_email: boolean
   dias_anticipacion: number
+  alertas_inactividad_activas: boolean
+  dias_inactividad_usuario: number
+  dias_inactividad_caso: number
+  alertas_inactividad_ultimo_envio: string | null
   created_at: string
 }
 
