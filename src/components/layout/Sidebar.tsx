@@ -15,6 +15,7 @@ const PRINCIPAL = [
 const WORKSPACE = [
   { to: '/usuarios', icon: 'ti-user-shield', label: 'Usuarios y roles', soloAdmin: true },
   { to: '/anuncios', icon: 'ti-speakerphone', label: 'Anuncios', soloAdmin: true },
+  { to: '/esatje', icon: 'ti-gavel', label: 'eSATJE', soloAdmin: true },
   { to: '/configuracion', icon: 'ti-settings', label: 'Configuración', soloAdmin: true },
 ]
 

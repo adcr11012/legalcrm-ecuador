@@ -1,0 +1,11 @@
+{
+  "name": "satje-captcha-test",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "playwright": "^1.47.0"
+  }
+}

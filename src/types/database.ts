@@ -235,6 +235,17 @@ export type HistorialEntry = {
   created_at: string
 }
 
+export type SatjeMovimiento = {
+  id: string
+  caso_id: string
+  numero_causa: string
+  fecha_movimiento: string
+  tipo: string
+  descripcion: string | null
+  importado_por: string
+  created_at: string
+}
+
 export type CasoComentario = {
   id: string
   caso_id: string
@@ -328,6 +339,7 @@ export type Database = {
       grupo_usuarios: Table<{ grupo_id: string; user_id: string }>
       avisos_admin: Table<AvisoAdmin>
       caso_comentarios: Table<CasoComentario>
+      satje_movimientos: Table<SatjeMovimiento>
       anuncios: Table<Anuncio>
       anuncio_lecturas: Table<{ anuncio_id: string; user_id: string; leido_at: string }>
     }
