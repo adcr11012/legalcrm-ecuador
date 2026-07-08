@@ -18,6 +18,8 @@ import { AgendaTab } from '@/features/casos/tabs/AgendaTab'
 import { HistorialTab } from '@/features/casos/tabs/HistorialTab'
 import { NotasTab } from '@/features/casos/tabs/NotasTab'
 import { ComentariosTab } from '@/features/casos/tabs/ComentariosTab'
+import { SatjeTab } from '@/features/casos/tabs/SatjeTab'
+import { getWorkspace } from '@/features/workspace/api'
 import { IATab } from '@/features/casos/tabs/IATab'
 import { PagosTab } from '@/features/casos/tabs/PagosTab'
 import { AddPersonaModal } from '@/features/casos/AddPersonaModal'
@@ -36,6 +38,7 @@ const TABS = [
   { key: 'docs',    label: 'Documentos',  icon: 'ti-files' },
   { key: 'pagos',   label: 'Pagos',       icon: 'ti-cash' },
   { key: 'comentarios', label: 'Comentarios', icon: 'ti-message-circle' },
+  { key: 'esatje',  label: 'eSATJE',       icon: 'ti-gavel' },
   { key: 'hist',    label: 'Historial',   icon: 'ti-history' },
   { key: 'notas',   label: 'Notas',       icon: 'ti-notes' },
   { key: 'ia',      label: 'IA',          icon: 'ti-sparkles' },
@@ -65,6 +68,7 @@ export function CaseDetail({
   const [carpetas, setCarpetas] = useState<Carpeta[]>([])
   const [usersById, setUsersById] = useState<Map<string, Usuario>>(new Map())
   const [etapas, setEtapas] = useState<Etapa[]>([])
+  const [satjeActivo, setSatjeActivo] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tab, setTab] = useState<TabKey>('info')
@@ -108,6 +112,10 @@ export function CaseDetail({
       setComentarios(com)
       setUsersById(new Map(u.map((x) => [x.id, x])))
       setEtapas(e)
+      if (c) {
+        const ws = await getWorkspace(c.workspace_id)
+        setSatjeActivo(ws?.satje_sincronizacion_activa ?? false)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo cargar el caso.')
     } finally {
@@ -368,6 +376,7 @@ export function CaseDetail({
             onChange={setComentarios}
           />
         )}
+        {tab === 'esatje' && <SatjeTab casoId={caso.id} activo={satjeActivo} esAdmin={esAdmin} />}
         {tab === 'hist' && <HistorialTab historial={historial} />}
         {tab === 'notas' && showNotas && <NotasTab nota={caso.nota_interna} onSave={onSaveNota} />}
         {tab === 'ia' && <IATab casoId={caso.id} />}

@@ -146,3 +146,13 @@ export async function listMovimientosRecientesGlobal(limit = 50): Promise<SatjeM
   if (error) throw error
   return data
 }
+
+export async function listMovimientosPorCaso(casoId: string): Promise<SatjeMovimiento[]> {
+  const { data, error } = await supabase
+    .from('satje_movimientos')
+    .select('*')
+    .eq('caso_id', casoId)
+    .order('fecha_movimiento', { ascending: false })
+  if (error) throw error
+  return data
+}
