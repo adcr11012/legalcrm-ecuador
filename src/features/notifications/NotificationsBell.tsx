@@ -8,6 +8,7 @@ const ICON: Record<Notificacion['tipo'], string> = {
   invitacion: 'ti-mail',
   tarea: 'ti-checkbox',
   inactividad: 'ti-moon-2',
+  anuncio: 'ti-speakerphone',
 }
 
 export function NotificationsBell() {
@@ -63,9 +64,14 @@ export function NotificationsBell() {
               <button
                 key={n.id}
                 onClick={() => {
-                  setOpen(false)
-                  if (n.avisoAdminId) marcarLeida(n)
-                  navigate(n.to)
+                  if (n.avisoAdminId || n.anuncioId) {
+                    marcarLeida(n)
+                    if (n.avisoAdminId) { setOpen(false); navigate(n.to) }
+                    // los anuncios ya muestran el mensaje completo aquí — no navega, solo se descarta
+                  } else {
+                    setOpen(false)
+                    navigate(n.to)
+                  }
                 }}
                 className="flex w-full items-start gap-2.5 border-b border-border/70 px-3.5 py-2.5 text-left transition last:border-b-0 hover:bg-soft"
               >

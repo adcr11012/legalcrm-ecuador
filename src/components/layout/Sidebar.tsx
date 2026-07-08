@@ -10,11 +10,11 @@ const PRINCIPAL = [
   { to: '/casos', icon: 'ti-briefcase', label: 'Casos' },
   { to: '/clientes', icon: 'ti-users', label: 'Clientes' },
   { to: '/agenda', icon: 'ti-calendar', label: 'Agenda' },
-  { to: '/anuncios', icon: 'ti-speakerphone', label: 'Anuncios' },
 ]
 
 const WORKSPACE = [
   { to: '/usuarios', icon: 'ti-user-shield', label: 'Usuarios y roles', soloAdmin: true },
+  { to: '/anuncios', icon: 'ti-speakerphone', label: 'Anuncios', soloAdmin: true },
   { to: '/configuracion', icon: 'ti-settings', label: 'Configuración', soloAdmin: true },
 ]
 
@@ -93,9 +93,14 @@ export function Sidebar({ open, onToggle }: { open: boolean; onToggle: () => voi
           )}
           {!open && <div className="my-2 border-t border-border" />}
           {WORKSPACE.filter((item) => !item.soloAdmin || profile?.rol === 'administrador').map((item) => (
-            <NavLink key={item.to} to={item.to} title={item.label} className={navItemClass}>
+            <NavLink key={item.to} to={item.to} title={item.soloAdmin ? `${item.label} (ADMIN)` : item.label} className={navItemClass}>
               <i className={`ti ${item.icon} flex-shrink-0 text-[16px]`} />
-              {open && <span className="truncate">{item.label}</span>}
+              {open && (
+                <span className="truncate">
+                  {item.label}
+                  {item.soloAdmin && <span className="ml-1 text-[10px] font-normal text-mute2">(ADMIN)</span>}
+                </span>
+              )}
             </NavLink>
           ))}
         </div>

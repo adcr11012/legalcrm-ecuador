@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthProvider'
-import { listTodosAnuncios, listLecturasIds, crearAnuncio, eliminarAnuncio, marcarAnuncioLeido } from '@/features/anuncios/api'
+import { listTodosAnuncios, crearAnuncio, editarAnuncio, eliminarAnuncio, anuncioExpirado } from '@/features/anuncios/api'
 import { listWorkspaceUsers } from '@/features/users/api'
 import { listGrupos, type GrupoConMiembros } from '@/features/users/gruposApi'
 import { Modal } from '@/components/Modal'
-import type { Anuncio, DestinatarioTipo, Usuario } from '@/types/database'
+import type { Anuncio, DestinatarioTipo, ExpiraTipo, Usuario } from '@/types/database'
 
 const inputClass =
   'w-full rounded-[8px] border border-border bg-bg px-3 py-2.5 text-[13px] text-ink outline-none transition focus:border-accent'
 const labelClass = 'mb-1 block text-[11px] font-semibold uppercase tracking-wide text-mute2'
 
 function AnuncioFormModal({
-  open, onClose, workspaceId, autorId, users, grupos, onCreated,
+  open, onClose, workspaceId, autorId, users, grupos, anuncio, onSaved,
 }: {
   open: boolean
   onClose: () => void
@@ -19,18 +20,34 @@ function AnuncioFormModal({
   autorId: string
   users: Usuario[]
   grupos: GrupoConMiembros[]
-  onCreated: (a: Anuncio) => void
+  anuncio?: Anuncio | null
+  onSaved: (a: Anuncio, editing: boolean) => void
 }) {
+  const editing = Boolean(anuncio)
   const [titulo, setTitulo] = useState('')
   const [contenido, setContenido] = useState('')
   const [destinatarioTipo, setDestinatarioTipo] = useState<DestinatarioTipo>('todos')
   const [seleccionados, setSeleccionados] = useState<Set<string>>(new Set())
+  const [expiraTipo, setExpiraTipo] = useState<ExpiraTipo>('leido')
+  const [expiraDias, setExpiraDias] = useState(7)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  function reset() {
-    setTitulo(''); setContenido(''); setDestinatarioTipo('todos'); setSeleccionados(new Set()); setError(null)
-  }
+  useEffect(() => {
+    if (!open) return
+    if (anuncio) {
+      setTitulo(anuncio.titulo)
+      setContenido(anuncio.contenido)
+      setDestinatarioTipo(anuncio.destinatario_tipo)
+      setSeleccionados(new Set(anuncio.destinatario_ids))
+      setExpiraTipo(anuncio.expira_tipo)
+      setExpiraDias(anuncio.expira_dias ?? 7)
+    } else {
+      setTitulo(''); setContenido(''); setDestinatarioTipo('todos'); setSeleccionados(new Set())
+      setExpiraTipo('leido'); setExpiraDias(7)
+    }
+    setError(null)
+  }, [open, anuncio])
 
   function toggle(id: string) {
     setSeleccionados((prev) => {
@@ -50,26 +67,28 @@ function AnuncioFormModal({
     setLoading(true)
     setError(null)
     try {
-      const creado = await crearAnuncio({
-        workspace_id: workspaceId,
-        autor_id: autorId,
+      const payload = {
         titulo: titulo.trim(),
         contenido: contenido.trim(),
         destinatario_tipo: destinatarioTipo,
         destinatario_ids: destinatarioTipo === 'todos' ? [] : Array.from(seleccionados),
-      })
-      onCreated(creado)
-      reset()
+        expira_tipo: expiraTipo,
+        expira_dias: expiraTipo === 'dias' ? expiraDias : null,
+      }
+      const saved = editing && anuncio
+        ? await editarAnuncio(anuncio.id, payload)
+        : await crearAnuncio({ workspace_id: workspaceId, autor_id: autorId, ...payload })
+      onSaved(saved, editing)
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo publicar el anuncio.')
+      setError(err instanceof Error ? err.message : 'No se pudo guardar el anuncio.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <Modal open={open} onClose={() => { reset(); onClose() }} title="Nuevo anuncio">
+    <Modal open={open} onClose={onClose} title={editing ? 'Editar anuncio' : 'Nuevo anuncio'}>
       <div className="flex flex-col gap-4">
         <div>
           <label className={labelClass}>Título</label>
@@ -112,14 +131,34 @@ function AnuncioFormModal({
           </div>
         )}
 
+        <div>
+          <label className={labelClass}>Activo hasta</label>
+          <div className="flex gap-2">
+            <select value={expiraTipo} onChange={(e) => setExpiraTipo(e.target.value as ExpiraTipo)} className={inputClass}>
+              <option value="leido">Que cada usuario lo marque como leído</option>
+              <option value="dias">Un número fijo de días</option>
+            </select>
+          </div>
+          {expiraTipo === 'dias' && (
+            <input
+              type="number"
+              min={1}
+              value={expiraDias}
+              onChange={(e) => setExpiraDias(Number(e.target.value))}
+              className={`${inputClass} mt-2`}
+              placeholder="Días"
+            />
+          )}
+        </div>
+
         {error && <div className="rounded-[6px] border border-danger/20 bg-danger-soft px-3 py-2 text-[12px] text-danger">{error}</div>}
 
         <div className="mt-1 flex justify-end gap-2">
-          <button onClick={() => { reset(); onClose() }} className="rounded-[8px] border border-border px-4 py-2 text-[13px] text-muted transition hover:bg-soft">
+          <button onClick={onClose} className="rounded-[8px] border border-border px-4 py-2 text-[13px] text-muted transition hover:bg-soft">
             Cancelar
           </button>
           <button onClick={onSubmit} disabled={loading} className="rounded-[8px] bg-accent px-4 py-2 text-[13px] font-medium text-white transition hover:bg-accent-hover disabled:opacity-60">
-            {loading ? 'Publicando…' : 'Publicar'}
+            {loading ? 'Guardando…' : editing ? 'Guardar cambios' : 'Publicar'}
           </button>
         </div>
       </div>
@@ -131,39 +170,25 @@ export default function Anuncios() {
   const { profile } = useAuth()
   const esAdmin = profile?.rol === 'administrador'
   const [anuncios, setAnuncios] = useState<Anuncio[]>([])
-  const [leidos, setLeidos] = useState<Set<string>>(new Set())
   const [users, setUsers] = useState<Usuario[]>([])
   const [grupos, setGrupos] = useState<GrupoConMiembros[]>([])
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
+  const [editando, setEditando] = useState<Anuncio | null>(null)
 
   const load = useCallback(async () => {
-    if (!profile) return
     setLoading(true)
     try {
-      const [anunciosData, lecturasData] = await Promise.all([
-        listTodosAnuncios(),
-        listLecturasIds(profile.id),
-      ])
-      setAnuncios(anunciosData)
-      setLeidos(new Set(lecturasData))
-      if (esAdmin) {
-        const [u, g] = await Promise.all([listWorkspaceUsers(), listGrupos()])
-        setUsers(u)
-        setGrupos(g)
-      }
+      const [a, u, g] = await Promise.all([listTodosAnuncios(), listWorkspaceUsers(), listGrupos()])
+      setAnuncios(a)
+      setUsers(u)
+      setGrupos(g)
     } finally {
       setLoading(false)
     }
-  }, [profile, esAdmin])
+  }, [])
 
   useEffect(() => { load() }, [load])
-
-  async function onMarcarLeido(id: string) {
-    if (!profile) return
-    await marcarAnuncioLeido(id, profile.id)
-    setLeidos((prev) => new Set(prev).add(id))
-  }
 
   async function onEliminar(id: string) {
     if (!confirm('¿Eliminar este anuncio?')) return
@@ -171,53 +196,62 @@ export default function Anuncios() {
     setAnuncios((prev) => prev.filter((a) => a.id !== id))
   }
 
+  if (profile && !esAdmin) return <Navigate to="/dashboard" replace />
   if (loading) return <div className="flex-1 p-5 text-[13px] text-muted">Cargando anuncios…</div>
 
   return (
     <div className="flex-1 overflow-y-auto p-5">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-1 flex items-center justify-between">
         <div className="text-[15px] font-semibold text-ink">Anuncios</div>
-        {esAdmin && profile && (
+        {profile && (
           <button
-            onClick={() => setModalOpen(true)}
+            onClick={() => { setEditando(null); setModalOpen(true) }}
             className="inline-flex items-center gap-1.5 rounded-[8px] bg-accent px-3 py-2 text-[12px] font-medium text-white transition hover:bg-accent-hover"
           >
             <i className="ti ti-speakerphone" /> Nuevo anuncio
           </button>
         )}
       </div>
+      <p className="mb-4 text-[12px] text-mute2">
+        Aquí solo se gestionan (crean, editan, eliminan) los anuncios. Los usuarios los ven y los marcan como leídos desde la campanita de notificaciones.
+      </p>
 
       {anuncios.length === 0 ? (
         <div className="rounded-[10px] border border-dashed border-border p-8 text-center text-[13px] text-muted">
-          No hay anuncios.
+          No hay anuncios creados.
         </div>
       ) : (
         <div className="flex flex-col gap-2">
           {anuncios.map((a) => {
-            const leido = leidos.has(a.id)
+            const expirado = anuncioExpirado(a)
+            const destinoLabel = a.destinatario_tipo === 'todos'
+              ? 'Todos los usuarios'
+              : a.destinatario_tipo === 'grupo'
+                ? `Grupo: ${grupos.filter((g) => a.destinatario_ids.includes(g.id)).map((g) => g.nombre).join(', ') || '—'}`
+                : `Usuarios: ${users.filter((u) => a.destinatario_ids.includes(u.id)).map((u) => u.nombre).join(', ') || '—'}`
             return (
-              <div key={a.id} className={`rounded-[10px] border p-3.5 ${leido ? 'border-border bg-surface' : 'border-accent/30 bg-accent-soft'}`}>
+              <div key={a.id} className={`rounded-[10px] border p-3.5 ${expirado ? 'border-border bg-soft opacity-60' : 'border-border bg-surface'}`}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <i className="ti ti-speakerphone text-[13px] text-accent" />
                       <div className="text-[13px] font-semibold text-ink">{a.titulo}</div>
-                      {!leido && <span className="rounded-full bg-accent px-1.5 py-0.5 text-[9px] font-medium text-white">Nuevo</span>}
+                      {expirado && <span className="rounded-full bg-soft px-1.5 py-0.5 text-[9px] font-medium text-mute2">Expirado</span>}
                     </div>
                     <div className="mt-1 whitespace-pre-wrap text-[13px] text-ink">{a.contenido}</div>
-                    <div className="mt-1.5 text-[11px] text-mute2">{new Date(a.created_at).toLocaleDateString('es-EC', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-mute2">
+                      <span>{new Date(a.created_at).toLocaleDateString('es-EC', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                      <span>{destinoLabel}</span>
+                      <span>{a.expira_tipo === 'dias' ? `Expira a los ${a.expira_dias} días` : 'Hasta que lo marquen como leído'}</span>
+                    </div>
                   </div>
                   <div className="flex flex-shrink-0 gap-1">
-                    {!leido && (
-                      <button onClick={() => onMarcarLeido(a.id)} className="rounded-[6px] border border-border px-2.5 py-1 text-[11px] text-muted transition hover:bg-soft">
-                        Marcar leído
-                      </button>
-                    )}
-                    {esAdmin && (
-                      <button onClick={() => onEliminar(a.id)} className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-danger-soft hover:text-danger">
-                        <i className="ti ti-trash text-[13px]" />
-                      </button>
-                    )}
+                    <button onClick={() => { setEditando(a); setModalOpen(true) }} className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-soft">
+                      <i className="ti ti-edit text-[13px]" />
+                    </button>
+                    <button onClick={() => onEliminar(a.id)} className="flex h-7 w-7 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-danger-soft hover:text-danger">
+                      <i className="ti ti-trash text-[13px]" />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -226,7 +260,7 @@ export default function Anuncios() {
         </div>
       )}
 
-      {esAdmin && profile && (
+      {profile && (
         <AnuncioFormModal
           open={modalOpen}
           onClose={() => setModalOpen(false)}
@@ -234,7 +268,10 @@ export default function Anuncios() {
           autorId={profile.id}
           users={users}
           grupos={grupos}
-          onCreated={(a) => setAnuncios((prev) => [a, ...prev])}
+          anuncio={editando}
+          onSaved={(a, editing) => {
+            setAnuncios((prev) => editing ? prev.map((x) => (x.id === a.id ? a : x)) : [a, ...prev])
+          }}
         />
       )}
     </div>

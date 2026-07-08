@@ -244,6 +244,8 @@ export type CasoComentario = {
 
 export type DestinatarioTipo = 'todos' | 'grupo' | 'usuarios'
 
+export type ExpiraTipo = 'leido' | 'dias'
+
 export type Anuncio = {
   id: string
   workspace_id: string
@@ -252,6 +254,8 @@ export type Anuncio = {
   contenido: string
   destinatario_tipo: DestinatarioTipo
   destinatario_ids: string[]
+  expira_tipo: ExpiraTipo
+  expira_dias: number | null
   created_at: string
 }
 
