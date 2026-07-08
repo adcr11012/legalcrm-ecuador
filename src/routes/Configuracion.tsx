@@ -193,7 +193,7 @@ export default function Configuracion() {
         <div className="mb-2.5 flex items-center justify-between rounded-[10px] border border-border bg-surface p-3">
           <div>
             <div className="text-[13px] font-medium text-ink">Alertas de plazos por correo</div>
-            <div className="text-[11px] text-muted">Avisa a abogados asignados y al admin antes de un vencimiento.</div>
+            <div className="text-[11px] text-muted">Avisa a los usuarios asignados al caso y a los administradores antes de un vencimiento.</div>
           </div>
           <button
             disabled={!puedeEditar}

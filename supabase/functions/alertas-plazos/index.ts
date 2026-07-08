@@ -1,7 +1,7 @@
 // Edge Function: alertas-plazos
 // Corre diariamente (vía cron). Busca plazos próximos a vencer dentro de la
 // ventana de anticipación configurada por cada workspace, envía un correo
-// vía Resend a los abogados asignados + administradores, y marca alertado=true.
+// vía Resend a los usuarios asignados al caso + administradores, y marca alertado=true.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
@@ -261,21 +261,23 @@ Deno.serve(async () => {
     for (const plazo of plazos ?? []) {
       const caso = (plazo as { casos: { id: string; titulo: string } }).casos
 
+      // Cualquier usuario del sistema vinculado al caso (sin importar su rol
+      // dentro del caso: abogado, cliente u otro) es un usuario real de la
+      // app y debe recibir el aviso — el rol de caso no filtra esto.
       const { data: personas } = await supabase
         .from('caso_personas')
         .select('user_id')
         .eq('caso_id', plazo.caso_id)
-        .eq('rol', 'abogado')
         .not('user_id', 'is', null)
 
       const userIds = (personas ?? []).map((p) => p.user_id).filter(Boolean) as string[]
-      let abogadoEmails: string[] = []
+      let usuariosCasoEmails: string[] = []
       if (userIds.length > 0) {
         const { data: usuarios } = await supabase.from('users').select('email').in('id', userIds)
-        abogadoEmails = (usuarios ?? []).map((u) => u.email)
+        usuariosCasoEmails = (usuarios ?? []).map((u) => u.email)
       }
 
-      const destinatarios = Array.from(new Set([...adminEmails, ...abogadoEmails]))
+      const destinatarios = Array.from(new Set([...adminEmails, ...usuariosCasoEmails]))
 
       if (destinatarios.length > 0) {
         const fechaFmt = new Date(plazo.fecha + 'T00:00:00Z').toLocaleDateString('es-EC', {
@@ -292,7 +294,7 @@ Deno.serve(async () => {
         )
         alertados++
       } else {
-        console.log(`Plazo ${plazo.id} sin destinatarios (sin abogado asignado ni admin).`)
+        console.log(`Plazo ${plazo.id} sin destinatarios (sin usuario asignado ni admin).`)
       }
 
       await supabase.from('plazos').update({ alertado: true }).eq('id', plazo.id)
