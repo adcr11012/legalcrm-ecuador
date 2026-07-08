@@ -228,6 +228,7 @@ export default function Agenda() {
                     <div className="min-w-[40px] text-center">
                       <div className="text-[20px] font-bold leading-none text-ink">{fechaObj.getDate()}</div>
                       <div className="text-[10px] uppercase text-mute2">{MESES[fechaObj.getMonth()]}</div>
+                      <div className="text-[9px] text-mute2">{fechaObj.getFullYear()}</div>
                     </div>
 
                     <div className="min-w-0 flex-1">
