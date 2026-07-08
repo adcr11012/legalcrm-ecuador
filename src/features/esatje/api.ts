@@ -52,15 +52,40 @@ export async function listCasosParaExportarGlobal(): Promise<CasoParaExportar[]>
   const { data, error } = await query
   if (error) throw error
 
-  return (data ?? [])
-    .filter((c) => c.numero_causa && esNumeroCausaValido(c.numero_causa))
-    .map((c) => ({
-      id: c.id,
+  const validos = (data ?? []).filter((c) => c.numero_causa && esNumeroCausaValido(c.numero_causa))
+  const invalidos = (data ?? []).filter((c) => c.numero_causa && !esNumeroCausaValido(c.numero_causa))
+
+  // Avisa a CADA workspace (nunca mezclado) sobre sus propias causas con
+  // formato inválido, vía su propia campanita de notificaciones. Evita
+  // duplicar el aviso si ya hay uno sin leer para ese mismo caso.
+  for (const c of invalidos) {
+    const { data: existente } = await supabase
+      .from('avisos_admin')
+      .select('id')
+      .eq('workspace_id', c.workspace_id)
+      .eq('tipo', 'satje_causa_invalida')
+      .eq('ref_id', c.id)
+      .eq('leido', false)
+      .maybeSingle()
+    if (existente) continue
+    await supabase.from('avisos_admin').insert({
       workspace_id: c.workspace_id,
-      workspace_nombre: nombrePorWorkspace.get(c.workspace_id) ?? '—',
-      titulo: c.titulo,
-      numero_causa: c.numero_causa!,
-    }))
+      tipo: 'satje_causa_invalida',
+      titulo: 'Número de causa inválido',
+      subtitulo: `${c.titulo} — "${c.numero_causa}" no tiene un formato reconocible, revísalo en el caso.`,
+      ref_id: c.id,
+      to_path: `/casos/${c.id}`,
+      leido: false,
+    })
+  }
+
+  return validos.map((c) => ({
+    id: c.id,
+    workspace_id: c.workspace_id,
+    workspace_nombre: nombrePorWorkspace.get(c.workspace_id) ?? '—',
+    titulo: c.titulo,
+    numero_causa: c.numero_causa!,
+  }))
 }
 
 // Formato esperado del archivo de resultados que produce el programa local

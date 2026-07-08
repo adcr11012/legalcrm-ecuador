@@ -302,8 +302,9 @@ export default function Configuracion() {
           <div>
             <div className="text-[13px] font-medium text-ink">Activar sincronización con SATJE</div>
             <div className="text-[11px] text-muted">
-              Revisa automáticamente si hay movimientos nuevos en los casos activos con número de causa registrado,
-              y los agrega al historial de cada caso.
+              El proceso se realiza automáticamente y se carga a la plataforma cada 24 horas: revisa si hay
+              movimientos nuevos en los casos activos con número de causa registrado, y los agrega al historial
+              de cada caso. Si algún número de causa tiene un formato inválido, te avisamos en las notificaciones.
             </div>
           </div>
           <button

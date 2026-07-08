@@ -12,7 +12,7 @@ import { useAuth } from '@/features/auth/AuthProvider'
 
 export type Notificacion = {
   id: string
-  tipo: 'plazo' | 'cliente' | 'invitacion' | 'tarea' | 'inactividad' | 'anuncio'
+  tipo: 'plazo' | 'cliente' | 'invitacion' | 'tarea' | 'inactividad' | 'anuncio' | 'satje'
   titulo: string
   subtitulo: string
   urgente: boolean
@@ -95,8 +95,8 @@ export function useNotifications() {
       }))
 
       const deInactividad: Notificacion[] = avisosAdmin.map((a) => ({
-        id: `inactividad-${a.id}`,
-        tipo: 'inactividad' as const,
+        id: `aviso-${a.id}`,
+        tipo: a.tipo === 'satje_causa_invalida' ? ('satje' as const) : ('inactividad' as const),
         titulo: a.titulo,
         subtitulo: a.subtitulo,
         urgente: false,

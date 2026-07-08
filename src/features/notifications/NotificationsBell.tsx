@@ -9,6 +9,7 @@ const ICON: Record<Notificacion['tipo'], string> = {
   tarea: 'ti-checkbox',
   inactividad: 'ti-moon-2',
   anuncio: 'ti-speakerphone',
+  satje: 'ti-alert-triangle',
 }
 
 export function NotificationsBell() {
