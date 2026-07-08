@@ -191,7 +191,6 @@ export default function Configuracion() {
         <div className="mt-6 mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-mute2">Notificaciones dentro de la app (campanita)</div>
         <p className="mb-2.5 text-[11px] text-mute2">
           Esto NO envía correos. Solo controla lo que aparece en la campanita 🔔 de notificaciones dentro de la app.
-          El correo de audiencias/plazos con invitados ya lo maneja Google Calendar (ver más abajo).
         </p>
 
         <div className="mb-2.5 flex items-center justify-between rounded-[10px] border border-border bg-surface p-3">
