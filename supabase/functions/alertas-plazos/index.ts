@@ -132,8 +132,9 @@ async function procesarRecordatoriosEscalonados(hoy: string) {
 
 // Resumen de inactividad para administradores: usuarios sin conectarse hace
 // X días + casos sin movimiento (última entrada de historial) hace Y días,
-// excluyendo casos en una etapa terminal. Se reenvía como máximo 1 vez cada
-// 7 días por workspace, para no ser spam mientras la condición persiste.
+// excluyendo casos en una etapa terminal. Genera avisos individuales en
+// avisos_admin (para la campanita, sin duplicar mientras sigan sin leer) y,
+// aparte, un correo resumen limitado a 1 vez cada 7 días por workspace.
 async function procesarAlertasInactividad(hoy: string, ws: {
   id: string
   nombre: string
@@ -144,15 +145,10 @@ async function procesarAlertasInactividad(hoy: string, ws: {
 }) {
   if (!ws.alertas_inactividad_activas) return false
 
-  if (ws.alertas_inactividad_ultimo_envio) {
-    const diasDesdeUltimoEnvio = diasEntre(ws.alertas_inactividad_ultimo_envio, hoy)
-    if (diasDesdeUltimoEnvio < 7) return false
-  }
-
   const limiteUsuario = addDays(hoy, -ws.dias_inactividad_usuario)
   const { data: usuariosInactivos } = await supabase
     .from('users')
-    .select('nombre, email, last_seen_at')
+    .select('id, nombre, email, last_seen_at')
     .eq('workspace_id', ws.id)
     .or(`last_seen_at.is.null,last_seen_at.lt.${limiteUsuario}T00:00:00`)
 
@@ -190,13 +186,54 @@ async function procesarAlertasInactividad(hoy: string, ws: {
 
   if ((usuariosInactivos ?? []).length === 0 && casosInactivos.length === 0) return false
 
+  // Avisos individuales para la campanita — se evita duplicar mientras ya
+  // exista uno sin leer para el mismo usuario/caso.
+  async function crearAvisoSiNoExiste(tipo: 'usuario_inactivo' | 'caso_inactivo', refId: string, titulo: string, subtitulo: string, toPath: string) {
+    const { data: existente } = await supabase
+      .from('avisos_admin')
+      .select('id')
+      .eq('workspace_id', ws.id)
+      .eq('tipo', tipo)
+      .eq('ref_id', refId)
+      .eq('leido', false)
+      .maybeSingle()
+    if (existente) return
+    await supabase.from('avisos_admin').insert({
+      workspace_id: ws.id,
+      tipo,
+      titulo,
+      subtitulo,
+      ref_id: refId,
+      to_path: toPath,
+      leido: false,
+    })
+  }
+
+  for (const u of usuariosInactivos ?? []) {
+    await crearAvisoSiNoExiste(
+      'usuario_inactivo',
+      u.id,
+      'Usuario inactivo',
+      `${u.nombre} — ${u.last_seen_at ? `sin conectarse hace ${diasEntre(u.last_seen_at.slice(0, 10), hoy)} días` : 'nunca se ha conectado'}`,
+      '/usuarios',
+    )
+  }
+  for (const c of casosInactivos) {
+    await crearAvisoSiNoExiste('caso_inactivo', c.id, 'Caso sin movimiento', c.titulo, `/casos/${c.id}`)
+  }
+
+  if (ws.alertas_inactividad_ultimo_envio) {
+    const diasDesdeUltimoEnvio = diasEntre(ws.alertas_inactividad_ultimo_envio, hoy)
+    if (diasDesdeUltimoEnvio < 7) return true
+  }
+
   const { data: admins } = await supabase
     .from('users')
     .select('email')
     .eq('workspace_id', ws.id)
     .eq('rol', 'administrador')
   const adminEmails = (admins ?? []).map((a) => a.email)
-  if (adminEmails.length === 0) return false
+  if (adminEmails.length === 0) return true
 
   const filasUsuarios = (usuariosInactivos ?? [])
     .map((u) => `<li>${u.nombre} (${u.email}) — ${u.last_seen_at ? `última conexión ${new Date(u.last_seen_at).toLocaleDateString('es-EC')}` : 'nunca se ha conectado'}</li>`)

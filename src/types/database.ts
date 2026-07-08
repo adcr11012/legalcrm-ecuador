@@ -34,6 +34,18 @@ export type Workspace = {
   created_at: string
 }
 
+export type AvisoAdmin = {
+  id: string
+  workspace_id: string
+  tipo: 'usuario_inactivo' | 'caso_inactivo'
+  titulo: string
+  subtitulo: string
+  ref_id: string
+  to_path: string
+  leido: boolean
+  created_at: string
+}
+
 export type Grupo = {
   id: string
   workspace_id: string
@@ -288,6 +300,7 @@ export type Database = {
       auditoria_documentos: Table<AuditoriaDocumento>
       grupos: Table<Grupo>
       grupo_usuarios: Table<{ grupo_id: string; user_id: string }>
+      avisos_admin: Table<AvisoAdmin>
     }
     Views: { [_ in never]: never }
     Functions: {

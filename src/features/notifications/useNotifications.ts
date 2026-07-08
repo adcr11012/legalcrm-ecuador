@@ -4,17 +4,19 @@ import { listAllTareasPendientes } from '@/features/casos/tareasApi'
 import { listCasos } from '@/features/casos/api'
 import { listClientes } from '@/features/clientes/api'
 import { listInvitacionesPendientes } from '@/features/usuarios/invitacionesApi'
+import { listAvisosAdminNoLeidos, marcarAvisoLeido } from '@/features/notifications/avisosAdminApi'
 import { getWorkspace } from '@/features/workspace/api'
 import { diasRestantes, labelDias } from '@/features/casos/plazoUrgencia'
 import { useAuth } from '@/features/auth/AuthProvider'
 
 export type Notificacion = {
   id: string
-  tipo: 'plazo' | 'cliente' | 'invitacion' | 'tarea'
+  tipo: 'plazo' | 'cliente' | 'invitacion' | 'tarea' | 'inactividad'
   titulo: string
   subtitulo: string
   urgente: boolean
   to: string
+  avisoAdminId?: string
 }
 
 export function useNotifications() {
@@ -26,13 +28,15 @@ export function useNotifications() {
     if (!profile) return
     setLoading(true)
     try {
-      const [plazos, tareas, casos, clientes, invitaciones, workspace] = await Promise.all([
+      const esAdmin = profile.rol === 'administrador'
+      const [plazos, tareas, casos, clientes, invitaciones, workspace, avisosAdmin] = await Promise.all([
         listAllPlazos(),
         listAllTareasPendientes(),
         listCasos(),
         listClientes(),
-        profile.rol === 'administrador' ? listInvitacionesPendientes() : Promise.resolve([]),
+        esAdmin ? listInvitacionesPendientes() : Promise.resolve([]),
         getWorkspace(profile.workspace_id),
+        esAdmin ? listAvisosAdminNoLeidos() : Promise.resolve([]),
       ])
       const casosById = new Map(casos.map((c) => [c.id, c]))
 
@@ -87,11 +91,27 @@ export function useNotifications() {
         to: '/usuarios',
       }))
 
-      setItems([...deClientes, ...deTareas, ...dePlazos, ...deInvitaciones])
+      const deInactividad: Notificacion[] = avisosAdmin.map((a) => ({
+        id: `inactividad-${a.id}`,
+        tipo: 'inactividad' as const,
+        titulo: a.titulo,
+        subtitulo: a.subtitulo,
+        urgente: false,
+        to: a.to_path,
+        avisoAdminId: a.id,
+      }))
+
+      setItems([...deInactividad, ...deClientes, ...deTareas, ...dePlazos, ...deInvitaciones])
     } finally {
       setLoading(false)
     }
   }, [profile])
 
-  return { items, loading, refetch }
+  const marcarLeida = useCallback(async (n: Notificacion) => {
+    if (!n.avisoAdminId) return
+    await marcarAvisoLeido(n.avisoAdminId)
+    setItems((prev) => prev.filter((x) => x.id !== n.id))
+  }, [])
+
+  return { items, loading, refetch, marcarLeida }
 }

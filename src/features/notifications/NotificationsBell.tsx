@@ -7,11 +7,12 @@ const ICON: Record<Notificacion['tipo'], string> = {
   cliente: 'ti-user-circle',
   invitacion: 'ti-mail',
   tarea: 'ti-checkbox',
+  inactividad: 'ti-moon-2',
 }
 
 export function NotificationsBell() {
   const navigate = useNavigate()
-  const { items, loading, refetch } = useNotifications()
+  const { items, loading, refetch, marcarLeida } = useNotifications()
   const [open, setOpen] = useState(false)
   const boxRef = useRef<HTMLDivElement>(null)
 
@@ -63,6 +64,7 @@ export function NotificationsBell() {
                 key={n.id}
                 onClick={() => {
                   setOpen(false)
+                  if (n.avisoAdminId) marcarLeida(n)
                   navigate(n.to)
                 }}
                 className="flex w-full items-start gap-2.5 border-b border-border/70 px-3.5 py-2.5 text-left transition last:border-b-0 hover:bg-soft"
