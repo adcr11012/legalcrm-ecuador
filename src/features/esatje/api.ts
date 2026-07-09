@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { SatjeMovimiento } from '@/types/database'
+import type { SatjeMovimiento, SatjeDatosGenerales } from '@/types/database'
 
 // Formato de los números de causa ecuatorianos: 13-17 dígitos, con
 // eventuales letras de sufijo (ej. "17297202605046G", "1104190908149CH").
@@ -92,7 +92,20 @@ export async function listCasosParaExportarGlobal(): Promise<CasoParaExportar[]>
 // (Node + Playwright). Un objeto por número de causa consultado.
 export type ResultadoImportacion = {
   numeroCausa: string
-  movimientos: { fecha: string; tipo: string; descripcion?: string }[]
+  jurisdicciones: {
+    jurisdiccion: string
+    ciudad?: string
+    datosGenerales?: {
+      numeroProceso?: string
+      materia?: string
+      tipoAccion?: string
+      delitoAsunto?: string
+      judicaturaActual?: string
+      actor?: string
+      demandado?: string
+    }
+    movimientos: { fecha: string; tipo: string; descripcion?: string }[]
+  }[]
 }
 
 export type ResumenImportacion = {
@@ -115,21 +128,45 @@ export async function importarResultadosSatjeGlobal(
       resumen.causasNoEncontradas.push(r.numeroCausa)
       continue
     }
-    for (const m of r.movimientos) {
-      const { error } = await supabase.from('satje_movimientos').insert({
-        caso_id: caso.id,
-        workspace_id: caso.workspace_id,
-        numero_causa: r.numeroCausa,
-        fecha_movimiento: m.fecha,
-        tipo: m.tipo,
-        descripcion: m.descripcion ?? null,
-        importado_por: superadminId,
-      })
-      if (error) {
-        if (error.code === '23505') resumen.movimientosYaExistentes++
-        else throw error
-      } else {
-        resumen.movimientosNuevos++
+    for (const j of r.jurisdicciones) {
+      const dg = j.datosGenerales
+      const { error: errDg } = await supabase.from('satje_datos_generales').upsert(
+        {
+          caso_id: caso.id,
+          jurisdiccion: j.jurisdiccion,
+          workspace_id: caso.workspace_id,
+          numero_proceso: dg?.numeroProceso ?? null,
+          materia: dg?.materia ?? null,
+          tipo_accion: dg?.tipoAccion ?? null,
+          delito_asunto: dg?.delitoAsunto ?? null,
+          judicatura_actual: dg?.judicaturaActual ?? null,
+          actor: dg?.actor ?? null,
+          demandado: dg?.demandado ?? null,
+          importado_por: superadminId,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'caso_id,jurisdiccion' },
+      )
+      if (errDg) throw errDg
+
+      for (const m of j.movimientos) {
+        const { error } = await supabase.from('satje_movimientos').insert({
+          caso_id: caso.id,
+          workspace_id: caso.workspace_id,
+          numero_causa: r.numeroCausa,
+          fecha_movimiento: m.fecha,
+          tipo: m.tipo,
+          descripcion: m.descripcion ?? null,
+          jurisdiccion: j.jurisdiccion,
+          ciudad: j.ciudad ?? null,
+          importado_por: superadminId,
+        })
+        if (error) {
+          if (error.code === '23505') resumen.movimientosYaExistentes++
+          else throw error
+        } else {
+          resumen.movimientosNuevos++
+        }
       }
     }
   }
@@ -153,6 +190,15 @@ export async function listMovimientosPorCaso(casoId: string): Promise<SatjeMovim
     .select('*')
     .eq('caso_id', casoId)
     .order('fecha_movimiento', { ascending: false })
+  if (error) throw error
+  return data
+}
+
+export async function listDatosGeneralesPorCaso(casoId: string): Promise<SatjeDatosGenerales[]> {
+  const { data, error } = await supabase
+    .from('satje_datos_generales')
+    .select('*')
+    .eq('caso_id', casoId)
   if (error) throw error
   return data
 }

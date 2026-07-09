@@ -244,8 +244,25 @@ export type SatjeMovimiento = {
   fecha_movimiento: string
   tipo: string
   descripcion: string | null
+  jurisdiccion: string | null
+  ciudad: string | null
   importado_por: string
   created_at: string
+}
+
+export type SatjeDatosGenerales = {
+  caso_id: string
+  jurisdiccion: string
+  workspace_id: string
+  numero_proceso: string | null
+  materia: string | null
+  tipo_accion: string | null
+  delito_asunto: string | null
+  judicatura_actual: string | null
+  actor: string | null
+  demandado: string | null
+  importado_por: string
+  updated_at: string
 }
 
 export type CasoComentario = {
@@ -342,6 +359,7 @@ export type Database = {
       avisos_admin: Table<AvisoAdmin>
       caso_comentarios: Table<CasoComentario>
       satje_movimientos: Table<SatjeMovimiento>
+      satje_datos_generales: Table<SatjeDatosGenerales>
       anuncios: Table<Anuncio>
       anuncio_lecturas: Table<{ anuncio_id: string; user_id: string; leido_at: string }>
     }
