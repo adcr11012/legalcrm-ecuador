@@ -72,7 +72,7 @@ export async function listCasosParaExportarGlobal(): Promise<CasoParaExportar[]>
       workspace_id: c.workspace_id,
       tipo: 'satje_causa_invalida',
       titulo: 'Número de causa inválido',
-      subtitulo: `${c.titulo} — "${c.numero_causa}" no tiene un formato reconocible, revísalo en el caso.`,
+      subtitulo: `Caso "${c.titulo}" — el número de causa "${c.numero_causa}" no tiene un formato reconocible, revísalo en el caso.`,
       ref_id: c.id,
       to_path: `/casos/${c.id}`,
       leido: false,
