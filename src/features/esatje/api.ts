@@ -104,7 +104,7 @@ export type ResultadoImportacion = {
       actor?: string
       demandado?: string
     }
-    movimientos: { fecha: string; tipo: string; descripcion?: string; codigo?: string }[]
+    movimientos: { fecha: string; tipo: string; descripcion?: string; codigo?: string; orden?: number }[]
   }[]
 }
 
@@ -160,14 +160,11 @@ export async function importarResultadosSatjeGlobal(
           jurisdiccion: j.jurisdiccion,
           ciudad: j.ciudad ?? null,
           codigo: m.codigo ?? null,
+          orden: m.orden ?? null,
           importado_por: superadminId,
         })
-        if (error) {
-          if (error.code === '23505') resumen.movimientosYaExistentes++
-          else throw error
-        } else {
-          resumen.movimientosNuevos++
-        }
+        if (error) throw error
+        resumen.movimientosNuevos++
       }
     }
   }
@@ -190,7 +187,7 @@ export async function listMovimientosPorCaso(casoId: string): Promise<SatjeMovim
     .from('satje_movimientos')
     .select('*')
     .eq('caso_id', casoId)
-    .order('fecha_movimiento', { ascending: false })
+    .order('orden', { ascending: true, nullsFirst: false })
   if (error) throw error
   return data
 }

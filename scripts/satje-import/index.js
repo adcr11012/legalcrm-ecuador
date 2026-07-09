@@ -161,6 +161,9 @@ async function obtenerActuaciones(page, numeroCausa) {
       }
       try {
         const actuaciones = JSON.parse(r2.body)
+        // Se guarda en el mismo orden en que SATJE las devuelve, sin
+        // reordenar ni quitar repetidos — si SATJE las repite, se
+        // guardan repetidas.
         for (const a of actuaciones ?? []) {
           movimientos.push({
             fecha: (a.fecha ?? '').slice(0, 10),
@@ -174,7 +177,7 @@ async function obtenerActuaciones(page, numeroCausa) {
       }
       await page.waitForTimeout(150)
     }
-    movimientos.sort((a, b) => a.fecha.localeCompare(b.fecha))
+    movimientos.forEach((m, idx) => { m.orden = idx })
     jurisdicciones.push({
       jurisdiccion: j.nombreJudicatura ?? 'Sin nombre',
       ciudad: j.ciudad,
