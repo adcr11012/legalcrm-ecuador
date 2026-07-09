@@ -38,7 +38,7 @@ export type Workspace = {
 export type AvisoAdmin = {
   id: string
   workspace_id: string
-  tipo: 'usuario_inactivo' | 'caso_inactivo' | 'satje_causa_invalida'
+  tipo: 'usuario_inactivo' | 'caso_inactivo' | 'satje_causa_invalida' | 'satje_novedad'
   titulo: string
   subtitulo: string
   ref_id: string
