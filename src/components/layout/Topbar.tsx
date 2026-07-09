@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import type { PageAction } from '@/components/layout/PageActionContext'
 import { NotificationsBell } from '@/features/notifications/NotificationsBell'
 import { WorkspaceAssistant } from '@/features/workspace/WorkspaceAssistant'
@@ -23,6 +23,9 @@ export function Topbar({ action, sidebarOpen }: { action: PageAction; sidebarOpe
   const { pathname } = useLocation()
   const title = TITLES[sectionFor(pathname)] ?? ''
   const { isMobile } = useDevice()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const enCasos = sectionFor(pathname) === '/casos'
+  const view: 'list' | 'kanban' = searchParams.get('view') === 'kanban' ? 'kanban' : 'list'
 
   if (isMobile) {
     return (
@@ -48,7 +51,25 @@ export function Topbar({ action, sidebarOpen }: { action: PageAction; sidebarOpe
 
   return (
     <div className="relative flex h-[52px] flex-shrink-0 items-center border-b border-border bg-surface px-3 sm:px-5">
-      <div className="min-w-0 flex-1 truncate text-[15px] font-semibold text-ink">{title}</div>
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <span className="truncate text-[15px] font-semibold text-ink">{title}</span>
+        {enCasos && (
+          <div className="flex flex-shrink-0 gap-0.5 rounded-[6px] bg-soft p-0.5">
+            <button
+              onClick={() => setSearchParams((prev) => { prev.set('view', 'list'); return prev })}
+              className={`flex items-center gap-1.5 rounded-[5px] px-2 py-0.5 text-[11px] transition ${view === 'list' ? 'bg-surface text-ink shadow-sm' : 'text-muted'}`}
+            >
+              <i className="ti ti-list" /> Lista
+            </button>
+            <button
+              onClick={() => setSearchParams((prev) => { prev.set('view', 'kanban'); return prev })}
+              className={`flex items-center gap-1.5 rounded-[5px] px-2 py-0.5 text-[11px] transition ${view === 'kanban' ? 'bg-surface text-ink shadow-sm' : 'text-muted'}`}
+            >
+              <i className="ti ti-layout-columns" /> Kanban
+            </button>
+          </div>
+        )}
+      </div>
 
       {!sidebarOpen && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">

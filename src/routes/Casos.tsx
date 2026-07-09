@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { usePageAction } from '@/components/layout/PageActionContext'
 import { useAuth } from '@/features/auth/AuthProvider'
-import { useDevice } from '@/context/DeviceModeContext'
 import { listCasos, listCasosPage, updateEtapaCaso } from '@/features/casos/api'
 import { listPersonasForCasos } from '@/features/casos/personasApi'
 import { listEtapas } from '@/features/casos/etapasApi'
@@ -18,7 +17,6 @@ export default function Casos() {
   const { profile } = useAuth()
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
-  const { isMobile } = useDevice()
   const [casos, setCasos] = useState<Caso[]>([])
   const [etapas, setEtapas] = useState<Etapa[]>([])
   const [personasByCaso, setPersonasByCaso] = useState<Map<string, CasoPersona[]>>(new Map())
@@ -26,7 +24,8 @@ export default function Casos() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
-  const [view, setView] = useState<'list' | 'kanban'>('list')
+  const [searchParams] = useSearchParams()
+  const view: 'list' | 'kanban' = searchParams.get('view') === 'kanban' ? 'kanban' : 'list'
   const [kanbanModalCasoId, setKanbanModalCasoId] = useState<string | null>(null)
   const [total, setTotal] = useState(0)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -126,25 +125,6 @@ export default function Casos() {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      {!isMobile && (
-        <div className="flex flex-shrink-0 items-center gap-1 border-b border-border bg-surface px-3 py-1">
-          <div className="flex gap-0.5 rounded-[6px] bg-soft p-0.5">
-            <button
-              onClick={() => setView('list')}
-              className={`flex items-center gap-1.5 rounded-[5px] px-2 py-0.5 text-[11px] transition ${view === 'list' ? 'bg-surface text-ink shadow-sm' : 'text-muted'}`}
-            >
-              <i className="ti ti-list" /> Lista
-            </button>
-            <button
-              onClick={() => setView('kanban')}
-              className={`flex items-center gap-1.5 rounded-[5px] px-2 py-0.5 text-[11px] transition ${view === 'kanban' ? 'bg-surface text-ink shadow-sm' : 'text-muted'}`}
-            >
-              <i className="ti ti-layout-columns" /> Kanban
-            </button>
-          </div>
-        </div>
-      )}
-
       {casos.length === 0 ? (
         <div className="flex flex-1 items-center justify-center text-[13px] text-muted">
           Aún no hay casos registrados.
