@@ -81,21 +81,27 @@ async function fetchEnPagina(page, url, options) {
   )
 }
 
-// Trae los "datos generales" del proceso (número de proceso, materia, tipo
-// de acción, delito/asunto, actor, demandado) desde la búsqueda de causas.
-// OJO: los nombres exactos de estos campos en la respuesta real de SATJE
-// no estaban confirmados al escribir esto — si alguno sale vacío en el
-// resultado, avisa para ajustar el nombre del campo aquí.
-function extraerDatosGenerales(resultadoBusqueda) {
-  if (!resultadoBusqueda) return undefined
+// Nombres únicos, capitalizados como en SATJE, de una lista de litigantes.
+function nombresLitigantes(lista) {
+  const nombres = [...new Set((lista ?? []).map((l) => (l.nombresLitigante ?? '').trim()).filter(Boolean))]
+  return nombres.length > 0 ? nombres.join('; ') : undefined
+}
+
+// "Datos generales" del proceso para UNA jurisdicción: número de proceso,
+// materia y tipo de acción vienen de buscarCausas (son del proceso en
+// general); judicatura/actor/demandado vienen de la propia judicatura
+// (getIncidenteJudicatura), porque sí pueden variar entre instancias.
+function extraerDatosGenerales(resultadoBusqueda, judicatura) {
+  const actor = judicatura.lstIncidenteJudicatura?.flatMap((inc) => inc.lstLitiganteActor ?? [])
+  const demandado = judicatura.lstIncidenteJudicatura?.flatMap((inc) => inc.lstLitiganteDemandado ?? [])
   return {
-    numeroProceso: resultadoBusqueda.numeroProceso ?? resultadoBusqueda.numeroCausa,
-    materia: resultadoBusqueda.materia,
-    tipoAccion: resultadoBusqueda.tipoAccion,
-    delitoAsunto: resultadoBusqueda.nombreDelito ?? resultadoBusqueda.delito,
-    judicaturaActual: resultadoBusqueda.judicatura ?? resultadoBusqueda.nombreJudicatura,
-    actor: resultadoBusqueda.actorOfendido ?? resultadoBusqueda.actor,
-    demandado: resultadoBusqueda.demandadoProcesado ?? resultadoBusqueda.demandado,
+    numeroProceso: resultadoBusqueda?.idJuicio,
+    materia: resultadoBusqueda?.nombreMateria,
+    tipoAccion: resultadoBusqueda?.nombreTipoAccion,
+    delitoAsunto: resultadoBusqueda?.nombreDelito,
+    judicaturaActual: judicatura.nombreJudicatura,
+    actor: nombresLitigantes(actor),
+    demandado: nombresLitigantes(demandado),
   }
 }
 
@@ -116,10 +122,7 @@ async function obtenerDatosBusqueda(page, numeroCausa) {
 }
 
 async function obtenerActuaciones(page, numeroCausa) {
-  // Datos generales del proceso (pueden variar por jurisdicción, se
-  // guardan igual para todas si SATJE no distingue).
   const datosBusqueda = await obtenerDatosBusqueda(page, numeroCausa)
-  const datosGenerales = extraerDatosGenerales(datosBusqueda)
 
   // Paso 1: judicaturas + incidentes por los que pasó la causa.
   const r1 = await fetchEnPagina(page, `${BASE_URL}/EXPEL-CONSULTA-CAUSAS-CLEX-SERVICE/api/consulta-causas-clex/informacion/getIncidenteJudicatura/${numeroCausa}`, { method: 'GET' })
@@ -175,7 +178,7 @@ async function obtenerActuaciones(page, numeroCausa) {
     jurisdicciones.push({
       jurisdiccion: j.nombreJudicatura ?? 'Sin nombre',
       ciudad: j.ciudad,
-      datosGenerales,
+      datosGenerales: extraerDatosGenerales(datosBusqueda, j),
       movimientos,
     })
   }
