@@ -104,7 +104,7 @@ export type ResultadoImportacion = {
       actor?: string
       demandado?: string
     }
-    movimientos: { fecha: string; tipo: string; descripcion?: string }[]
+    movimientos: { fecha: string; tipo: string; descripcion?: string; codigo?: string }[]
   }[]
 }
 
@@ -159,6 +159,7 @@ export async function importarResultadosSatjeGlobal(
           descripcion: m.descripcion ?? null,
           jurisdiccion: j.jurisdiccion,
           ciudad: j.ciudad ?? null,
+          codigo: m.codigo ?? null,
           importado_por: superadminId,
         })
         if (error) {

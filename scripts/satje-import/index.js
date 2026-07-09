@@ -163,6 +163,7 @@ async function obtenerActuaciones(page, numeroCausa) {
             fecha: (a.fecha ?? '').slice(0, 10),
             tipo: (a.tipo ?? '').trim(),
             descripcion: resumirActividad(a.actividad),
+            codigo: a.codigo != null ? String(a.codigo) : undefined,
           })
         }
       } catch {

@@ -246,6 +246,7 @@ export type SatjeMovimiento = {
   descripcion: string | null
   jurisdiccion: string | null
   ciudad: string | null
+  codigo: string | null
   importado_por: string
   created_at: string
 }
