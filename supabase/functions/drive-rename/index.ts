@@ -83,11 +83,30 @@ Deno.serve(async (req) => {
         .single()
       if (conexion) {
         const accessToken = await getAccessToken(conexion.refresh_token)
-        const renameRes = await fetch(`https://www.googleapis.com/drive/v3/files/${documento.drive_file_id}`, {
+        const fileUrl = `https://www.googleapis.com/drive/v3/files/${documento.drive_file_id}`
+
+        // El archivo se sube marcado como solo-lectura (contentRestrictions)
+        // para evitar ediciones accidentales desde Drive — pero eso también
+        // bloquea el renombrado, así que hay que destrabarlo, renombrar, y
+        // volver a marcarlo como solo-lectura.
+        await fetch(fileUrl, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contentRestrictions: [{ readOnly: false }] }),
+        }).catch(() => {})
+
+        const renameRes = await fetch(fileUrl, {
           method: 'PATCH',
           headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: nuevo_nombre }),
         })
+
+        await fetch(fileUrl, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contentRestrictions: [{ readOnly: true, reason: 'Gestionado por TSADOQ' }] }),
+        }).catch(() => {})
+
         if (!renameRes.ok) {
           const errJson = await renameRes.json()
           console.error('Drive rename failed', errJson)
