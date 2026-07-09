@@ -4,6 +4,26 @@ import { getDocumentoProxyUrl, registrarAccesoDocumento, compartirDocumento } fr
 import { moverDocumento, createCarpeta, deleteCarpeta, renameCarpeta, reindexCarpetas } from '@/features/casos/carpetasApi'
 import { useDevice } from '@/context/DeviceModeContext'
 
+// Muestra un archivo (Blob URL) en la pestaña ya abierta. Navegar
+// directamente a una blob: URL vía location.href a veces hace que Chrome
+// fuerce la descarga en vez de mostrarlo — usar <embed> dentro de un HTML
+// mínimo es más confiable para PDFs e imágenes. Para tipos que el
+// navegador no puede renderizar (Word, Excel, etc.) simplemente navega
+// directo, que es lo más parecido a "verlo" que se puede ofrecer.
+function abrirBlobEnPestaña(w: Window | null, blobUrl: string, mimeType: string, nombre: string) {
+  if (!w) return
+  const renderable = mimeType === 'application/pdf' || mimeType.startsWith('image/')
+  if (!renderable) {
+    w.location.href = blobUrl
+    return
+  }
+  w.document.write(
+    `<!doctype html><html><head><title>${nombre.replace(/</g, '&lt;')}</title><style>html,body{margin:0;height:100%}embed{width:100%;height:100%;border:0}</style></head>` +
+      `<body><embed src="${blobUrl}" type="${mimeType}" /></body></html>`,
+  )
+  w.document.close()
+}
+
 function iconFor(nombre: string) {
   const ext = nombre.split('.').pop()?.toLowerCase()
   if (ext === 'pdf') return { icon: 'ti-file-type-pdf', bg: 'bg-danger-soft', fg: 'text-danger' }
@@ -93,7 +113,7 @@ function MobileDocRow({ d, casoId, workspaceId }: { d: Documento; casoId: string
       // vez de mostrarlo, aunque el archivo sí sea visible (ej. PDF).
       const blob = d.mime_type ? new Blob([rawBlob], { type: d.mime_type }) : rawBlob
       const blobUrl = URL.createObjectURL(blob)
-      if (w) w.location.href = blobUrl
+      abrirBlobEnPestaña(w, blobUrl, blob.type, d.nombre)
       registrarAccesoDocumento({ documento_id: d.id, workspace_id: workspaceId, accion: 'apertura', nombre_doc: d.nombre, caso_id: casoId })
     } catch (err) {
       if (w) w.close()
@@ -166,7 +186,12 @@ function DocRow({
     const w = window.open('', '_blank')
     try {
       const url = await getDocumentoProxyUrl(d.id)
-      if (w) w.location.href = url
+      const res = await fetch(url)
+      if (!res.ok) throw new Error(await res.text())
+      const rawBlob = await res.blob()
+      const blob = d.mime_type ? new Blob([rawBlob], { type: d.mime_type }) : rawBlob
+      const blobUrl = URL.createObjectURL(blob)
+      abrirBlobEnPestaña(w, blobUrl, blob.type, d.nombre)
       registrarAccesoDocumento({ documento_id: d.id, workspace_id: workspaceId, accion: 'apertura', nombre_doc: d.nombre, caso_id: casoId })
     } catch (err) {
       if (w) w.close()
