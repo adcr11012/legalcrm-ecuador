@@ -40,6 +40,14 @@ function BloqueJurisdiccion({ jurisdiccion }: { jurisdiccion: Jurisdiccion }) {
   const [datosAbiertos, setDatosAbiertos] = useState(false)
   const [procesoAbierto, setProcesoAbierto] = useState(true)
 
+  const fechaMasReciente = jurisdiccion.movimientos.reduce<string | null>(
+    (max, m) => (!max || m.fecha_movimiento > max ? m.fecha_movimiento : max),
+    null,
+  )
+  const ultimoEvento = fechaMasReciente
+    ? new Date(fechaMasReciente + 'T00:00:00').toLocaleDateString('es-EC', { day: 'numeric', month: 'short', year: 'numeric' })
+    : null
+
   return (
     <div className="rounded-[10px] border border-border bg-surface">
       <button
@@ -50,7 +58,11 @@ function BloqueJurisdiccion({ jurisdiccion }: { jurisdiccion: Jurisdiccion }) {
         <span className="text-[12px] text-mute2">●</span>
         <div className="min-w-0 flex-1">
           <div className="truncate text-[13px] font-medium text-ink">{jurisdiccion.nombre}</div>
-          {jurisdiccion.ciudad && <div className="text-[11px] text-mute2">{jurisdiccion.ciudad}</div>}
+          <div className="text-[11px] text-mute2">
+            {jurisdiccion.ciudad}
+            {jurisdiccion.ciudad && ultimoEvento && ' · '}
+            {ultimoEvento && `Último: ${ultimoEvento}`}
+          </div>
         </div>
         <span className="flex-shrink-0 rounded-full bg-bg px-2 py-0.5 text-[11px] text-mute2">
           {jurisdiccion.movimientos.length} evento{jurisdiccion.movimientos.length === 1 ? '' : 's'}
