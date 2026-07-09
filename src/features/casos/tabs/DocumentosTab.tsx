@@ -85,7 +85,15 @@ function MobileDocRow({ d, casoId, workspaceId }: { d: Documento; casoId: string
     const w = window.open('', '_blank')
     try {
       const url = await getDocumentoProxyUrl(d.id)
-      if (w) w.location.href = url
+      const res = await fetch(url)
+      if (!res.ok) throw new Error(await res.text())
+      const rawBlob = await res.blob()
+      // Fuerza el tipo correcto del Blob según lo guardado en la app — si el
+      // navegador no reconoce el content-type del servidor, lo descarga en
+      // vez de mostrarlo, aunque el archivo sí sea visible (ej. PDF).
+      const blob = d.mime_type ? new Blob([rawBlob], { type: d.mime_type }) : rawBlob
+      const blobUrl = URL.createObjectURL(blob)
+      if (w) w.location.href = blobUrl
       registrarAccesoDocumento({ documento_id: d.id, workspace_id: workspaceId, accion: 'apertura', nombre_doc: d.nombre, caso_id: casoId })
     } catch (err) {
       if (w) w.close()
