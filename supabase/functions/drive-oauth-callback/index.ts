@@ -82,28 +82,46 @@ Deno.serve(async (req) => {
 
     const { data: workspace } = await admin.from('workspaces').select('nombre').eq('id', perfil.workspace_id).single()
 
-    const folderRes = await fetch('https://www.googleapis.com/drive/v3/files', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${tokenJson.access_token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: `TSADOQ - ${workspace?.nombre ?? 'Workspace'}`,
-        mimeType: 'application/vnd.google-apps.folder',
-      }),
+    // Antes de crear una carpeta nueva, busca si esta MISMA cuenta de Google
+    // ya tiene una carpeta raíz de este workspace (etiquetada por nosotros la
+    // vez anterior). Así, si el admin se desconecta y reconecta con la misma
+    // cuenta, recupera los casos/documentos existentes en vez de duplicar.
+    const q = encodeURIComponent(
+      `appProperties has { key='tsadoq_workspace_id' and value='${perfil.workspace_id}' } and trashed = false and mimeType = 'application/vnd.google-apps.folder'`,
+    )
+    const buscarRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
+      headers: { Authorization: `Bearer ${tokenJson.access_token}` },
     })
-    const folderJson = await folderRes.json()
-    if (!folderRes.ok) {
-      console.error('Folder creation failed', folderJson)
-      return json({ error: 'No se pudo crear la carpeta raíz en Drive' }, 400)
+    const buscarJson = await buscarRes.json()
+    let rootFolderId: string | undefined = buscarRes.ok ? buscarJson.files?.[0]?.id : undefined
+    let reconectado = Boolean(rootFolderId)
+
+    if (!rootFolderId) {
+      const folderRes = await fetch('https://www.googleapis.com/drive/v3/files', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${tokenJson.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: `TSADOQ - ${workspace?.nombre ?? 'Workspace'}`,
+          mimeType: 'application/vnd.google-apps.folder',
+          appProperties: { tsadoq_workspace_id: perfil.workspace_id },
+        }),
+      })
+      const folderJson = await folderRes.json()
+      if (!folderRes.ok) {
+        console.error('Folder creation failed', folderJson)
+        return json({ error: 'No se pudo crear la carpeta raíz en Drive' }, 400)
+      }
+      rootFolderId = folderJson.id
     }
 
     const { error: upsertError } = await admin.from('drive_conexion').upsert({
       workspace_id: perfil.workspace_id,
       refresh_token: tokenJson.refresh_token,
       connected_email: connectedEmail,
-      root_folder_id: folderJson.id,
+      root_folder_id: rootFolderId,
       connected_by: userData.user.id,
       updated_at: new Date().toISOString(),
     })
@@ -112,7 +130,7 @@ Deno.serve(async (req) => {
       return json({ error: 'No se pudo guardar la conexión' }, 500)
     }
 
-    return json({ ok: true, email: connectedEmail })
+    return json({ ok: true, email: connectedEmail, reconectado })
   } catch (err) {
     console.error(err)
     return json({ error: 'Error inesperado conectando Google Drive' }, 500)

@@ -53,6 +53,7 @@ async function ensureCaseFolder(accessToken: string, rootFolderId: string, casoI
       name: casoTitulo,
       mimeType: 'application/vnd.google-apps.folder',
       parents: [rootFolderId],
+      appProperties: { tsadoq_caso_id: casoId },
     }),
   })
   const folderJson = await res.json()
