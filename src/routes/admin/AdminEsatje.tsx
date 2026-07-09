@@ -120,8 +120,8 @@ export default function AdminEsatje() {
         <div className="mt-3 rounded-[10px] border border-success/20 bg-success-soft p-3.5 text-[13px] text-success">
           <div className="font-semibold">Importación completada</div>
           <ul className="mt-1 list-disc pl-4 text-[12px]">
-            <li>{resumen.movimientosNuevos} movimiento(s) nuevo(s) agregado(s), repartidos a sus workspaces correspondientes</li>
-            <li>{resumen.movimientosYaExistentes} ya existían (omitidos, sin duplicar)</li>
+            <li>{resumen.movimientosNuevos} movimiento(s) guardado(s), repartidos a sus workspaces correspondientes</li>
+            <li>{resumen.casosConNovedad} caso(s) con novedad real detectada (aviso enviado en la campanita del workspace correspondiente)</li>
             {resumen.causasNoEncontradas.length > 0 && (
               <li className="text-warn">
                 {resumen.causasNoEncontradas.length} número(s) de causa no coinciden con ningún caso activo: {resumen.causasNoEncontradas.join(', ')}

@@ -112,6 +112,7 @@ export type ResumenImportacion = {
   causasNoEncontradas: string[]
   movimientosNuevos: number
   movimientosYaExistentes: number
+  casosConNovedad: number
 }
 
 export async function importarResultadosSatjeGlobal(
@@ -120,7 +121,7 @@ export async function importarResultadosSatjeGlobal(
   superadminId: string,
 ): Promise<ResumenImportacion> {
   const casoPorNumero = new Map(casos.map((c) => [c.numero_causa, c]))
-  const resumen: ResumenImportacion = { causasNoEncontradas: [], movimientosNuevos: 0, movimientosYaExistentes: 0 }
+  const resumen: ResumenImportacion = { causasNoEncontradas: [], movimientosNuevos: 0, movimientosYaExistentes: 0, casosConNovedad: 0 }
 
   for (const r of resultados) {
     const caso = casoPorNumero.get(r.numeroCausa)
@@ -128,6 +129,20 @@ export async function importarResultadosSatjeGlobal(
       resumen.causasNoEncontradas.push(r.numeroCausa)
       continue
     }
+
+    // Snapshot de códigos ya importados en corridas ANTERIORES para este
+    // caso — se usa solo para saber qué es "novedad" hoy (avisar 1 vez al
+    // día si algo cambió). No bloquea el guardado: si SATJE repite un
+    // evento dentro de esta misma corrida, igual se guarda repetido.
+    const { data: existentes, error: errExistentes } = await supabase
+      .from('satje_movimientos')
+      .select('codigo')
+      .eq('caso_id', caso.id)
+      .not('codigo', 'is', null)
+    if (errExistentes) throw errExistentes
+    const codigosPrevios = new Set((existentes ?? []).map((m) => m.codigo))
+    let novedadesEnEsteCaso = 0
+
     for (const j of r.jurisdicciones) {
       const dg = j.datosGenerales
       const { error: errDg } = await supabase.from('satje_datos_generales').upsert(
@@ -165,7 +180,31 @@ export async function importarResultadosSatjeGlobal(
         })
         if (error) throw error
         resumen.movimientosNuevos++
+        if (!m.codigo || !codigosPrevios.has(m.codigo)) novedadesEnEsteCaso++
       }
+    }
+
+    if (novedadesEnEsteCaso > 0) {
+      const { data: avisoExistente } = await supabase
+        .from('avisos_admin')
+        .select('id')
+        .eq('workspace_id', caso.workspace_id)
+        .eq('tipo', 'satje_novedad')
+        .eq('ref_id', caso.id)
+        .eq('leido', false)
+        .maybeSingle()
+      if (!avisoExistente) {
+        await supabase.from('avisos_admin').insert({
+          workspace_id: caso.workspace_id,
+          tipo: 'satje_novedad',
+          titulo: 'Nuevos movimientos en SATJE',
+          subtitulo: `${caso.titulo} — ${novedadesEnEsteCaso} movimiento(s) nuevo(s) detectado(s).`,
+          ref_id: caso.id,
+          to_path: `/casos/${caso.id}`,
+          leido: false,
+        })
+      }
+      resumen.casosConNovedad++
     }
   }
 
