@@ -37,6 +37,8 @@ const CAMPOS_DATOS_GENERALES: { key: keyof SatjeDatosGenerales; label: string }[
 
 function BloqueJurisdiccion({ jurisdiccion }: { jurisdiccion: Jurisdiccion }) {
   const [abierto, setAbierto] = useState(false)
+  const [datosAbiertos, setDatosAbiertos] = useState(false)
+  const [procesoAbierto, setProcesoAbierto] = useState(true)
 
   return (
     <div className="rounded-[10px] border border-border bg-surface">
@@ -58,30 +60,44 @@ function BloqueJurisdiccion({ jurisdiccion }: { jurisdiccion: Jurisdiccion }) {
       {abierto && (
         <div className="border-t border-border px-3.5 pb-3.5 pt-3">
           {jurisdiccion.datosGenerales && (
-            <div className="mb-3 pl-4">
-              <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium text-mute2">
-                <span className="text-mute2">└</span> Datos generales
-              </div>
-              <div className="grid grid-cols-1 gap-x-4 gap-y-1 pl-4 sm:grid-cols-2">
-                {CAMPOS_DATOS_GENERALES.map(({ key, label }) => {
-                  const valor = jurisdiccion.datosGenerales![key]
-                  if (!valor) return null
-                  return (
-                    <div key={key} className="text-[12px]">
-                      <span className="text-mute2">{label}: </span>
-                      <span className="text-muted">{String(valor)}</span>
-                    </div>
-                  )
-                })}
-              </div>
+            <div className="mb-3">
+              <button
+                onClick={() => setDatosAbiertos((v) => !v)}
+                className="mb-1.5 flex items-center gap-1.5 pl-4 text-[11px] font-medium text-mute2"
+              >
+                <span className="text-mute2">└</span>
+                <i className={`ti ${datosAbiertos ? 'ti-chevron-down' : 'ti-chevron-right'} text-[12px]`} />
+                Datos generales
+              </button>
+              {datosAbiertos && (
+                <div className="grid grid-cols-1 gap-x-4 gap-y-1 pl-8 sm:grid-cols-2">
+                  {CAMPOS_DATOS_GENERALES.map(({ key, label }) => {
+                    const valor = jurisdiccion.datosGenerales![key]
+                    if (!valor) return null
+                    return (
+                      <div key={key} className="text-[12px]">
+                        <span className="text-mute2">{label}: </span>
+                        <span className="text-muted">{String(valor)}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           )}
 
-          <div className="pl-4">
-            <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium text-mute2">
-              <span className="text-mute2">└</span> Información del proceso
-            </div>
-            <div className="flex flex-col gap-1.5 pl-4">
+          <div>
+            <button
+              onClick={() => setProcesoAbierto((v) => !v)}
+              className="mb-1.5 flex items-center gap-1.5 pl-4 text-[11px] font-medium text-mute2"
+            >
+              <span className="text-mute2">└</span>
+              <i className={`ti ${procesoAbierto ? 'ti-chevron-down' : 'ti-chevron-right'} text-[12px]`} />
+              Información del proceso
+              <span className="rounded-full bg-bg px-1.5 py-0.5 text-[10px]">{jurisdiccion.movimientos.length}</span>
+            </button>
+            {procesoAbierto && (
+            <div className="flex flex-col gap-1.5 pl-8">
               {jurisdiccion.movimientos.map((m) => (
                 <div key={m.id} className="rounded-[8px] border border-border bg-bg p-2.5">
                   <div className="flex items-center justify-between gap-2">
@@ -94,6 +110,7 @@ function BloqueJurisdiccion({ jurisdiccion }: { jurisdiccion: Jurisdiccion }) {
                 </div>
               ))}
             </div>
+            )}
           </div>
         </div>
       )}
