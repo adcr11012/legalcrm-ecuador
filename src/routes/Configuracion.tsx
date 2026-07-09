@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { getWorkspace, updateWorkspace } from '@/features/workspace/api'
-import { isGoogleDriveConfigured, buildGoogleConsentUrl, getDriveEstado, desconectarDrive, type DriveEstado } from '@/features/workspace/driveApi'
+import { isGoogleDriveConfigured, buildGoogleConsentUrl, getDriveEstado, desconectarDrive, reconciliarDrive, type DriveEstado } from '@/features/workspace/driveApi'
 import { EtapasSettings } from '@/features/casos/EtapasSettings'
 import { GroqSettings } from '@/features/workspace/GroqSettings'
 import { OpenRouterSettings } from '@/features/workspace/OpenRouterSettings'
@@ -97,6 +97,22 @@ export default function Configuracion() {
     }
   }
 
+  async function onReconciliarDrive() {
+    if (!confirm('¿Reconciliar Drive?\n\nEsto revisa las carpetas dentro de la carpeta raíz de Drive y vuelve a vincularlas con sus casos (o crea el caso si no existe). Útil después de copiar carpetas manualmente a otra cuenta de Google.')) return
+    setDriveBusy(true)
+    setError(null)
+    try {
+      const resumen = await reconciliarDrive()
+      const partes = [`${resumen.relinked} carpeta(s) vinculada(s)`, `${resumen.creados} caso(s) creado(s)`, `${resumen.sinCambios} sin cambios`]
+      if (resumen.sinMatch.length > 0) partes.push(`sin coincidencia: ${resumen.sinMatch.join(', ')}`)
+      alert(partes.join('\n'))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo reconciliar Drive.')
+    } finally {
+      setDriveBusy(false)
+    }
+  }
+
   return (
     <MobileBlock feature="Configuración">
     <div className="flex-1 overflow-y-auto p-5">
@@ -149,6 +165,15 @@ export default function Configuracion() {
             </div>
             {puedeEditar && isGoogleDriveConfigured() && (
               <div className="flex gap-2">
+                {driveEstado.conectado && (
+                  <button
+                    onClick={onReconciliarDrive}
+                    disabled={driveBusy}
+                    className="rounded-[6px] border border-border px-2.5 py-1 text-[11px] text-muted transition hover:bg-soft disabled:opacity-60"
+                  >
+                    Reconciliar
+                  </button>
+                )}
                 {driveEstado.conectado && (
                   <button
                     onClick={onDesconectarDrive}

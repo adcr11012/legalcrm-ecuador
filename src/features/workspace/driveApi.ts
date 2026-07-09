@@ -69,6 +69,22 @@ export async function uploadToDrive(casoId: string, file: File, visibilidad: str
   return json.documento
 }
 
+export type ResumenReconciliacion = { relinked: number; creados: number; sinCambios: number; sinMatch: string[] }
+
+// Escanea la carpeta raíz de Drive y vuelve a vincular/crear casos que no
+// coinciden con lo guardado en la base de datos — para cuando el usuario
+// copió manualmente sus carpetas a otra cuenta de Google y reconectó.
+export async function reconciliarDrive(): Promise<ResumenReconciliacion> {
+  const { data: session } = await supabase.auth.getSession()
+  const token = session.session?.access_token
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/drive-reconciliar`
+
+  const res = await fetch(url, { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
+  const json = await res.json()
+  if (!res.ok) throw new Error(json.error ?? 'No se pudo reconciliar Drive')
+  return json
+}
+
 export async function renameDriveFile(documentoId: string, nuevoNombre: string): Promise<Documento> {
   const { data: session } = await supabase.auth.getSession()
   const token = session.session?.access_token

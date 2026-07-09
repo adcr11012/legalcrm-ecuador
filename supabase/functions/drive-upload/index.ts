@@ -42,8 +42,32 @@ async function getAccessToken(refreshToken: string): Promise<string> {
   return tokenJson.access_token
 }
 
+// Sube un "caso.txt" descriptivo dentro de la carpeta del caso — sirve como
+// tarjeta de identidad que sobrevive si el usuario copia manualmente la
+// carpeta a otra cuenta de Drive (appProperties NO sobrevive una copia
+// manual, pero un archivo de texto sí). Usado luego por drive-reconciliar
+// para volver a vincular o incluso recrear el caso en un workspace nuevo.
+async function subirCasoTxt(accessToken: string, folderId: string, casoId: string, caso: Record<string, unknown>) {
+  const lineas = [
+    `caso_id: ${casoId}`,
+    `titulo: ${caso.titulo ?? ''}`,
+    `materia: ${caso.materia ?? ''}`,
+    `numero_causa: ${caso.numero_causa ?? ''}`,
+    `creado: ${new Date().toISOString()}`,
+  ]
+  const metadata = { name: 'caso.txt', parents: [folderId] }
+  const form = new FormData()
+  form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }))
+  form.append('file', new Blob([lineas.join('\n')], { type: 'text/plain' }))
+  await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: form,
+  })
+}
+
 async function ensureCaseFolder(accessToken: string, rootFolderId: string, casoId: string, casoTitulo: string): Promise<string> {
-  const { data: caso } = await admin.from('casos').select('drive_folder_id').eq('id', casoId).single()
+  const { data: caso } = await admin.from('casos').select('drive_folder_id, titulo, materia, numero_causa').eq('id', casoId).single()
   if (caso?.drive_folder_id) return caso.drive_folder_id
 
   const res = await fetch('https://www.googleapis.com/drive/v3/files', {
@@ -60,6 +84,7 @@ async function ensureCaseFolder(accessToken: string, rootFolderId: string, casoI
   if (!res.ok) throw new Error('No se pudo crear la carpeta del caso en Drive')
 
   await admin.from('casos').update({ drive_folder_id: folderJson.id }).eq('id', casoId)
+  await subirCasoTxt(accessToken, folderJson.id, casoId, caso ?? { titulo: casoTitulo })
   return folderJson.id
 }
 
