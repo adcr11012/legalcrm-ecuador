@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
       .select('refresh_token')
       .eq('workspace_id', caso.workspace_id)
       .maybeSingle()
-    if (!driveConexion) return json({ error: 'Google Drive no está conectado' }, 400)
+    if (!driveConexion?.refresh_token) return json({ error: 'Google Drive no está conectado' }, 400)
 
     const accessToken = await getAccessToken(driveConexion.refresh_token)
 

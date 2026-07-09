@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
       .select('refresh_token')
       .eq('workspace_id', caso.workspace_id)
       .maybeSingle()
-    const accessToken = driveConexion ? await getAccessToken(driveConexion.refresh_token) : null
+    const accessToken = driveConexion?.refresh_token ? await getAccessToken(driveConexion.refresh_token) : null
     if (!accessToken) return new Response('Drive no conectado', { status: 503, headers: corsHeaders })
 
     // Descargar y servir archivo

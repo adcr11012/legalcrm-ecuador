@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
         .select('refresh_token')
         .eq('workspace_id', perfil.workspace_id)
         .single()
-      if (conexion) {
+      if (conexion?.refresh_token) {
         const accessToken = await getAccessToken(conexion.refresh_token)
         const fileUrl = `https://www.googleapis.com/drive/v3/files/${documento.drive_file_id}`
 

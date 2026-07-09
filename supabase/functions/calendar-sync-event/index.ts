@@ -99,7 +99,7 @@ Deno.serve(async (req) => {
       .select('refresh_token')
       .eq('workspace_id', perfil.workspace_id)
       .single()
-    if (!conexion) {
+    if (!conexion?.refresh_token) {
       // Sin cuenta de Google conectada — no es un error bloqueante, simplemente no sincroniza.
       return json({ ok: true, sincronizado: false, motivo: 'Sin cuenta de Google conectada' })
     }

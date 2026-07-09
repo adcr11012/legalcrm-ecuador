@@ -149,7 +149,7 @@ Deno.serve(async (req) => {
     async function tokenParaWorkspace(workspaceId: string): Promise<string | null> {
       if (tokenCache.has(workspaceId)) return tokenCache.get(workspaceId)!
       const { data } = await admin.from('drive_conexion').select('refresh_token').eq('workspace_id', workspaceId).maybeSingle()
-      const token = data ? await getAccessToken(data.refresh_token) : null
+      const token = data?.refresh_token ? await getAccessToken(data.refresh_token) : null
       tokenCache.set(workspaceId, token)
       return token
     }

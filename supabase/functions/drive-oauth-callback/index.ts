@@ -82,19 +82,33 @@ Deno.serve(async (req) => {
 
     const { data: workspace } = await admin.from('workspaces').select('nombre').eq('id', perfil.workspace_id).single()
 
-    // Antes de crear una carpeta nueva, busca si esta MISMA cuenta de Google
-    // ya tiene una carpeta raíz de este workspace (etiquetada por nosotros la
-    // vez anterior). Así, si el admin se desconecta y reconecta con la misma
-    // cuenta, recupera los casos/documentos existentes en vez de duplicar.
-    const q = encodeURIComponent(
-      `appProperties has { key='tsadoq_workspace_id' and value='${perfil.workspace_id}' } and trashed = false and mimeType = 'application/vnd.google-apps.folder'`,
-    )
-    const buscarRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
-      headers: { Authorization: `Bearer ${tokenJson.access_token}` },
-    })
-    const buscarJson = await buscarRes.json()
-    let rootFolderId: string | undefined = buscarRes.ok ? buscarJson.files?.[0]?.id : undefined
+    // Prioridad 1: si este workspace ya tenía una carpeta raíz guardada (de
+    // una conexión anterior, incluso desconectada), se reutiliza DIRECTO —
+    // más confiable que buscar en Drive, que puede fallar por las
+    // limitaciones del scope drive.file.
+    const { data: conexionPrevia } = await admin
+      .from('drive_conexion')
+      .select('root_folder_id')
+      .eq('workspace_id', perfil.workspace_id)
+      .maybeSingle()
+    let rootFolderId: string | undefined = conexionPrevia?.root_folder_id ?? undefined
     let reconectado = Boolean(rootFolderId)
+
+    // Prioridad 2 (fallback): si no hay registro previo en nuestra base
+    // (ej. se restauró desde un respaldo, o es la primera vez en este
+    // workspace pero la carpeta ya existe en Drive por otra vía), intenta
+    // encontrarla por la etiqueta antes de crear una nueva.
+    if (!rootFolderId) {
+      const q = encodeURIComponent(
+        `appProperties has { key='tsadoq_workspace_id' and value='${perfil.workspace_id}' } and trashed = false and mimeType = 'application/vnd.google-apps.folder'`,
+      )
+      const buscarRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
+        headers: { Authorization: `Bearer ${tokenJson.access_token}` },
+      })
+      const buscarJson = await buscarRes.json()
+      rootFolderId = buscarRes.ok ? buscarJson.files?.[0]?.id : undefined
+      reconectado = Boolean(rootFolderId)
+    }
 
     if (!rootFolderId) {
       const folderRes = await fetch('https://www.googleapis.com/drive/v3/files', {

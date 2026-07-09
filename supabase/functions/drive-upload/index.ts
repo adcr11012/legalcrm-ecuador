@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
       .select('refresh_token, root_folder_id')
       .eq('workspace_id', perfil.workspace_id)
       .single()
-    if (!conexion) {
+    if (!conexion?.refresh_token) {
       return json({ error: 'Google Drive no está conectado para este workspace' }, 400)
     }
 

@@ -157,7 +157,7 @@ Deno.serve(async (req) => {
         .select('refresh_token')
         .eq('workspace_id', caso.workspace_id)
         .maybeSingle()
-      const accessToken = driveConexion ? await getAccessToken(driveConexion.refresh_token) : null
+      const accessToken = driveConexion?.refresh_token ? await getAccessToken(driveConexion.refresh_token) : null
       if (!accessToken) throw new Error('Google Drive no está conectado en este workspace')
 
       const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${doc.drive_file_id}?alt=media`, {

@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
       .eq('workspace_id', perfil.workspace_id)
       .maybeSingle()
 
-    const accessToken = conexion ? await getAccessToken(conexion.refresh_token) : null
+    const accessToken = conexion?.refresh_token ? await getAccessToken(conexion.refresh_token) : null
 
     // Eliminar archivos de Drive (best-effort: si falla, continúa)
     const driveIds = docsDelWorkspace.map((d) => d.drive_file_id).filter(Boolean)
