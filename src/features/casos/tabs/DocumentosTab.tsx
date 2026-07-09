@@ -18,8 +18,8 @@ function abrirBlobEnPestaña(w: Window | null, blobUrl: string, mimeType: string
     return
   }
   w.document.write(
-    `<!doctype html><html><head><title>${nombre.replace(/</g, '&lt;')}</title><style>html,body{margin:0;height:100%}embed{width:100%;height:100%;border:0}</style></head>` +
-      `<body><embed src="${blobUrl}" type="${mimeType}" /></body></html>`,
+    `<!doctype html><html><head><title>${nombre.replace(/</g, '&lt;')}</title><style>html,body{margin:0;height:100%}iframe{width:100%;height:100%;border:0}</style></head>` +
+      `<body><iframe src="${blobUrl}"></iframe></body></html>`,
   )
   w.document.close()
 }
