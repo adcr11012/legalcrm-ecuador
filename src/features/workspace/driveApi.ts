@@ -69,6 +69,21 @@ export async function uploadToDrive(casoId: string, file: File, visibilidad: str
   return json.documento
 }
 
+// Etiqueta la carpeta raíz y las de cada caso usando la conexión ACTIVA
+// (sin necesidad de desconectar/reconectar) — se corre una sola vez antes
+// de desconectar una cuenta que ya tiene documentos importantes, para que
+// al reconectar el sistema la reconozca en vez de crear una carpeta nueva.
+export async function prepararReconexionDrive(): Promise<{ ok: boolean; carpetasEtiquetadas: number; txtCreados: number }> {
+  const { data: session } = await supabase.auth.getSession()
+  const token = session.session?.access_token
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/drive-preparar-reconexion`
+
+  const res = await fetch(url, { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
+  const json = await res.json()
+  if (!res.ok) throw new Error(json.error ?? 'No se pudo preparar la reconexión')
+  return json
+}
+
 export type ResumenReconciliacion = { relinked: number; creados: number; sinCambios: number; sinMatch: string[] }
 
 // Escanea la carpeta raíz de Drive y vuelve a vincular/crear casos que no

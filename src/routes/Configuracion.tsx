@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { getWorkspace, updateWorkspace } from '@/features/workspace/api'
-import { isGoogleDriveConfigured, buildGoogleConsentUrl, getDriveEstado, desconectarDrive, reconciliarDrive, type DriveEstado } from '@/features/workspace/driveApi'
+import { isGoogleDriveConfigured, buildGoogleConsentUrl, getDriveEstado, desconectarDrive, reconciliarDrive, prepararReconexionDrive, type DriveEstado } from '@/features/workspace/driveApi'
 import { EtapasSettings } from '@/features/casos/EtapasSettings'
 import { GroqSettings } from '@/features/workspace/GroqSettings'
 import { OpenRouterSettings } from '@/features/workspace/OpenRouterSettings'
@@ -97,6 +97,20 @@ export default function Configuracion() {
     }
   }
 
+  async function onPrepararReconexion() {
+    if (!confirm('¿Preparar esta conexión para una futura reconexión?\n\nEtiqueta la carpeta raíz y las carpetas de cada caso (sin desconectar nada). Recomendado antes de desconectar una cuenta con documentos importantes.')) return
+    setDriveBusy(true)
+    setError(null)
+    try {
+      const r = await prepararReconexionDrive()
+      alert(`Listo.\n${r.carpetasEtiquetadas} carpeta(s) de caso etiquetada(s).\n${r.txtCreados} caso.txt creado(s).\n\nYa puedes desconectar y reconectar esta misma cuenta con seguridad.`)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo preparar la reconexión.')
+    } finally {
+      setDriveBusy(false)
+    }
+  }
+
   async function onReconciliarDrive() {
     if (!confirm('¿Reconciliar Drive?\n\nEsto revisa las carpetas dentro de la carpeta raíz de Drive y vuelve a vincularlas con sus casos (o crea el caso si no existe). Útil después de copiar carpetas manualmente a otra cuenta de Google.')) return
     setDriveBusy(true)
@@ -165,6 +179,15 @@ export default function Configuracion() {
             </div>
             {puedeEditar && isGoogleDriveConfigured() && (
               <div className="flex gap-2">
+                {driveEstado.conectado && (
+                  <button
+                    onClick={onPrepararReconexion}
+                    disabled={driveBusy}
+                    className="rounded-[6px] border border-border px-2.5 py-1 text-[11px] text-muted transition hover:bg-soft disabled:opacity-60"
+                  >
+                    Preparar reconexión
+                  </button>
+                )}
                 {driveEstado.conectado && (
                   <button
                     onClick={onReconciliarDrive}
