@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
         if (!renameRes.ok) {
           const errJson = await renameRes.json()
           console.error('Drive rename failed', errJson)
-          return json({ error: 'No se pudo renombrar el archivo en Drive' }, 400)
+          return json({ error: `No se pudo renombrar el archivo en Drive: ${errJson.error?.message ?? renameRes.status}` }, 400)
         }
       }
     }

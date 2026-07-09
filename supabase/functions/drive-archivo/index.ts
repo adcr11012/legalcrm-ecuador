@@ -97,7 +97,11 @@ Deno.serve(async (req) => {
       `https://www.googleapis.com/drive/v3/files/${doc.drive_file_id}?alt=media`,
       { headers: { Authorization: `Bearer ${accessToken}` } }
     )
-    if (!fileRes.ok) return new Response(`Error Drive: ${fileRes.status}`, { status: 502, headers: corsHeaders })
+    if (!fileRes.ok) {
+      const errText = await fileRes.text()
+      console.error('Drive fetch failed', errText)
+      return new Response(`Error Drive (${fileRes.status}): ${errText}`, { status: 502, headers: corsHeaders })
+    }
 
     const contentType = doc.mime_type ?? fileRes.headers.get('content-type') ?? 'application/octet-stream'
     const fileName = encodeURIComponent(doc.nombre ?? 'archivo')
