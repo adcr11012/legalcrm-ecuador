@@ -170,6 +170,7 @@ function DocRow({
   const [compartiendo, setCompartiendo] = useState(false)
   const [urlCopiada, setUrlCopiada] = useState(false)
   const [errorDoc, setErrorDoc] = useState<string | null>(null)
+  const [roto, setRoto] = useState(false)
   const { icon, bg, fg } = iconFor(d.nombre)
   const badge = estadoLecturaBadge(d)
 
@@ -187,7 +188,11 @@ function DocRow({
     try {
       const url = await getDocumentoProxyUrl(d.id)
       const res = await fetch(url)
-      if (!res.ok) throw new Error(await res.text())
+      if (!res.ok) {
+        const texto = await res.text()
+        if (res.status === 502 && /404|not found/i.test(texto)) setRoto(true)
+        throw new Error(texto)
+      }
       const rawBlob = await res.blob()
       const blob = d.mime_type ? new Blob([rawBlob], { type: d.mime_type }) : rawBlob
       const blobUrl = URL.createObjectURL(blob)
@@ -226,7 +231,18 @@ function DocRow({
           <button onClick={() => setErrorDoc(null)}><i className="ti ti-x text-[11px]" /></button>
         </div>
       )}
-      <div className="flex items-start gap-2.5 rounded-[10px] border border-border bg-surface px-3 py-2.5">
+      {roto && (
+        <div className="flex items-center gap-2 rounded-[6px] border border-danger/30 bg-danger-soft px-2 py-1.5 text-[11px] text-danger">
+          <i className="ti ti-file-x" />
+          <span className="flex-1">Este archivo ya no existe en Drive (puede haber sido eliminado ahí directamente). Se sugiere eliminar este registro.</span>
+          {puedeEditar && (
+            <button onClick={() => onDelete(d.id)} className="flex-shrink-0 rounded-[4px] border border-danger px-2 py-0.5 font-medium text-danger transition hover:bg-danger hover:text-white">
+              Eliminar
+            </button>
+          )}
+        </div>
+      )}
+      <div className={`flex items-start gap-2.5 rounded-[10px] border px-3 py-2.5 ${roto ? 'border-danger/30 bg-danger-soft/40' : 'border-border bg-surface'}`}>
         {/* Icono de tipo */}
         <div className={`mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[6px] ${bg} ${fg}`}>
           <i className={`ti ${icon} text-[16px]`} />
