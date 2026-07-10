@@ -4,11 +4,21 @@ import { useAuth } from '@/features/auth/AuthProvider'
 import { listCasos } from '@/features/casos/api'
 import { listClientes } from '@/features/clientes/api'
 import { listWorkspaceUsers } from '@/features/users/api'
+import { listEtapas } from '@/features/casos/etapasApi'
 import { listDocumentosWorkspace, type DocumentoBusqueda } from '@/features/casos/documentosApi'
-import type { Caso, Cliente, Usuario } from '@/types/database'
+import { MATERIA_LABEL } from '@/features/casos/materias'
+import type { Caso, Cliente, Usuario, Etapa } from '@/types/database'
 
 function norm(s: string | null | undefined): string {
   return (s ?? '').toLowerCase()
+}
+
+// Búsqueda con varios términos separados por espacio, en modo Y: cada
+// término debe aparecer en algún lugar del texto combinado del ítem — así
+// "activo laboral" encuentra un caso en etapa "Activo" y materia "Laboral",
+// aunque estén en campos distintos.
+function coincideTerminos(haystack: string, terminos: string[]): boolean {
+  return terminos.every((t) => haystack.includes(t))
 }
 
 export default function Buscar() {
@@ -18,6 +28,7 @@ export default function Buscar() {
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [documentos, setDocumentos] = useState<DocumentoBusqueda[]>([])
+  const [etapas, setEtapas] = useState<Etapa[]>([])
   const [loading, setLoading] = useState(true)
   const [q, setQ] = useState('')
 
@@ -28,43 +39,61 @@ export default function Buscar() {
 
   useEffect(() => {
     if (!profile) return
-    const peticiones: [Promise<Caso[]>, Promise<Cliente[]> | Promise<[]>, Promise<Usuario[]> | Promise<[]>, Promise<DocumentoBusqueda[]>] = [
+    const peticiones: [Promise<Caso[]>, Promise<Cliente[]> | Promise<[]>, Promise<Usuario[]> | Promise<[]>, Promise<DocumentoBusqueda[]>, Promise<Etapa[]>] = [
       listCasos(),
       accesoCompleto ? listClientes() : Promise.resolve([]),
       accesoCompleto ? listWorkspaceUsers() : Promise.resolve([]),
       listDocumentosWorkspace(),
+      listEtapas(),
     ]
     Promise.all(peticiones)
-      .then(([c, cl, u, d]) => {
+      .then(([c, cl, u, d, e]) => {
         setCasos(c)
         setClientes(cl)
         setUsuarios(u)
         setDocumentos(d)
+        setEtapas(e)
       })
       .finally(() => setLoading(false))
   }, [profile, accesoCompleto])
 
   const query = norm(q).trim()
+  const terminos = query.split(/\s+/).filter(Boolean)
+  const etapasById = useMemo(() => new Map(etapas.map((e) => [e.id, e])), [etapas])
 
   const casosFiltrados = useMemo(() => {
-    if (!query) return []
-    return casos.filter((c) => norm(c.titulo).includes(query) || norm(c.numero_causa).includes(query) || norm(c.juzgado).includes(query)).slice(0, 25)
-  }, [casos, query])
+    if (terminos.length === 0) return []
+    return casos
+      .filter((c) => {
+        const etapaNombre = c.etapa_id ? etapasById.get(c.etapa_id)?.nombre : ''
+        const haystack = [c.titulo, c.numero_causa, c.juzgado, c.materia ? MATERIA_LABEL[c.materia] : '', etapaNombre]
+          .map(norm)
+          .join(' ')
+        return coincideTerminos(haystack, terminos)
+      })
+      .slice(0, 25)
+  }, [casos, terminos, etapasById])
 
   const clientesFiltrados = useMemo(() => {
-    if (!query) return []
-    return clientes.filter((c) => norm(c.nombre).includes(query) || norm(c.email).includes(query) || norm(c.telefono).includes(query)).slice(0, 25)
-  }, [clientes, query])
+    if (terminos.length === 0) return []
+    return clientes
+      .filter((c) => coincideTerminos([c.nombre, c.email, c.telefono, c.tipo, c.estado].map(norm).join(' '), terminos))
+      .slice(0, 25)
+  }, [clientes, terminos])
 
   const usuariosFiltrados = useMemo(() => {
-    if (!query) return []
-    return usuarios.filter((u) => norm(u.nombre).includes(query) || norm(u.email).includes(query)).slice(0, 25)
-  }, [usuarios, query])
+    if (terminos.length === 0) return []
+    return usuarios
+      .filter((u) => coincideTerminos([u.nombre, u.email, u.rol].map(norm).join(' '), terminos))
+      .slice(0, 25)
+  }, [usuarios, terminos])
 
   const documentosFiltrados = useMemo(() => {
-    if (!query) return []
-    return documentos.filter((d) => norm(d.nombre).includes(query)).slice(0, 25)
-  }, [documentos, query])
+    if (terminos.length === 0) return []
+    return documentos
+      .filter((d) => coincideTerminos([d.nombre, d.caso_titulo].map(norm).join(' '), terminos))
+      .slice(0, 25)
+  }, [documentos, terminos])
 
   const sinResultados =
     query.length > 0 &&

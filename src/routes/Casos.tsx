@@ -5,12 +5,14 @@ import { useAuth } from '@/features/auth/AuthProvider'
 import { listCasos, listCasosPage, updateEtapaCaso } from '@/features/casos/api'
 import { listPersonasForCasos } from '@/features/casos/personasApi'
 import { listEtapas } from '@/features/casos/etapasApi'
+import { listAllPlazos } from '@/features/casos/plazosApi'
 import { listWorkspaceUsers } from '@/features/users/api'
 import { CasoFormModal } from '@/features/casos/CasoFormModal'
 import { CaseSidebar } from '@/features/casos/CaseSidebar'
 import { CaseDetail } from '@/features/casos/CaseDetail'
 import { CasosKanban } from '@/features/casos/CasosKanban'
 import { Modal } from '@/components/Modal'
+import { diasRestantes, clasificarUrgencia, type Urgencia } from '@/features/casos/plazoUrgencia'
 import type { Caso, CasoPersona, Etapa, Usuario } from '@/types/database'
 
 export default function Casos() {
@@ -21,6 +23,8 @@ export default function Casos() {
   const [etapas, setEtapas] = useState<Etapa[]>([])
   const [personasByCaso, setPersonasByCaso] = useState<Map<string, CasoPersona[]>>(new Map())
   const [usersById, setUsersById] = useState<Map<string, Usuario>>(new Map())
+  const [urgenciaByCaso, setUrgenciaByCaso] = useState<Map<string, Urgencia>>(new Map())
+  const [necesitaTodos, setNecesitaTodos] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
@@ -86,9 +90,11 @@ export default function Casos() {
     }
   }
 
-  // El Kanban necesita ver todos los casos para agrupar por etapa correctamente.
+  // El Kanban necesita ver todos los casos para agrupar por etapa correctamente,
+  // y los filtros (urgencia/materia/etapa) necesitan operar sobre el universo
+  // completo, no solo la página cargada.
   useEffect(() => {
-    if (view !== 'kanban' || fullyLoaded || loading) return
+    if ((view !== 'kanban' && !necesitaTodos) || fullyLoaded || loading) return
     ;(async () => {
       setLoadingMore(true)
       try {
@@ -101,7 +107,27 @@ export default function Casos() {
         setLoadingMore(false)
       }
     })()
-  }, [view, fullyLoaded, loading])
+  }, [view, necesitaTodos, fullyLoaded, loading])
+
+  // Urgencia por caso: se calcula a partir del plazo/audiencia más próximo
+  // (sin completar) de cada caso — el mismo criterio del semáforo de Agenda.
+  useEffect(() => {
+    if (!necesitaTodos) return
+    listAllPlazos().then((plazos) => {
+      const map = new Map<string, Urgencia>()
+      const mejorDias = new Map<string, number>()
+      for (const p of plazos) {
+        if (p.estado === 'completada') continue
+        const dias = diasRestantes(p.fecha)
+        const actual = mejorDias.get(p.caso_id)
+        if (actual === undefined || dias < actual) {
+          mejorDias.set(p.caso_id, dias)
+          map.set(p.caso_id, clasificarUrgencia(dias))
+        }
+      }
+      setUrgenciaByCaso(map)
+    })
+  }, [necesitaTodos])
 
   usePageAction(
     profile
@@ -143,12 +169,15 @@ export default function Casos() {
           <div className={`${id ? 'hidden lg:flex' : 'flex'} w-full lg:w-auto`}>
             <CaseSidebar
               casos={casos}
+              etapas={etapas}
               etapasById={etapasById}
+              urgenciaByCaso={urgenciaByCaso}
               selectedId={id ?? null}
               onSelect={(cid) => navigate(`/casos/${cid}`)}
               hasMore={!fullyLoaded}
               onLoadMore={onLoadMore}
               loadingMore={loadingMore}
+              onFiltroActivo={() => setNecesitaTodos(true)}
             />
           </div>
           <div className={`${id ? 'flex' : 'hidden lg:flex'} min-w-0 flex-1`}>
