@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { Modal } from '@/components/Modal'
+import { FilePickerButton } from '@/components/FilePickerButton'
 import {
   listMisTickets,
   listMensajes,
@@ -98,12 +99,7 @@ function NuevoTicketModal({ open, onClose, onCreated }: { open: boolean; onClose
         </div>
         <div>
           <label className="mb-1 block text-[11px] font-medium text-muted">Captura de pantalla (opcional)</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setCaptura(e.target.files?.[0] ?? null)}
-            className="w-full text-[12px] text-muted"
-          />
+          <FilePickerButton file={captura} onChange={setCaptura} />
         </div>
         <button
           onClick={onSubmit}
@@ -185,12 +181,7 @@ function TicketThread({ ticket, onClose }: { ticket: TicketSoporte; onClose: () 
             className="w-full resize-none rounded-[8px] border border-border bg-bg px-3 py-2 text-[13px] text-ink outline-none focus:border-accent"
           />
           <div className="flex items-center justify-between gap-2">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setCaptura(e.target.files?.[0] ?? null)}
-              className="flex-1 text-[11px] text-muted"
-            />
+            <FilePickerButton file={captura} onChange={setCaptura} />
             <button
               onClick={onEnviar}
               disabled={enviando || !nuevoMensaje.trim()}

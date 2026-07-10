@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Modal } from '@/components/Modal'
+import { FilePickerButton } from '@/components/FilePickerButton'
 import {
   listTicketsSuperadmin,
   listMensajes,
@@ -138,12 +139,7 @@ function TicketDetalle({ ticket, userId, onClose, onCambio }: {
           className="w-full resize-none rounded-[8px] border border-border bg-bg px-3 py-2 text-[13px] text-ink outline-none focus:border-accent"
         />
         <div className="flex items-center justify-between gap-2">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setCaptura(e.target.files?.[0] ?? null)}
-            className="flex-1 text-[11px] text-muted"
-          />
+          <FilePickerButton file={captura} onChange={setCaptura} />
           <button
             onClick={onResponder}
             disabled={enviando || !respuesta.trim()}
