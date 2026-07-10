@@ -221,7 +221,7 @@ export default function Configuracion() {
             {driveEstado.conectado && ' Si la conectaste antes de esta actualización, dale a "Reconectar" para habilitar el permiso de Calendar.'}
           </p>
 
-          {driveEstado.conectado && puedeEditar && (
+          {puedeEditar && isGoogleDriveConfigured() && (
             <div className="mt-2.5 border-t border-border pt-2">
               <button
                 onClick={() => setDriveInfoAbierta((v) => !v)}
