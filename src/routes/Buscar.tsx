@@ -5,9 +5,11 @@ import { listCasos } from '@/features/casos/api'
 import { listClientes } from '@/features/clientes/api'
 import { listWorkspaceUsers } from '@/features/users/api'
 import { listEtapas } from '@/features/casos/etapasApi'
+import { listAllPlazos } from '@/features/casos/plazosApi'
+import { listAllTareasPendientes } from '@/features/casos/tareasApi'
 import { listDocumentosWorkspace, type DocumentoBusqueda } from '@/features/casos/documentosApi'
 import { MATERIA_LABEL } from '@/features/casos/materias'
-import type { Caso, Cliente, Usuario, Etapa } from '@/types/database'
+import type { Caso, Cliente, Usuario, Etapa, Plazo, Tarea } from '@/types/database'
 
 function norm(s: string | null | undefined): string {
   return (s ?? '').toLowerCase()
@@ -29,6 +31,8 @@ export default function Buscar() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [documentos, setDocumentos] = useState<DocumentoBusqueda[]>([])
   const [etapas, setEtapas] = useState<Etapa[]>([])
+  const [plazos, setPlazos] = useState<Plazo[]>([])
+  const [tareas, setTareas] = useState<Tarea[]>([])
   const [loading, setLoading] = useState(true)
   const [q, setQ] = useState('')
 
@@ -39,20 +43,32 @@ export default function Buscar() {
 
   useEffect(() => {
     if (!profile) return
-    const peticiones: [Promise<Caso[]>, Promise<Cliente[]> | Promise<[]>, Promise<Usuario[]> | Promise<[]>, Promise<DocumentoBusqueda[]>, Promise<Etapa[]>] = [
+    const peticiones: [
+      Promise<Caso[]>,
+      Promise<Cliente[]> | Promise<[]>,
+      Promise<Usuario[]> | Promise<[]>,
+      Promise<DocumentoBusqueda[]>,
+      Promise<Etapa[]>,
+      Promise<Plazo[]>,
+      Promise<Tarea[]>,
+    ] = [
       listCasos(),
       accesoCompleto ? listClientes() : Promise.resolve([]),
       accesoCompleto ? listWorkspaceUsers() : Promise.resolve([]),
       listDocumentosWorkspace(),
       listEtapas(),
+      listAllPlazos(),
+      listAllTareasPendientes(),
     ]
     Promise.all(peticiones)
-      .then(([c, cl, u, d, e]) => {
+      .then(([c, cl, u, d, e, p, t]) => {
         setCasos(c)
         setClientes(cl)
         setUsuarios(u)
         setDocumentos(d)
         setEtapas(e)
+        setPlazos(p)
+        setTareas(t)
       })
       .finally(() => setLoading(false))
   }, [profile, accesoCompleto])
@@ -60,6 +76,7 @@ export default function Buscar() {
   const query = norm(q).trim()
   const terminos = query.split(/\s+/).filter(Boolean)
   const etapasById = useMemo(() => new Map(etapas.map((e) => [e.id, e])), [etapas])
+  const casoTituloById = useMemo(() => new Map(casos.map((c) => [c.id, c.titulo])), [casos])
 
   const casosFiltrados = useMemo(() => {
     if (terminos.length === 0) return []
@@ -100,12 +117,36 @@ export default function Buscar() {
       .slice(0, 25)
   }, [documentos, terminos, etapasById])
 
+  const plazosFiltrados = useMemo(() => {
+    if (terminos.length === 0) return []
+    return plazos
+      .filter((p) => {
+        const casoTitulo = casoTituloById.get(p.caso_id) ?? ''
+        const haystack = [p.titulo, p.descripcion, p.tipo, casoTitulo].map(norm).join(' ')
+        return coincideTerminos(haystack, terminos)
+      })
+      .slice(0, 25)
+  }, [plazos, terminos, casoTituloById])
+
+  const tareasFiltradas = useMemo(() => {
+    if (terminos.length === 0) return []
+    return tareas
+      .filter((t) => {
+        const casoTitulo = casoTituloById.get(t.caso_id) ?? ''
+        const haystack = [t.titulo, t.descripcion, casoTitulo].map(norm).join(' ')
+        return coincideTerminos(haystack, terminos)
+      })
+      .slice(0, 25)
+  }, [tareas, terminos, casoTituloById])
+
   const sinResultados =
     query.length > 0 &&
     casosFiltrados.length === 0 &&
     clientesFiltrados.length === 0 &&
     usuariosFiltrados.length === 0 &&
-    documentosFiltrados.length === 0
+    documentosFiltrados.length === 0 &&
+    plazosFiltrados.length === 0 &&
+    tareasFiltradas.length === 0
 
   return (
     <div className="flex-1 overflow-y-auto p-5">
@@ -116,7 +157,7 @@ export default function Buscar() {
             autoFocus
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder={accesoCompleto ? 'Buscar casos, clientes, usuarios o documentos…' : 'Buscar en tus casos asignados…'}
+            placeholder={accesoCompleto ? 'Buscar casos, clientes, usuarios, documentos o agenda…' : 'Buscar en tus casos asignados…'}
             className="w-full rounded-[10px] border border-border bg-surface py-2.5 pl-10 pr-3 text-[14px] text-ink outline-none focus:border-accent"
           />
         </div>
@@ -206,6 +247,52 @@ export default function Buscar() {
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-[13px] font-medium text-ink">{d.nombre}</div>
                         <div className="truncate text-[11px] text-mute2">Caso: {d.caso_titulo}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {plazosFiltrados.length > 0 && (
+              <div>
+                <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-mute2">Agenda — Plazos y audiencias</div>
+                <div className="flex flex-col gap-1">
+                  {plazosFiltrados.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => navigate(`/casos/${p.caso_id}`)}
+                      className="flex items-center gap-2.5 rounded-[8px] border border-border bg-surface p-2.5 text-left transition hover:bg-soft"
+                    >
+                      <i className="ti ti-calendar-event text-[16px] text-warn" />
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-[13px] font-medium text-ink">{p.titulo}</div>
+                        <div className="truncate text-[11px] text-mute2">
+                          {new Date(p.fecha + 'T00:00:00').toLocaleDateString('es-EC')} · Caso: {casoTituloById.get(p.caso_id) ?? '—'}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {tareasFiltradas.length > 0 && (
+              <div>
+                <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-mute2">Agenda — Tareas</div>
+                <div className="flex flex-col gap-1">
+                  {tareasFiltradas.map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => navigate(`/casos/${t.caso_id}`)}
+                      className="flex items-center gap-2.5 rounded-[8px] border border-border bg-surface p-2.5 text-left transition hover:bg-soft"
+                    >
+                      <i className="ti ti-checklist text-[16px] text-accent" />
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-[13px] font-medium text-ink">{t.titulo}</div>
+                        <div className="truncate text-[11px] text-mute2">
+                          {t.fecha_limite ? new Date(t.fecha_limite + 'T00:00:00').toLocaleDateString('es-EC') : 'Sin fecha'} · Caso: {casoTituloById.get(t.caso_id) ?? '—'}
+                        </div>
                       </div>
                     </button>
                   ))}
