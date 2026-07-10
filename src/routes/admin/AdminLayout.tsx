@@ -63,6 +63,9 @@ export default function AdminLayout() {
           <NavLink to="/admin/esatje" className={navItem}>
             <i className="ti ti-gavel text-[16px]" /> eSATJE
           </NavLink>
+          <NavLink to="/admin/soporte" className={navItem}>
+            <i className="ti ti-lifebuoy text-[16px]" /> Soporte
+          </NavLink>
         </div>
 
         {/* Pie: email + volver */}

@@ -292,6 +292,30 @@ export type Anuncio = {
   created_at: string
 }
 
+export type CategoriaTicket = 'bug' | 'duda' | 'sugerencia' | 'facturacion' | 'otro'
+export type EstadoTicket = 'abierto' | 'respondido' | 'cerrado'
+
+export type TicketSoporte = {
+  id: string
+  workspace_id: string
+  creado_por: string
+  categoria: CategoriaTicket
+  asunto: string
+  estado: EstadoTicket
+  created_at: string
+  updated_at: string
+}
+
+export type TicketMensaje = {
+  id: string
+  ticket_id: string
+  autor_id: string
+  autor_tipo: 'usuario' | 'soporte'
+  mensaje: string
+  captura_url: string | null
+  created_at: string
+}
+
 export type Cliente = {
   id: string
   workspace_id: string
@@ -364,6 +388,8 @@ export type Database = {
       satje_datos_generales: Table<SatjeDatosGenerales>
       anuncios: Table<Anuncio>
       anuncio_lecturas: Table<{ anuncio_id: string; user_id: string; leido_at: string }>
+      tickets_soporte: Table<TicketSoporte>
+      ticket_mensajes: Table<TicketMensaje>
     }
     Views: { [_ in never]: never }
     Functions: {
