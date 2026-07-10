@@ -37,6 +37,24 @@ export async function listDocumentos(casoId: string): Promise<Documento[]> {
   return data
 }
 
+export type DocumentoBusqueda = { id: string; nombre: string; caso_id: string; caso_titulo: string }
+
+// Todos los documentos del workspace (para el buscador de admin) — RLS ya
+// limita a lo que el admin puede ver, no hace falta filtrar por caso.
+export async function listDocumentosWorkspace(): Promise<DocumentoBusqueda[]> {
+  const { data, error } = await supabase
+    .from('documentos')
+    .select('id, nombre, caso_id, casos(titulo)')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data as unknown as { id: string; nombre: string; caso_id: string; casos: { titulo: string } | null }[]).map((d) => ({
+    id: d.id,
+    nombre: d.nombre,
+    caso_id: d.caso_id,
+    caso_titulo: d.casos?.titulo ?? '—',
+  }))
+}
+
 export async function toggleVisibilidad(id: string, visibilidad: Visibilidad): Promise<Documento> {
   const { data, error } = await supabase.from('documentos').update({ visibilidad }).eq('id', id).select('*').single()
   if (error) throw error

@@ -4,6 +4,7 @@ import { useAuth } from '@/features/auth/AuthProvider'
 import { listCasos } from '@/features/casos/api'
 import { listClientes } from '@/features/clientes/api'
 import { listWorkspaceUsers } from '@/features/users/api'
+import { listDocumentosWorkspace, type DocumentoBusqueda } from '@/features/casos/documentosApi'
 import type { Caso, Cliente, Usuario } from '@/types/database'
 
 function norm(s: string | null | undefined): string {
@@ -16,16 +17,18 @@ export default function Buscar() {
   const [casos, setCasos] = useState<Caso[]>([])
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
+  const [documentos, setDocumentos] = useState<DocumentoBusqueda[]>([])
   const [loading, setLoading] = useState(true)
   const [q, setQ] = useState('')
 
   useEffect(() => {
     if (profile?.rol !== 'administrador') return
-    Promise.all([listCasos(), listClientes(), listWorkspaceUsers()])
-      .then(([c, cl, u]) => {
+    Promise.all([listCasos(), listClientes(), listWorkspaceUsers(), listDocumentosWorkspace()])
+      .then(([c, cl, u, d]) => {
         setCasos(c)
         setClientes(cl)
         setUsuarios(u)
+        setDocumentos(d)
       })
       .finally(() => setLoading(false))
   }, [profile])
@@ -47,7 +50,17 @@ export default function Buscar() {
     return usuarios.filter((u) => norm(u.nombre).includes(query) || norm(u.email).includes(query)).slice(0, 25)
   }, [usuarios, query])
 
-  const sinResultados = query.length > 0 && casosFiltrados.length === 0 && clientesFiltrados.length === 0 && usuariosFiltrados.length === 0
+  const documentosFiltrados = useMemo(() => {
+    if (!query) return []
+    return documentos.filter((d) => norm(d.nombre).includes(query)).slice(0, 25)
+  }, [documentos, query])
+
+  const sinResultados =
+    query.length > 0 &&
+    casosFiltrados.length === 0 &&
+    clientesFiltrados.length === 0 &&
+    usuariosFiltrados.length === 0 &&
+    documentosFiltrados.length === 0
 
   if (profile && profile.rol !== 'administrador') return <Navigate to="/dashboard" replace />
 
@@ -60,7 +73,7 @@ export default function Buscar() {
             autoFocus
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar casos, clientes o usuarios…"
+            placeholder="Buscar casos, clientes, usuarios o documentos…"
             className="w-full rounded-[10px] border border-border bg-surface py-2.5 pl-10 pr-3 text-[14px] text-ink outline-none focus:border-accent"
           />
         </div>
@@ -129,6 +142,27 @@ export default function Buscar() {
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-[13px] font-medium text-ink">{u.nombre}</div>
                         <div className="truncate text-[11px] text-mute2">{u.email}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {documentosFiltrados.length > 0 && (
+              <div>
+                <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-mute2">Documentos</div>
+                <div className="flex flex-col gap-1">
+                  {documentosFiltrados.map((d) => (
+                    <button
+                      key={d.id}
+                      onClick={() => navigate(`/casos/${d.caso_id}`)}
+                      className="flex items-center gap-2.5 rounded-[8px] border border-border bg-surface p-2.5 text-left transition hover:bg-soft"
+                    >
+                      <i className="ti ti-file-text text-[16px] text-danger" />
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-[13px] font-medium text-ink">{d.nombre}</div>
+                        <div className="truncate text-[11px] text-mute2">Caso: {d.caso_titulo}</div>
                       </div>
                     </button>
                   ))}
