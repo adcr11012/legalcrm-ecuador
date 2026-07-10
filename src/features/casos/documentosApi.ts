@@ -37,21 +37,39 @@ export async function listDocumentos(casoId: string): Promise<Documento[]> {
   return data
 }
 
-export type DocumentoBusqueda = { id: string; nombre: string; caso_id: string; caso_titulo: string }
+export type DocumentoBusqueda = {
+  id: string
+  nombre: string
+  caso_id: string
+  caso_titulo: string
+  caso_materia: string | null
+  caso_etapa_id: string | null
+}
 
-// Todos los documentos del workspace (para el buscador de admin) — RLS ya
-// limita a lo que el admin puede ver, no hace falta filtrar por caso.
+// Todos los documentos del workspace (para el buscador global) — RLS ya
+// limita a lo que el usuario puede ver, no hace falta filtrar por caso.
+// Incluye materia/etapa del caso para que la búsqueda multi-palabra pueda
+// combinar un término del documento con uno del caso (ej. "resp constitucional").
 export async function listDocumentosWorkspace(): Promise<DocumentoBusqueda[]> {
   const { data, error } = await supabase
     .from('documentos')
-    .select('id, nombre, caso_id, casos(titulo)')
+    .select('id, nombre, caso_id, casos(titulo, materia, etapa_id)')
     .order('created_at', { ascending: false })
   if (error) throw error
-  return (data as unknown as { id: string; nombre: string; caso_id: string; casos: { titulo: string } | null }[]).map((d) => ({
+  return (
+    data as unknown as {
+      id: string
+      nombre: string
+      caso_id: string
+      casos: { titulo: string; materia: string | null; etapa_id: string | null } | null
+    }[]
+  ).map((d) => ({
     id: d.id,
     nombre: d.nombre,
     caso_id: d.caso_id,
     caso_titulo: d.casos?.titulo ?? '—',
+    caso_materia: d.casos?.materia ?? null,
+    caso_etapa_id: d.casos?.etapa_id ?? null,
   }))
 }
 

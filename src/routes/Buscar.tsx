@@ -91,9 +91,14 @@ export default function Buscar() {
   const documentosFiltrados = useMemo(() => {
     if (terminos.length === 0) return []
     return documentos
-      .filter((d) => coincideTerminos([d.nombre, d.caso_titulo].map(norm).join(' '), terminos))
+      .filter((d) => {
+        const etapaNombre = d.caso_etapa_id ? etapasById.get(d.caso_etapa_id)?.nombre : ''
+        const materiaLabel = d.caso_materia ? MATERIA_LABEL[d.caso_materia as keyof typeof MATERIA_LABEL] : ''
+        const haystack = [d.nombre, d.caso_titulo, materiaLabel, etapaNombre].map(norm).join(' ')
+        return coincideTerminos(haystack, terminos)
+      })
       .slice(0, 25)
-  }, [documentos, terminos])
+  }, [documentos, terminos, etapasById])
 
   const sinResultados =
     query.length > 0 &&
