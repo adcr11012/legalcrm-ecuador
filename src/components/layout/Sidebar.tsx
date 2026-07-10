@@ -10,10 +10,10 @@ const PRINCIPAL = [
   { to: '/casos', icon: 'ti-briefcase', label: 'Casos' },
   { to: '/clientes', icon: 'ti-users', label: 'Clientes' },
   { to: '/agenda', icon: 'ti-calendar', label: 'Agenda' },
+  { to: '/buscar', icon: 'ti-search', label: 'Buscar' },
 ]
 
 const WORKSPACE = [
-  { to: '/buscar', icon: 'ti-search', label: 'Buscar', soloAdmin: true },
   { to: '/usuarios', icon: 'ti-user-shield', label: 'Usuarios y roles', soloAdmin: true },
   { to: '/anuncios', icon: 'ti-speakerphone', label: 'Anuncios', soloAdmin: true },
   { to: '/configuracion', icon: 'ti-settings', label: 'Configuración', soloAdmin: true },

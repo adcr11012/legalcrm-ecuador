@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate, Navigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { listCasos } from '@/features/casos/api'
 import { listClientes } from '@/features/clientes/api'
@@ -21,9 +21,20 @@ export default function Buscar() {
   const [loading, setLoading] = useState(true)
   const [q, setQ] = useState('')
 
+  // Master/administrador ven todo el workspace; limitado solo sus casos
+  // asignados (ya filtrado así por RLS en casos/documentos). Clientes y
+  // usuarios no están acotados por caso, así que se ocultan para limitado.
+  const accesoCompleto = profile?.rol === 'administrador' || profile?.rol === 'master'
+
   useEffect(() => {
-    if (profile?.rol !== 'administrador') return
-    Promise.all([listCasos(), listClientes(), listWorkspaceUsers(), listDocumentosWorkspace()])
+    if (!profile) return
+    const peticiones: [Promise<Caso[]>, Promise<Cliente[]> | Promise<[]>, Promise<Usuario[]> | Promise<[]>, Promise<DocumentoBusqueda[]>] = [
+      listCasos(),
+      accesoCompleto ? listClientes() : Promise.resolve([]),
+      accesoCompleto ? listWorkspaceUsers() : Promise.resolve([]),
+      listDocumentosWorkspace(),
+    ]
+    Promise.all(peticiones)
       .then(([c, cl, u, d]) => {
         setCasos(c)
         setClientes(cl)
@@ -31,7 +42,7 @@ export default function Buscar() {
         setDocumentos(d)
       })
       .finally(() => setLoading(false))
-  }, [profile])
+  }, [profile, accesoCompleto])
 
   const query = norm(q).trim()
 
@@ -62,8 +73,6 @@ export default function Buscar() {
     usuariosFiltrados.length === 0 &&
     documentosFiltrados.length === 0
 
-  if (profile && profile.rol !== 'administrador') return <Navigate to="/dashboard" replace />
-
   return (
     <div className="flex-1 overflow-y-auto p-5">
       <div className="mx-auto max-w-[720px]">
@@ -73,7 +82,7 @@ export default function Buscar() {
             autoFocus
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar casos, clientes, usuarios o documentos…"
+            placeholder={accesoCompleto ? 'Buscar casos, clientes, usuarios o documentos…' : 'Buscar en tus casos asignados…'}
             className="w-full rounded-[10px] border border-border bg-surface py-2.5 pl-10 pr-3 text-[14px] text-ink outline-none focus:border-accent"
           />
         </div>
