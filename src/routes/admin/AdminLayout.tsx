@@ -7,6 +7,7 @@ export default function AdminLayout() {
   const navigate = useNavigate()
   const [checking, setChecking] = useState(true)
   const [email, setEmail] = useState<string | null>(null)
+  const [ticketsAbiertos, setTicketsAbiertos] = useState(0)
 
   useEffect(() => {
     async function check() {
@@ -19,6 +20,15 @@ export default function AdminLayout() {
     }
     check()
   }, [navigate])
+
+  useEffect(() => {
+    if (checking) return
+    supabase
+      .from('tickets_soporte')
+      .select('id', { count: 'exact', head: true })
+      .neq('estado', 'cerrado')
+      .then(({ count }) => setTicketsAbiertos(count ?? 0))
+  }, [checking])
 
   if (checking) {
     return (
@@ -65,6 +75,11 @@ export default function AdminLayout() {
           </NavLink>
           <NavLink to="/admin/soporte" className={navItem}>
             <i className="ti ti-lifebuoy text-[16px]" /> Soporte
+            {ticketsAbiertos > 0 && (
+              <span className="ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-semibold text-white">
+                {ticketsAbiertos}
+              </span>
+            )}
           </NavLink>
         </div>
 
