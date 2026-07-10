@@ -10,6 +10,7 @@ const Dashboard       = lazy(() => import('@/routes/Dashboard'))
 const Casos           = lazy(() => import('@/routes/Casos'))
 const Clientes        = lazy(() => import('@/routes/Clientes'))
 const Agenda          = lazy(() => import('@/routes/Agenda'))
+const Buscar          = lazy(() => import('@/routes/Buscar'))
 const Anuncios        = lazy(() => import('@/routes/Anuncios'))
 const Usuarios        = lazy(() => import('@/routes/Usuarios'))
 const Invite          = lazy(() => import('@/routes/Invite'))
@@ -48,6 +49,7 @@ function App() {
                 <Route path="/clientes" element={<Clientes />} />
                 <Route path="/clientes/:id" element={<Clientes />} />
                 <Route path="/agenda" element={<Agenda />} />
+                <Route path="/buscar" element={<Buscar />} />
                 <Route path="/anuncios" element={<Anuncios />} />
                 <Route path="/usuarios" element={<Usuarios />} />
                 <Route path="/drive" element={<Drive />} />
