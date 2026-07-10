@@ -219,6 +219,20 @@ export default function Configuracion() {
             Esta misma cuenta se usa para agendar automáticamente en Google Calendar todo lo que se registre en la Agenda de cada caso.
             {driveEstado.conectado && ' Si la conectaste antes de esta actualización, dale a "Reconectar" para habilitar el permiso de Calendar.'}
           </p>
+
+          {driveEstado.conectado && puedeEditar && (
+            <div className="mt-2.5 flex flex-col gap-1.5 border-t border-border pt-2.5">
+              <div className="text-[11px] text-mute2">
+                <span className="font-medium text-muted">Preparar reconexión:</span> etiqueta la carpeta raíz y las carpetas de cada caso en Drive usando la conexión actual, sin desconectar nada. Úsalo antes de desconectar una cuenta con documentos importantes, para que al reconectar el sistema la reconozca automáticamente en vez de crear una carpeta nueva.
+              </div>
+              <div className="text-[11px] text-mute2">
+                <span className="font-medium text-muted">Reconciliar:</span> revisa las carpetas dentro de la carpeta raíz de Drive y las vuelve a vincular con sus casos (o crea el caso si no existe pero la carpeta sí). Útil si copiaste manualmente carpetas de casos a otra cuenta de Google y reconectaste esa cuenta.
+              </div>
+              <div className="text-[11px] text-mute2">
+                <span className="font-medium text-muted">Desconectar:</span> corta la sesión con Google, pero conserva el vínculo con la carpeta de Drive. Los documentos no se borran ni de Drive ni de la app; solo no podrás subir, ver ni leer documentos con IA mientras esté desconectado. Al reconectar la misma cuenta, todo vuelve a funcionar sin duplicar nada.
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="mt-2.5">
