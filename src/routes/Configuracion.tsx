@@ -30,6 +30,7 @@ export default function Configuracion() {
   const [saved, setSaved] = useState<string | null>(null)
   const [driveEstado, setDriveEstado] = useState<DriveEstado>({ conectado: false, email: null })
   const [driveBusy, setDriveBusy] = useState(false)
+  const [driveInfoAbierta, setDriveInfoAbierta] = useState(false)
   const [tema, setTemaState] = useState<Tema>('claro')
 
   useEffect(() => {
@@ -221,16 +222,30 @@ export default function Configuracion() {
           </p>
 
           {driveEstado.conectado && puedeEditar && (
-            <div className="mt-2.5 flex flex-col gap-1.5 border-t border-border pt-2.5">
-              <div className="text-[11px] text-mute2">
-                <span className="font-medium text-muted">Preparar reconexión:</span> etiqueta la carpeta raíz y las carpetas de cada caso en Drive usando la conexión actual, sin desconectar nada. Úsalo antes de desconectar una cuenta con documentos importantes, para que al reconectar el sistema la reconozca automáticamente en vez de crear una carpeta nueva.
-              </div>
-              <div className="text-[11px] text-mute2">
-                <span className="font-medium text-muted">Reconciliar:</span> revisa las carpetas dentro de la carpeta raíz de Drive y las vuelve a vincular con sus casos (o crea el caso si no existe pero la carpeta sí). Útil si copiaste manualmente carpetas de casos a otra cuenta de Google y reconectaste esa cuenta.
-              </div>
-              <div className="text-[11px] text-mute2">
-                <span className="font-medium text-muted">Desconectar:</span> corta la sesión con Google, pero conserva el vínculo con la carpeta de Drive. Los documentos no se borran ni de Drive ni de la app; solo no podrás subir, ver ni leer documentos con IA mientras esté desconectado. Al reconectar la misma cuenta, todo vuelve a funcionar sin duplicar nada.
-              </div>
+            <div className="mt-2.5 border-t border-border pt-2">
+              <button
+                onClick={() => setDriveInfoAbierta((v) => !v)}
+                className="flex items-center gap-1 text-[10px] font-medium text-mute2 transition hover:text-muted"
+              >
+                <i className={`ti ${driveInfoAbierta ? 'ti-chevron-down' : 'ti-chevron-right'} text-[11px]`} />
+                Información de uso
+              </button>
+              {driveInfoAbierta && (
+                <div className="mt-1.5 flex flex-col gap-1 pl-4">
+                  <div className="text-[10px] leading-relaxed text-mute2">
+                    <span className="font-medium text-muted">Conectar / Reconectar:</span> abre la pantalla de Google para autorizar el acceso a Drive y Calendar. Si ya habías conectado esta cuenta antes, el sistema reconoce la carpeta raíz existente y no crea una duplicada ni pierde documentos.
+                  </div>
+                  <div className="text-[10px] leading-relaxed text-mute2">
+                    <span className="font-medium text-muted">Preparar reconexión:</span> etiqueta la carpeta raíz y las carpetas de cada caso en Drive usando la conexión actual, sin desconectar nada. Úsalo antes de desconectar una cuenta con documentos importantes, para que al reconectar el sistema la reconozca automáticamente en vez de crear una carpeta nueva.
+                  </div>
+                  <div className="text-[10px] leading-relaxed text-mute2">
+                    <span className="font-medium text-muted">Reconciliar:</span> revisa las carpetas dentro de la carpeta raíz de Drive y las vuelve a vincular con sus casos (o crea el caso si no existe pero la carpeta sí). Útil si copiaste manualmente carpetas de casos a otra cuenta de Google y reconectaste esa cuenta.
+                  </div>
+                  <div className="text-[10px] leading-relaxed text-mute2">
+                    <span className="font-medium text-muted">Desconectar:</span> corta la sesión con Google, pero conserva el vínculo con la carpeta de Drive. Los documentos no se borran ni de Drive ni de la app; solo no podrás subir, ver ni leer documentos con IA mientras esté desconectado. Al reconectar la misma cuenta, todo vuelve a funcionar sin duplicar nada.
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
