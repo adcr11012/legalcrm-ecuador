@@ -101,6 +101,11 @@ export async function reabrirTicket(id: string): Promise<void> {
   if (error) throw error
 }
 
+export async function eliminarTicket(id: string): Promise<void> {
+  const { error } = await supabase.from('tickets_soporte').delete().eq('id', id)
+  if (error) throw error
+}
+
 // Vista de superadmin: todos los tickets de todos los workspaces, con el
 // nombre del workspace para mostrarlo en la bandeja.
 export type TicketConWorkspace = TicketSoporte & { workspace_nombre: string }

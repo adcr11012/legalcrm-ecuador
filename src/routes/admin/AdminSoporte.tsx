@@ -8,6 +8,7 @@ import {
   enviarMensaje,
   cerrarTicket,
   reabrirTicket,
+  eliminarTicket,
   type TicketConWorkspace,
 } from '@/features/soporte/api'
 import type { TicketMensaje, CategoriaTicket, EstadoTicket } from '@/types/database'
@@ -87,6 +88,18 @@ function TicketDetalle({ ticket, userId, onClose, onCambio }: {
     }
   }
 
+  async function onEliminar() {
+    if (!confirm('¿Eliminar este ticket y todo su historial de mensajes? Esta acción no se puede deshacer.')) return
+    setProcesando(true)
+    try {
+      await eliminarTicket(ticket.id)
+      onCambio()
+      onClose()
+    } finally {
+      setProcesando(false)
+    }
+  }
+
   const t = tiempoAbierto(ticket.created_at)
 
   return (
@@ -109,6 +122,14 @@ function TicketDetalle({ ticket, userId, onClose, onCambio }: {
           }`}
         >
           {ticket.estado === 'cerrado' ? 'Reabrir' : 'Cerrar ticket'}
+        </button>
+        <button
+          onClick={onEliminar}
+          disabled={procesando}
+          className="flex h-[26px] w-[26px] flex-shrink-0 items-center justify-center rounded-[6px] border border-border text-muted transition hover:bg-danger-soft hover:text-danger disabled:opacity-50"
+          title="Eliminar ticket"
+        >
+          <i className="ti ti-trash text-[13px]" />
         </button>
       </div>
       <div className="flex-1 overflow-y-auto p-5">
