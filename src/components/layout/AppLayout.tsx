@@ -5,12 +5,27 @@ import { Topbar } from '@/components/layout/Topbar'
 import { PageActionContext, type PageAction } from '@/components/layout/PageActionContext'
 import { DeviceModeProvider, useDevice } from '@/context/DeviceModeContext'
 import { MobileBottomNav } from '@/components/mobile/MobileBottomNav'
+import { OnboardingModal } from '@/components/OnboardingModal'
+import { useAuth } from '@/features/auth/AuthProvider'
+import { marcarOnboardingCompletado } from '@/features/users/api'
 
 function AppLayoutInner() {
   const [action, setAction] = useState<PageAction>(null)
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024)
   const { isMobile, mode, forceFullView, setForceFullView } = useDevice()
   const isRealMobileForced = mode === 'mobile' && forceFullView
+  const { profile, refreshProfile } = useAuth()
+  const [onboardingVisible, setOnboardingVisible] = useState(false)
+
+  useEffect(() => {
+    if (profile && !profile.onboarding_completado) setOnboardingVisible(true)
+  }, [profile])
+
+  async function cerrarOnboarding() {
+    setOnboardingVisible(false)
+    await marcarOnboardingCompletado()
+    refreshProfile()
+  }
 
   useEffect(() => {
     let wasDesktop = window.innerWidth >= 1024
@@ -46,6 +61,9 @@ function AppLayoutInner() {
           </button>
         )}
       </div>
+      {onboardingVisible && profile && (
+        <OnboardingModal nombre={profile.nombre} rol={profile.rol} onFinish={cerrarOnboarding} />
+      )}
     </div>
   )
 }

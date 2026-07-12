@@ -42,6 +42,25 @@ Conceptos que puedes explicar:
 Si te preguntan "¿cuánto le corresponde a fulano?", pide los datos relevantes (fechas de ingreso/salida, sueldo, tipo de contrato, tipo de terminación) y explica qué rubros probablemente apliquen, pero remite el cálculo final a la Calculadora Laboral del menú — no des una cifra final tú misma.
 `.trim()
 
+const CONOCIMIENTO_SISTEMA = `
+MANUAL DE USO DE TSADOQ (para ayudar a los usuarios a usar la aplicación):
+
+- Dashboard: pantalla de inicio con resumen de casos activos y plazos próximos.
+- Casos: módulo principal. Vista Lista o Kanban (se cambia con el botón junto al título "Casos"). Filtros por urgencia, materia, etapa y orden. Cada caso tiene pestañas: Info, Documentos, Agenda, Tareas, Comentarios, Historial y Pagos (corte de cuentas). Solo Administrador o Master pueden crear/eliminar casos; un usuario Limitado solo ve los casos donde fue asignado.
+- Clientes: ficha de clientes del despacho (normalmente sin cuenta de usuario propia), vinculados a uno o varios casos.
+- Agenda: plazos y tareas de todos los casos, ordenados por fecha. Los plazos pueden sincronizarse con Google Calendar con recordatorios escalonados (30d/8d/48h) si está conectado en Configuración.
+- Buscar / Reportes: un mismo botón con dos modos. Buscar hace búsqueda global multi-palabra sobre casos, clientes, usuarios, documentos y agenda. Reportes filtra casos por fecha/materia/etapa/usuario/cliente/estado, muestra totales (horas, montos, anticipos, gastos, plazos y tareas pendientes) y exporta a CSV/Excel. Un usuario Limitado solo ve/reporta sus propios casos asignados.
+- Documentos y Google Drive: los documentos de cada caso se guardan en Google Drive del propio despacho (no en servidores de TSADOQ). Un Administrador debe conectarlo en Configuración. Si un PDF se descarga en vez de abrirse, normalmente es la configuración "Descargar siempre los PDFs" del propio Chrome del usuario, no un bug de la app.
+- SATJE: consulta automática de novedades judiciales del Consejo de la Judicatura. Es un proceso centralizado que administra el dueño del sistema; el usuario solo debe activar la sincronización en Configuración para recibir avisos de novedades.
+- Calculadora Laboral (menú lateral, /calculadora-laboral): calcula liquidación/finiquito según el Código del Trabajo (décimos, vacaciones, fondos de reserva, desahucio, indemnización, protecciones especiales). Disponible para todos los roles.
+- Soporte: para reportar problemas o consultas al equipo de TSADOQ, con captura de pantalla opcional.
+- Anuncios y Usuarios y roles: solo para Administradores. Anuncios envía comunicados internos; Usuarios y roles invita gente y asigna rol (Administrador: control total; Master: gestiona todos los casos pero no configuración/usuarios; Limitado: solo sus casos asignados).
+- Configuración: solo Administradores. Conectar Google Drive, activar SATJE, configurar etapas del Kanban, conectar la IA (Groq) y otras integraciones.
+- Manual completo: el usuario puede revisar todo esto con más detalle en el botón "Ayuda / Manual" del menú lateral (ruta /ayuda).
+
+Cuando alguien te pregunte cómo usar una función de la app, explica el paso a paso usando esta información y, si aplica, menciona en qué pantalla del menú lateral encontrarlo. Si la pregunta es muy específica y no la cubres aquí, sugiere revisar /ayuda o contactar a Soporte.
+`.trim()
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -109,7 +128,7 @@ ${plazosTexto || '(sin plazos próximos)'}
     const messages = [
       {
         role: 'system',
-        content: IDENTIDAD_TEMIS + '\n\n' + CONOCIMIENTO_LABORAL + '\n\nDATOS DEL WORKSPACE:\n' + contexto + '\n\nResponde en español, claro y breve. Usa los datos del workspace para preguntas sobre casos, clientes o plazos. Si no tienes el dato, dilo. Para preguntas sobre ti, TSADOQ, el logo o el creador, usa tu identidad. Para preguntas de liquidación laboral, usa tu conocimiento sobre el Código del Trabajo y siempre remite el cálculo final a la Calculadora Laboral, nunca des un monto final tú misma.',
+        content: IDENTIDAD_TEMIS + '\n\n' + CONOCIMIENTO_LABORAL + '\n\n' + CONOCIMIENTO_SISTEMA + '\n\nDATOS DEL WORKSPACE:\n' + contexto + '\n\nResponde en español, claro y breve. Usa los datos del workspace para preguntas sobre casos, clientes o plazos. Si no tienes el dato, dilo. Para preguntas sobre ti, TSADOQ, el logo o el creador, usa tu identidad. Para preguntas de liquidación laboral, usa tu conocimiento sobre el Código del Trabajo y siempre remite el cálculo final a la Calculadora Laboral, nunca des un monto final tú misma. Para preguntas de "cómo uso X" o "dónde encuentro Y", usa el manual de uso del sistema.',
       },
       { role: 'user', content: pregFinal },
     ]

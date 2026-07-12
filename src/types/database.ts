@@ -62,6 +62,7 @@ export type Usuario = {
   rol: RolUsuario
   es_propietario: boolean
   last_seen_at: string | null
+  onboarding_completado: boolean
   created_at: string
 }
 

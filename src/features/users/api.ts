@@ -23,3 +23,9 @@ export async function updateLastSeen(): Promise<void> {
   if (!user) return
   await supabase.from('users').update({ last_seen_at: new Date().toISOString() }).eq('id', user.id)
 }
+
+export async function marcarOnboardingCompletado(): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+  await supabase.from('users').update({ onboarding_completado: true }).eq('id', user.id)
+}

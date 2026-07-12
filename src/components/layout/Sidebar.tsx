@@ -12,6 +12,7 @@ const PRINCIPAL = [
   { to: '/clientes', icon: 'ti-users', label: 'Clientes' },
   { to: '/agenda', icon: 'ti-calendar', label: 'Agenda' },
   { to: '/buscar', icon: 'ti-search', label: 'Buscar / Reportes' },
+  { to: '/ayuda', icon: 'ti-help-circle', label: 'Ayuda / Manual' },
   { to: '/soporte', icon: 'ti-lifebuoy', label: 'Soporte' },
   { to: '/calculadora-laboral', icon: 'ti-calculator', label: 'Calc. Laboral' },
 ]

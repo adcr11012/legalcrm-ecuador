@@ -11,6 +11,7 @@ const Casos           = lazy(() => import('@/routes/Casos'))
 const Clientes        = lazy(() => import('@/routes/Clientes'))
 const Agenda          = lazy(() => import('@/routes/Agenda'))
 const Buscar          = lazy(() => import('@/routes/Buscar'))
+const Ayuda           = lazy(() => import('@/routes/Ayuda'))
 const Soporte         = lazy(() => import('@/routes/Soporte'))
 const CalculadoraLaboral = lazy(() => import('@/routes/CalculadoraLaboral'))
 const Anuncios        = lazy(() => import('@/routes/Anuncios'))
@@ -54,6 +55,7 @@ function App() {
                 <Route path="/clientes/:id" element={<Clientes />} />
                 <Route path="/agenda" element={<Agenda />} />
                 <Route path="/buscar" element={<Buscar />} />
+                <Route path="/ayuda" element={<Ayuda />} />
                 <Route path="/soporte" element={<Soporte />} />
                 <Route path="/calculadora-laboral" element={<CalculadoraLaboral />} />
                 <Route path="/anuncios" element={<Anuncios />} />
