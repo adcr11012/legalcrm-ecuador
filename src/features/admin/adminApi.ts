@@ -136,6 +136,26 @@ export async function listarCodigosRaiz() {
   }[]
 }
 
+export type NodoArbolReferido = {
+  id: string
+  codigo: string
+  semillas: number
+  usado: boolean
+  expira_at: string | null
+  created_at: string
+  usado_at: string | null
+  generado_por_workspace: string | null
+  generado_por_email: string | null
+  usado_por_workspace: string | null
+  usado_por_email: string | null
+}
+
+export async function listarArbolReferidos(): Promise<NodoArbolReferido[]> {
+  const { data, error } = await rpc('admin_arbol_referidos')
+  if (error) throw error
+  return (data ?? []) as NodoArbolReferido[]
+}
+
 export async function registrarPago(pagoId: string, fecha: string, notas?: string): Promise<void> {
   const { error } = await rpc('admin_registrar_pago', {
     p_pago_id: pagoId,
