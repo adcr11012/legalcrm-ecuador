@@ -42,6 +42,7 @@ export default function CalculadoraLaboral() {
   const [proteccionDiscapacidad, setProteccionDiscapacidad] = useState(false)
   const [proteccionDirigenteSindical, setProteccionDirigenteSindical] = useState(false)
   const [tieneAportesIessPendientes, setTieneAportesIessPendientes] = useState(false)
+  const [fondosDeReservaMensualizados, setFondosDeReservaMensualizados] = useState(false)
   const [diasVacacionesPendientes, setDiasVacacionesPendientes] = useState('0')
   const [resultado, setResultado] = useState<ResultadoLiquidacion | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -79,6 +80,7 @@ export default function CalculadoraLaboral() {
         proteccionDiscapacidad: porCausaDelEmpleador ? proteccionDiscapacidad : false,
         proteccionDirigenteSindical: porCausaDelEmpleador ? proteccionDirigenteSindical : false,
         tieneAportesIessPendientes,
+        fondosDeReservaMensualizados,
         diasVacacionesPendientes: Number(diasVacacionesPendientes) || 0,
       },
       sbu,
@@ -199,6 +201,11 @@ export default function CalculadoraLaboral() {
               <label className="flex items-center gap-2 text-[12px] text-muted">
                 <input type="checkbox" checked={tieneAportesIessPendientes} onChange={(e) => setTieneAportesIessPendientes(e.target.checked)} />
                 Existen aportes al IESS pendientes de pago
+              </label>
+
+              <label className="flex items-center gap-2 text-[12px] text-muted">
+                <input type="checkbox" checked={fondosDeReservaMensualizados} onChange={(e) => setFondosDeReservaMensualizados(e.target.checked)} />
+                Los fondos de reserva ya se pagaron mensualizados (con el sueldo), no corresponde incluirlos aquí
               </label>
 
               {error && <div className="rounded-[8px] bg-danger-soft px-3 py-2 text-[12px] text-danger">{error}</div>}

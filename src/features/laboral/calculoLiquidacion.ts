@@ -61,6 +61,11 @@ export type DatosLiquidacion = {
   proteccionDiscapacidad?: boolean // Ley Orgánica de Discapacidades: +18 meses (mejor sueldo)
   proteccionDirigenteSindical?: boolean // Fuero sindical / despido ineficaz: +12 meses
   tieneAportesIessPendientes?: boolean // solo informativo, no se calcula el monto
+  // Desde la reforma de 2008 (Mandato 2), el empleador puede pagar los
+  // fondos de reserva mes a mes junto con el sueldo ("mensualizados") en
+  // vez de acumularlos para pagarlos de golpe al terminar la relación. Si
+  // ya se pagaron mensualizados, no corresponde incluirlos de nuevo aquí.
+  fondosDeReservaMensualizados?: boolean
   diasVacacionesPendientes: number
   decimoTerceroPendienteDesde?: string // por defecto, últimos 12 meses hasta la salida
   decimoCuartoPendienteDesde?: string
@@ -161,8 +166,18 @@ export function calcularLiquidacion(datos: DatosLiquidacion, sbu: number): Resul
     ? datos.mejorSueldoHistorico
     : sueldoMensual
 
-  const dias13 = datos.decimoTerceroPendienteDesde ?? fechaIngreso
-  const dias14 = datos.decimoCuartoPendienteDesde ?? fechaIngreso
+  // Los décimos se pagan anualmente, así que lo pendiente al terminar la
+  // relación es como máximo el último período sin pagar (≤ 1 año), nunca
+  // toda la antigüedad — si no se indica una fecha específica del último
+  // pago, se asume 1 año antes de la salida (o la fecha de ingreso, si
+  // llevaba menos de un año).
+  const unAñoAntesDeSalida = new Date(fechaSalida + 'T00:00:00')
+  unAñoAntesDeSalida.setFullYear(unAñoAntesDeSalida.getFullYear() - 1)
+  const inicioPeriodoPorDefecto =
+    new Date(fechaIngreso + 'T00:00:00') > unAñoAntesDeSalida ? fechaIngreso : unAñoAntesDeSalida.toISOString().slice(0, 10)
+
+  const dias13 = datos.decimoTerceroPendienteDesde ?? inicioPeriodoPorDefecto
+  const dias14 = datos.decimoCuartoPendienteDesde ?? inicioPeriodoPorDefecto
   const diasTotales0 = diasEntre(fechaIngreso, fechaSalida)
   const añosCompletos = añosCompletosEntre(fechaIngreso, fechaSalida)
   const añosIndemnizacion = añosParaIndemnizacion(añosCompletos, diasTotales0)
@@ -189,7 +204,7 @@ export function calcularLiquidacion(datos: DatosLiquidacion, sbu: number): Resul
     })
   }
 
-  const fr = fondosDeReserva(sueldoMensual, fechaIngreso, fechaSalida)
+  const fr = datos.fondosDeReservaMensualizados ? 0 : fondosDeReserva(sueldoMensual, fechaIngreso, fechaSalida)
   if (fr > 0) {
     rubros.push({
       concepto: 'Fondos de reserva',
