@@ -7,7 +7,7 @@ import { DatosJudicialesModal } from '@/features/casos/DatosJudicialesModal'
 import { PartesDelProcesoModal } from '@/features/casos/PartesDelProcesoModal'
 import { HonorariosModal } from '@/features/casos/HonorariosModal'
 
-const ROL_LABEL: Record<string, string> = { abogado: 'Abogado', cliente: 'Cliente', otro: 'Otro' }
+const ROL_LABEL: Record<string, string> = { abogado: 'Usuario', cliente: 'Cliente', otro: 'Otro' }
 
 const fieldInputClass =
   'mt-1 w-full rounded-[6px] border border-border bg-bg px-1.5 py-1 text-[13px] font-medium text-ink outline-none focus:border-accent'

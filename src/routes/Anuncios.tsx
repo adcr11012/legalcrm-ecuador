@@ -97,7 +97,7 @@ function AnuncioFormModal({
         <div>
           <label className={labelClass}>Mensaje</label>
           <textarea rows={4} value={contenido} onChange={(e) => setContenido(e.target.value)} className={`${inputClass} resize-none`}
-            placeholder="Ej. Todos los abogados deberán presentar sus informes hasta el 30 de este mes." />
+            placeholder="Ej. Todos los usuarios deberán presentar sus informes hasta el 30 de este mes." />
         </div>
         <div>
           <label className={labelClass}>Dirigido a</label>

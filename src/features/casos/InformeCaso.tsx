@@ -200,7 +200,7 @@ function InformeContenido({
           <div className={secLabel}>Partes y equipo</div>
           <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-[11px]">
             {personasEquipo.map((p, i) => (
-              <div key={i}><span className="text-muted">{p.rol === 'abogado' ? 'Abogado' : 'Parte'}:</span> {p.nombre}</div>
+              <div key={i}><span className="text-muted">{p.rol === 'abogado' ? 'Usuario' : 'Parte'}:</span> {p.nombre}</div>
             ))}
             {personasClientes.map((p, i) => (
               <div key={i}><span className="text-muted">Cliente:</span> {p.nombre}</div>

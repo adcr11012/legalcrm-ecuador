@@ -74,7 +74,7 @@ export function CasosKanban({
                           <span className="text-[11px] text-muted">{nombrePersona(abogado, usersById).split(' ')[0]}</span>
                         </div>
                       ) : (
-                        <span className="text-[11px] text-mute2">Sin abogado</span>
+                        <span className="text-[11px] text-mute2">Sin usuario</span>
                       )}
                     </div>
                   </div>

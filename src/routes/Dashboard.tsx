@@ -204,7 +204,7 @@ export default function Dashboard() {
 
         <div className="flex flex-col gap-4">
           <div className="rounded-[10px] border border-border bg-surface p-4">
-            <div className="mb-3 text-[13px] font-semibold text-ink">Carga por abogado</div>
+            <div className="mb-3 text-[13px] font-semibold text-ink">Carga por usuario</div>
             <div className="flex flex-col gap-2.5">
               {Array.from(personasByAbogado.entries()).map(([key, personas]) => (
                 <div key={key} className="flex items-center gap-2.5">
@@ -217,7 +217,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               ))}
-              {personasByAbogado.size === 0 && <div className="text-[12px] text-mute2">Sin abogados asignados.</div>}
+              {personasByAbogado.size === 0 && <div className="text-[12px] text-mute2">Sin usuarios asignados.</div>}
             </div>
           </div>
 

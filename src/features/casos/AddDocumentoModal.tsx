@@ -87,7 +87,7 @@ export function AddDocumentoModal({
           <div>
             <label className={labelClass}>Visibilidad</label>
             <select value={visibilidad} onChange={(e) => setVisibilidad(e.target.value as Visibilidad)} className={inputClass}>
-              <option value="privado">Privado (solo abogados)</option>
+              <option value="privado">Privado (solo usuarios)</option>
               <option value="compartido">Compartido (también el cliente)</option>
             </select>
           </div>

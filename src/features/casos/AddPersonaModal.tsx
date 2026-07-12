@@ -182,7 +182,7 @@ export function AddPersonaModal({
           <div>
             <label className={labelClass}>Rol en el caso</label>
             <select value={rol} onChange={(e) => setRol(e.target.value as RolPersona)} className={inputClass}>
-              <option value="abogado">Abogado</option>
+              <option value="abogado">Usuario</option>
               <option value="cliente">Cliente</option>
               <option value="otro">Otro</option>
             </select>

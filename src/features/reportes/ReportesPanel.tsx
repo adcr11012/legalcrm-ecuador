@@ -14,7 +14,7 @@ function csvEscape(v: string | number): string {
 
 function descargarCsv(filas: FilaReporte[], etapasById: Map<string, Etapa>) {
   const encabezados = [
-    'Caso', 'Materia', 'Etapa', 'Estado', 'Abogado(s)', 'Fecha inicio', 'Fecha cierre',
+    'Caso', 'Materia', 'Etapa', 'Estado', 'Usuario(s)', 'Fecha inicio', 'Fecha cierre',
     'Días para cierre', 'Horas facturadas', 'Monto horas ($)', 'Anticipos ($)', 'Gastos cobrables ($)', 'Gastos no cobrables ($)',
   ]
   const filasCsv = filas.map((f) => [
@@ -128,7 +128,7 @@ export function ReportesPanel() {
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-[10px] font-medium text-mute2">Abogado</label>
+          <label className="mb-1 block text-[10px] font-medium text-mute2">Usuario</label>
           <select value={abogado} onChange={(e) => setAbogado(e.target.value)}
             className="rounded-[6px] border border-border bg-bg px-2 py-1.5 text-[12px] text-ink outline-none">
             <option value="">Todos</option>
@@ -193,7 +193,7 @@ export function ReportesPanel() {
                   <th className="px-3 py-2 font-medium">Caso</th>
                   <th className="px-3 py-2 font-medium">Materia</th>
                   <th className="px-3 py-2 font-medium">Etapa</th>
-                  <th className="px-3 py-2 font-medium">Abogado(s)</th>
+                  <th className="px-3 py-2 font-medium">Usuario(s)</th>
                   <th className="px-3 py-2 font-medium">Estado</th>
                   <th className="px-3 py-2 text-right font-medium">Días cierre</th>
                   <th className="px-3 py-2 text-right font-medium">Horas</th>
