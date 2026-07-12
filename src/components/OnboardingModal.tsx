@@ -87,7 +87,7 @@ export function OnboardingModal({
             <div className="flex flex-col gap-3">
               <h2 className="text-[16px] font-bold text-ink">Un vistazo rápido a todo el sistema</h2>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {MANUAL.map((s) => (
+                {MANUAL.filter((s) => s.id !== 'primeros-pasos').map((s) => (
                   <div key={s.id} className="rounded-[10px] border border-border bg-bg p-2.5">
                     <div className="mb-0.5 flex items-center gap-1.5 text-[12px] font-semibold text-ink">
                       <i className={`ti ${s.icono} text-[14px] text-accent`} />

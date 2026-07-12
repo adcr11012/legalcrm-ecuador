@@ -1,4 +1,4 @@
-import { useLocation, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import type { PageAction } from '@/components/layout/PageActionContext'
 import { NotificationsBell } from '@/features/notifications/NotificationsBell'
 import { WorkspaceAssistant } from '@/features/workspace/WorkspaceAssistant'
@@ -24,6 +24,7 @@ function sectionFor(pathname: string): string {
 
 export function Topbar({ action, sidebarOpen }: { action: PageAction; sidebarOpen: boolean }) {
   const { pathname } = useLocation()
+  const navigate = useNavigate()
   const title = TITLES[sectionFor(pathname)] ?? ''
   const { isMobile } = useDevice()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -46,6 +47,13 @@ export function Topbar({ action, sidebarOpen }: { action: PageAction; sidebarOpe
               <i className="ti ti-plus text-[18px]" />
             </button>
           )}
+          <button
+            onClick={() => navigate('/ayuda')}
+            title="Ayuda / Manual"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-muted transition hover:bg-soft hover:text-ink"
+          >
+            <i className="ti ti-help-circle text-[18px]" />
+          </button>
           <NotificationsBell />
         </div>
       </div>
@@ -83,6 +91,13 @@ export function Topbar({ action, sidebarOpen }: { action: PageAction; sidebarOpe
           </div>
         </div>
       )}
+      <button
+        onClick={() => navigate('/ayuda')}
+        title="Ayuda / Manual"
+        className="mr-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[6px] text-muted transition hover:bg-soft hover:text-ink"
+      >
+        <i className="ti ti-help-circle text-[18px]" />
+      </button>
       <WorkspaceAssistant />
       <NotificationsBell />
       {action && (
