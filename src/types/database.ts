@@ -316,6 +316,13 @@ export type TicketMensaje = {
   created_at: string
 }
 
+export type ConfiguracionLaboral = {
+  id: true
+  sbu: number
+  actualizado_en: string
+  actualizado_por: string | null
+}
+
 export type Cliente = {
   id: string
   workspace_id: string
@@ -390,6 +397,7 @@ export type Database = {
       anuncio_lecturas: Table<{ anuncio_id: string; user_id: string; leido_at: string }>
       tickets_soporte: Table<TicketSoporte>
       ticket_mensajes: Table<TicketMensaje>
+      configuracion_laboral: Table<ConfiguracionLaboral>
     }
     Views: { [_ in never]: never }
     Functions: {

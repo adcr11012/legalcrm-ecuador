@@ -11,6 +11,7 @@ const TITLES: Record<string, string> = {
   '/agenda': 'Agenda',
   '/buscar': 'Buscar',
   '/soporte': 'Soporte',
+  '/calculadora-laboral': 'Calculadora Laboral',
   '/usuarios': 'Usuarios y roles',
   '/drive': 'Google Drive',
   '/configuracion': 'Configuración',

@@ -12,6 +12,7 @@ const Clientes        = lazy(() => import('@/routes/Clientes'))
 const Agenda          = lazy(() => import('@/routes/Agenda'))
 const Buscar          = lazy(() => import('@/routes/Buscar'))
 const Soporte         = lazy(() => import('@/routes/Soporte'))
+const CalculadoraLaboral = lazy(() => import('@/routes/CalculadoraLaboral'))
 const Anuncios        = lazy(() => import('@/routes/Anuncios'))
 const Usuarios        = lazy(() => import('@/routes/Usuarios'))
 const Invite          = lazy(() => import('@/routes/Invite'))
@@ -25,6 +26,7 @@ const AdminWorkspaceDetail = lazy(() => import('@/routes/admin/AdminWorkspaceDet
 const AdminBilling         = lazy(() => import('@/routes/admin/AdminBilling'))
 const AdminEsatje          = lazy(() => import('@/routes/admin/AdminEsatje'))
 const AdminSoporte         = lazy(() => import('@/routes/admin/AdminSoporte'))
+const AdminLaboral         = lazy(() => import('@/routes/admin/AdminLaboral'))
 
 function PageLoader() {
   return <div className="flex h-full flex-1 items-center justify-center text-[13px] text-muted">Cargando…</div>
@@ -53,6 +55,7 @@ function App() {
                 <Route path="/agenda" element={<Agenda />} />
                 <Route path="/buscar" element={<Buscar />} />
                 <Route path="/soporte" element={<Soporte />} />
+                <Route path="/calculadora-laboral" element={<CalculadoraLaboral />} />
                 <Route path="/anuncios" element={<Anuncios />} />
                 <Route path="/usuarios" element={<Usuarios />} />
                 <Route path="/drive" element={<Drive />} />
@@ -68,6 +71,7 @@ function App() {
               <Route path="billing" element={<AdminBilling />} />
               <Route path="esatje" element={<AdminEsatje />} />
               <Route path="soporte" element={<AdminSoporte />} />
+              <Route path="laboral" element={<AdminLaboral />} />
             </Route>
 
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
