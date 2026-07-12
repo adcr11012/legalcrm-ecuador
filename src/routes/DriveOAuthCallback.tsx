@@ -32,7 +32,7 @@ export default function DriveOAuthCallback() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-bg px-4">
+      <div className="flex h-screen items-center justify-center overflow-y-auto bg-bg px-4 py-8">
         <div className="w-full max-w-[380px] rounded-[14px] border border-border bg-surface p-8 text-center shadow-sm">
           <div className="mb-3 text-[14px] font-semibold text-danger">No se pudo conectar Google Drive</div>
           <p className="mb-5 text-[13px] text-muted">{error}</p>

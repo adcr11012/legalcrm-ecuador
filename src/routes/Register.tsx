@@ -88,7 +88,7 @@ export default function Register() {
 
   if (bienvenida) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-bg px-4">
+      <div className="flex h-screen items-center justify-center overflow-y-auto bg-bg px-4 py-8">
         <div className="w-full max-w-[460px] rounded-[16px] border border-accent/30 bg-surface p-8 text-center shadow-lg">
           <div className="mb-3 text-[42px]">🎉</div>
           <h1 className="mb-2 text-[20px] font-bold text-ink">¡Felicitaciones, {nombre.split(' ')[0]}!</h1>
@@ -126,7 +126,7 @@ export default function Register() {
   if (session) {
     // Sesión activa sin perfil: solo falta crear el workspace.
     return (
-      <div className="flex min-h-screen items-center justify-center bg-bg px-4">
+      <div className="flex h-screen items-center justify-center overflow-y-auto bg-bg px-4 py-8">
         <div className="w-full max-w-[380px] rounded-[14px] border border-border bg-surface p-8 shadow-sm">
           <div className="mb-7 text-center">
             <img src="/LOGO.png" alt="TSADOQ" className="mx-auto h-16 w-auto" />
@@ -191,7 +191,7 @@ export default function Register() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-bg px-4">
+    <div className="flex h-screen items-center justify-center overflow-y-auto bg-bg px-4 py-8">
       <div className="w-full max-w-[380px] rounded-[14px] border border-border bg-surface p-8 shadow-sm">
         <div className="mb-7 text-center">
           <img src="/LOGO.png" alt="TSADOQ" className="mx-auto h-16 w-auto" />
