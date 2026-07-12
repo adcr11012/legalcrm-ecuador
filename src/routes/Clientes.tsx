@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { usePageAction } from '@/components/layout/PageActionContext'
+import { useAuth } from '@/features/auth/AuthProvider'
 import { listClientes } from '@/features/clientes/api'
 import { ClienteFormModal } from '@/features/clientes/ClienteFormModal'
 import { ClienteSidebar } from '@/features/clientes/ClienteSidebar'
@@ -11,6 +12,8 @@ import type { Cliente } from '@/types/database'
 export default function Clientes() {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
+  const { profile } = useAuth()
+  const puedeCrear = profile?.rol === 'administrador' || profile?.rol === 'master'
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -32,7 +35,7 @@ export default function Clientes() {
     load()
   }, [load])
 
-  usePageAction({ label: 'Nuevo cliente', onClick: () => setModalOpen(true) })
+  usePageAction(puedeCrear ? { label: 'Nuevo cliente', onClick: () => setModalOpen(true) } : null)
 
   if (loading) return <div className="flex-1 p-5 text-[13px] text-muted">Cargando clientes…</div>
   if (error) return <div className="flex-1 p-5 text-[13px] text-danger">{error}</div>
