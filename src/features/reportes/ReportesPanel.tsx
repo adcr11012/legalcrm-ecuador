@@ -42,7 +42,7 @@ function descargarCsv(filas: FilaReporte[], etapasById: Map<string, Etapa>) {
   URL.revokeObjectURL(url)
 }
 
-export function ReportesPanel() {
+export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean }) {
   const navigate = useNavigate()
   const [filas, setFilas] = useState<FilaReporte[]>([])
   const [etapas, setEtapas] = useState<Etapa[]>([])
@@ -100,6 +100,11 @@ export function ReportesPanel() {
 
   return (
     <div className="mx-auto max-w-[1000px]">
+      {soloMisCasos && (
+        <div className="mb-3 rounded-[8px] border border-accent/30 bg-accent-soft px-3 py-2 text-[11px] text-ink">
+          Este reporte incluye únicamente tus casos asignados.
+        </div>
+      )}
       <div className="mb-4 flex flex-wrap items-end gap-2 rounded-[10px] border border-border bg-surface p-3">
         <div>
           <label className="mb-1 block text-[10px] font-medium text-mute2">Desde</label>

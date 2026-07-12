@@ -153,27 +153,25 @@ export default function Buscar() {
 
   return (
     <div className="flex-1 overflow-y-auto p-5">
-      {accesoCompleto && (
-        <div className="mx-auto mb-4 flex max-w-[1000px] justify-center">
-          <div className="flex gap-0.5 rounded-[8px] bg-soft p-0.5">
-            <button
-              onClick={() => setSearchParams((prev) => { prev.delete('modo'); return prev })}
-              className={`flex items-center gap-1.5 rounded-[6px] px-3 py-1.5 text-[12px] transition ${modo === 'buscar' ? 'bg-surface text-ink shadow-sm' : 'text-muted'}`}
-            >
-              <i className="ti ti-search" /> Buscar
-            </button>
-            <button
-              onClick={() => setSearchParams((prev) => { prev.set('modo', 'reportes'); return prev })}
-              className={`flex items-center gap-1.5 rounded-[6px] px-3 py-1.5 text-[12px] transition ${modo === 'reportes' ? 'bg-surface text-ink shadow-sm' : 'text-muted'}`}
-            >
-              <i className="ti ti-report-analytics" /> Reportes
-            </button>
-          </div>
+      <div className="mx-auto mb-4 flex max-w-[1000px] justify-center">
+        <div className="flex gap-0.5 rounded-[8px] bg-soft p-0.5">
+          <button
+            onClick={() => setSearchParams((prev) => { prev.delete('modo'); return prev })}
+            className={`flex items-center gap-1.5 rounded-[6px] px-3 py-1.5 text-[12px] transition ${modo === 'buscar' ? 'bg-surface text-ink shadow-sm' : 'text-muted'}`}
+          >
+            <i className="ti ti-search" /> Buscar
+          </button>
+          <button
+            onClick={() => setSearchParams((prev) => { prev.set('modo', 'reportes'); return prev })}
+            className={`flex items-center gap-1.5 rounded-[6px] px-3 py-1.5 text-[12px] transition ${modo === 'reportes' ? 'bg-surface text-ink shadow-sm' : 'text-muted'}`}
+          >
+            <i className="ti ti-report-analytics" /> Reportes
+          </button>
         </div>
-      )}
+      </div>
 
-      {modo === 'reportes' && accesoCompleto ? (
-        <ReportesPanel />
+      {modo === 'reportes' ? (
+        <ReportesPanel soloMisCasos={!accesoCompleto} />
       ) : (
       <div className="mx-auto max-w-[720px]">
         <div className="relative mb-5">
