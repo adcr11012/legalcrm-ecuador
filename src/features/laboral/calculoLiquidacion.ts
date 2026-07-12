@@ -36,6 +36,12 @@ export function mensajeNoAplica(tipo: TipoContrato): string | null {
   return null
 }
 
+// Solo relevante si tipoTerminacion === 'visto_bueno': quién lo solicitó.
+// Si lo pide el trabajador (por falta de pago, maltrato, etc.) y es
+// concedido, la relación termina por causa del empleador y sí corresponde
+// indemnización — igual que un despido intempestivo.
+export type DireccionVistoBueno = 'solicitado_por_empleador' | 'solicitado_por_trabajador'
+
 export type DatosLiquidacion = {
   fechaIngreso: string // YYYY-MM-DD
   fechaSalida: string // YYYY-MM-DD
@@ -43,10 +49,18 @@ export type DatosLiquidacion = {
   mejorSueldoHistorico?: number // si es distinto al actual — afecta la indemnización (Art. 188)
   tipoContrato: TipoContrato
   tipoTerminacion: TipoTerminacion
+  direccionVistoBueno?: DireccionVistoBueno
   // Solo relevante si tipoContrato está en CONTRATOS_CON_PLAZO: si la
   // relación terminó al cumplirse el plazo/obra pactada, no corresponde
   // indemnización ni desahucio, sin importar tipoTerminacion.
   terminacionAlVencerPlazo?: boolean
+  // Protecciones especiales — solo suman indemnización adicional cuando la
+  // terminación es por causa del empleador (despido intempestivo o visto
+  // bueno solicitado por el trabajador).
+  proteccionEmbarazoOLactancia?: boolean // Art. 154 + despido ineficaz: +12 meses
+  proteccionDiscapacidad?: boolean // Ley Orgánica de Discapacidades: +18 meses (mejor sueldo)
+  proteccionDirigenteSindical?: boolean // Fuero sindical / despido ineficaz: +12 meses
+  tieneAportesIessPendientes?: boolean // solo informativo, no se calcula el monto
   diasVacacionesPendientes: number
   decimoTerceroPendienteDesde?: string // por defecto, últimos 12 meses hasta la salida
   decimoCuartoPendienteDesde?: string
@@ -59,6 +73,7 @@ export type ResultadoLiquidacion = {
   total: number
   añosCompletos: number
   diasTotales: number
+  avisos: string[]
 }
 
 function diasEntre(desde: string, hasta: string): number {
@@ -171,10 +186,18 @@ export function calcularLiquidacion(datos: DatosLiquidacion, sbu: number): Resul
     })
   }
 
+  // Se considera "por causa del empleador" (con indemnización) el despido
+  // intempestivo, y el visto bueno cuando lo solicitó el trabajador (ganó
+  // la causa contra el empleador).
+  const porCausaDelEmpleador =
+    !terminoAlVencerPlazo &&
+    (tipoTerminacion === 'despido_intempestivo' ||
+      (tipoTerminacion === 'visto_bueno' && datos.direccionVistoBueno === 'solicitado_por_trabajador'))
+
   if (terminoAlVencerPlazo) {
     // Terminación natural del plazo/obra pactada: solo liquidación de
     // haberes, sin indemnización ni desahucio a cargo del empleador.
-  } else if (tipoTerminacion === 'despido_intempestivo') {
+  } else if (porCausaDelEmpleador) {
     rubros.push({
       concepto: 'Bonificación por desahucio (Art. 185)',
       monto: bonificacionDesahucio(sueldoMensual, añosCompletos),
@@ -187,6 +210,28 @@ export function calcularLiquidacion(datos: DatosLiquidacion, sbu: number): Resul
         ? '3 remuneraciones (mejor sueldo histórico) — hasta 3 años de servicio'
         : `1 remuneración (mejor sueldo histórico) × ${Math.min(añosCompletos, 25)} año(s), tope 25`,
     })
+
+    if (datos.proteccionEmbarazoOLactancia) {
+      rubros.push({
+        concepto: 'Indemnización adicional — embarazo/lactancia (despido ineficaz)',
+        monto: round2(mejorSueldo * 12),
+        detalle: '12 remuneraciones (mejor sueldo histórico), adicional a la indemnización general',
+      })
+    }
+    if (datos.proteccionDirigenteSindical) {
+      rubros.push({
+        concepto: 'Indemnización adicional — dirigente sindical (fuero sindical)',
+        monto: round2(mejorSueldo * 12),
+        detalle: '12 remuneraciones (mejor sueldo histórico), adicional a la indemnización general',
+      })
+    }
+    if (datos.proteccionDiscapacidad) {
+      rubros.push({
+        concepto: 'Indemnización adicional — discapacidad (Ley Orgánica de Discapacidades)',
+        monto: round2(mejorSueldo * 18),
+        detalle: '18 remuneraciones (mejor sueldo histórico), adicional a la indemnización general',
+      })
+    }
   } else if (tipoTerminacion === 'mutuo_acuerdo') {
     rubros.push({
       concepto: 'Bonificación por desahucio (Art. 185)',
@@ -194,11 +239,21 @@ export function calcularLiquidacion(datos: DatosLiquidacion, sbu: number): Resul
       detalle: '25% del último sueldo × años completos de servicio',
     })
   }
-  // renuncia_voluntaria y visto_bueno con causa del trabajador: sin
-  // indemnización ni desahucio a cargo del empleador.
+  // renuncia_voluntaria y visto_bueno solicitado por el empleador (con
+  // causa del trabajador): sin indemnización ni desahucio.
 
   const total = round2(rubros.reduce((sum, r) => sum + r.monto, 0))
   const diasTotales = diasEntre(fechaIngreso, fechaSalida)
 
-  return { rubros, total, añosCompletos, diasTotales }
+  const avisos: string[] = []
+  if (datos.tieneAportesIessPendientes) {
+    avisos.push('Hay aportes al IESS pendientes de pago — regulariza esto por separado antes de cerrar la liquidación; no se calcula un monto aquí.')
+  }
+  avisos.push('No se calculan descuentos legales (préstamos IESS, anticipos, pensiones alimenticias retenidas) ni impuesto a la renta — este resultado es un valor bruto.')
+  if (tipoContrato === 'domestico') {
+    avisos.push('El trabajo doméstico tiene particularidades de afiliación al IESS que esta calculadora no distingue — verifica los aportes por separado.')
+  }
+  avisos.push('Si existe un contrato colectivo con condiciones superiores a las de la ley, este resultado solo refleja el mínimo legal, no lo pactado en el contrato colectivo.')
+
+  return { rubros, total, añosCompletos, diasTotales, avisos }
 }

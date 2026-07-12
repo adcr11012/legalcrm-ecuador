@@ -6,6 +6,7 @@ import {
   mensajeNoAplica,
   type TipoTerminacion,
   type TipoContrato,
+  type DireccionVistoBueno,
   type ResultadoLiquidacion,
 } from '@/features/laboral/calculoLiquidacion'
 
@@ -13,7 +14,7 @@ const TIPO_TERMINACION_LABEL: Record<TipoTerminacion, string> = {
   despido_intempestivo: 'Despido intempestivo',
   renuncia_voluntaria: 'Renuncia voluntaria',
   mutuo_acuerdo: 'Terminación por mutuo acuerdo',
-  visto_bueno: 'Visto bueno (con causa)',
+  visto_bueno: 'Visto bueno',
 }
 
 const TIPO_CONTRATO_LABEL: Record<TipoContrato, string> = {
@@ -35,7 +36,12 @@ export default function CalculadoraLaboral() {
   const [mejorSueldo, setMejorSueldo] = useState('')
   const [tipoContrato, setTipoContrato] = useState<TipoContrato>('indefinido')
   const [tipoTerminacion, setTipoTerminacion] = useState<TipoTerminacion>('despido_intempestivo')
+  const [direccionVistoBueno, setDireccionVistoBueno] = useState<DireccionVistoBueno>('solicitado_por_empleador')
   const [terminacionAlVencerPlazo, setTerminacionAlVencerPlazo] = useState(false)
+  const [proteccionEmbarazoOLactancia, setProteccionEmbarazoOLactancia] = useState(false)
+  const [proteccionDiscapacidad, setProteccionDiscapacidad] = useState(false)
+  const [proteccionDirigenteSindical, setProteccionDirigenteSindical] = useState(false)
+  const [tieneAportesIessPendientes, setTieneAportesIessPendientes] = useState(false)
   const [diasVacacionesPendientes, setDiasVacacionesPendientes] = useState('0')
   const [resultado, setResultado] = useState<ResultadoLiquidacion | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -46,6 +52,11 @@ export default function CalculadoraLaboral() {
 
   const noAplica = mensajeNoAplica(tipoContrato)
   const esContratoConPlazo = CONTRATOS_CON_PLAZO.includes(tipoContrato)
+  const terminacionEsNatural = esContratoConPlazo && terminacionAlVencerPlazo
+  const porCausaDelEmpleador =
+    !terminacionEsNatural &&
+    (tipoTerminacion === 'despido_intempestivo' ||
+      (tipoTerminacion === 'visto_bueno' && direccionVistoBueno === 'solicitado_por_trabajador'))
 
   function onCalcular() {
     setError(null)
@@ -62,7 +73,12 @@ export default function CalculadoraLaboral() {
         mejorSueldoHistorico: mejorSueldo ? Number(mejorSueldo) : undefined,
         tipoContrato,
         tipoTerminacion,
+        direccionVistoBueno: tipoTerminacion === 'visto_bueno' ? direccionVistoBueno : undefined,
         terminacionAlVencerPlazo: esContratoConPlazo ? terminacionAlVencerPlazo : false,
+        proteccionEmbarazoOLactancia: porCausaDelEmpleador ? proteccionEmbarazoOLactancia : false,
+        proteccionDiscapacidad: porCausaDelEmpleador ? proteccionDiscapacidad : false,
+        proteccionDirigenteSindical: porCausaDelEmpleador ? proteccionDirigenteSindical : false,
+        tieneAportesIessPendientes,
         diasVacacionesPendientes: Number(diasVacacionesPendientes) || 0,
       },
       sbu,
@@ -133,14 +149,45 @@ export default function CalculadoraLaboral() {
                 </label>
               )}
 
-              {!(esContratoConPlazo && terminacionAlVencerPlazo) && (
-                <div>
-                  <label className="mb-1 block text-[11px] font-medium text-muted">Tipo de terminación</label>
-                  <select value={tipoTerminacion} onChange={(e) => setTipoTerminacion(e.target.value as TipoTerminacion)}
-                    className="w-full rounded-[8px] border border-border bg-bg px-3 py-2 text-[13px] text-ink outline-none focus:border-accent">
-                    {Object.entries(TIPO_TERMINACION_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                  </select>
-                </div>
+              {!terminacionEsNatural && (
+                <>
+                  <div>
+                    <label className="mb-1 block text-[11px] font-medium text-muted">Tipo de terminación</label>
+                    <select value={tipoTerminacion} onChange={(e) => setTipoTerminacion(e.target.value as TipoTerminacion)}
+                      className="w-full rounded-[8px] border border-border bg-bg px-3 py-2 text-[13px] text-ink outline-none focus:border-accent">
+                      {Object.entries(TIPO_TERMINACION_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                    </select>
+                  </div>
+
+                  {tipoTerminacion === 'visto_bueno' && (
+                    <div>
+                      <label className="mb-1 block text-[11px] font-medium text-muted">¿Quién solicitó el visto bueno?</label>
+                      <select value={direccionVistoBueno} onChange={(e) => setDireccionVistoBueno(e.target.value as DireccionVistoBueno)}
+                        className="w-full rounded-[8px] border border-border bg-bg px-3 py-2 text-[13px] text-ink outline-none focus:border-accent">
+                        <option value="solicitado_por_empleador">El empleador (con causa del trabajador) — sin indemnización</option>
+                        <option value="solicitado_por_trabajador">El trabajador (con causa del empleador) — con indemnización</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {porCausaDelEmpleador && (
+                    <div className="flex flex-col gap-1.5 rounded-[8px] border border-border bg-bg p-2.5">
+                      <div className="mb-0.5 text-[11px] font-medium text-muted">Protecciones especiales (indemnización adicional, si aplica)</div>
+                      <label className="flex items-center gap-2 text-[12px] text-muted">
+                        <input type="checkbox" checked={proteccionEmbarazoOLactancia} onChange={(e) => setProteccionEmbarazoOLactancia(e.target.checked)} />
+                        Embarazo o lactancia (+12 remuneraciones)
+                      </label>
+                      <label className="flex items-center gap-2 text-[12px] text-muted">
+                        <input type="checkbox" checked={proteccionDirigenteSindical} onChange={(e) => setProteccionDirigenteSindical(e.target.checked)} />
+                        Dirigente sindical / fuero sindical (+12 remuneraciones)
+                      </label>
+                      <label className="flex items-center gap-2 text-[12px] text-muted">
+                        <input type="checkbox" checked={proteccionDiscapacidad} onChange={(e) => setProteccionDiscapacidad(e.target.checked)} />
+                        Discapacidad, propia o de dependiente a cargo (+18 remuneraciones)
+                      </label>
+                    </div>
+                  )}
+                </>
               )}
 
               <div>
@@ -148,6 +195,11 @@ export default function CalculadoraLaboral() {
                 <input type="number" min="0" value={diasVacacionesPendientes} onChange={(e) => setDiasVacacionesPendientes(e.target.value)}
                   className="w-full rounded-[8px] border border-border bg-bg px-3 py-2 text-[13px] text-ink outline-none focus:border-accent" />
               </div>
+
+              <label className="flex items-center gap-2 text-[12px] text-muted">
+                <input type="checkbox" checked={tieneAportesIessPendientes} onChange={(e) => setTieneAportesIessPendientes(e.target.checked)} />
+                Existen aportes al IESS pendientes de pago
+              </label>
 
               {error && <div className="rounded-[8px] bg-danger-soft px-3 py-2 text-[12px] text-danger">{error}</div>}
 
@@ -178,6 +230,18 @@ export default function CalculadoraLaboral() {
               <span className="text-[14px] font-semibold text-ink">Total estimado</span>
               <span className="text-[16px] font-bold text-accent">${resultado.total.toFixed(2)}</span>
             </div>
+
+            {resultado.avisos.length > 0 && (
+              <div className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3">
+                {resultado.avisos.map((a) => (
+                  <div key={a} className="flex items-start gap-1.5 text-[11px] text-mute2">
+                    <i className="ti ti-alert-triangle mt-0.5 flex-shrink-0 text-[12px] text-warn" />
+                    <span>{a}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <p className="mt-3 text-[11px] leading-relaxed text-mute2">
               Este cálculo se basa en la información más reciente disponible sobre el Salario Básico Unificado y las tablas del Código del Trabajo.
               Te recomendamos verificarlo antes de usarlo en un trámite formal, especialmente si el valor no se ha actualizado recientemente.
