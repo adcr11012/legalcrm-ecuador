@@ -32,7 +32,14 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center bg-bg px-4">
       <div className="w-full max-w-[380px] rounded-[14px] border border-border bg-surface p-8 shadow-sm">
         <div className="mb-7 text-center">
-          <img src="/LOGO.png" alt="TSADOQ" className="mx-auto h-16 w-auto" />
+          <video
+            src="/v_tsadoq_1.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="mx-auto h-16 w-auto"
+          />
           <h1 className="mt-3 text-[19px] font-bold text-ink">Iniciar sesión</h1>
         </div>
 

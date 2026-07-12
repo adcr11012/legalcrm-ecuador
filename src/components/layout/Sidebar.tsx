@@ -4,6 +4,7 @@ import { useAuth } from '@/features/auth/AuthProvider'
 import { getDriveEstado } from '@/features/workspace/driveApi'
 import { getGroqEstado } from '@/features/workspace/groqApi'
 import { getOpenRouterEstado } from '@/features/workspace/openrouterApi'
+import { VideoLogoModal } from '@/components/VideoLogoModal'
 
 const PRINCIPAL = [
   { to: '/dashboard', icon: 'ti-layout-dashboard', label: 'Dashboard' },
@@ -47,6 +48,7 @@ function useServiciosEstado() {
 export function Sidebar({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   const { profile, signOut } = useAuth()
   const servicios = useServiciosEstado()
+  const [videoAbierto, setVideoAbierto] = useState(false)
 
   const navItemClass = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-2.5 rounded-[6px] px-2.5 py-2 mx-1.5 text-[13px] transition-colors ${
@@ -71,7 +73,9 @@ export function Sidebar({ open, onToggle }: { open: boolean; onToggle: () => voi
           </button>
           {open && (
             <>
-              <img src="/LOGO.png" alt="TSADOQ" className="h-7 w-auto object-contain" />
+              <button onClick={() => setVideoAbierto(true)} title="Ver video de TSADOQ">
+                <img src="/LOGO.png" alt="TSADOQ" className="h-7 w-auto object-contain" />
+              </button>
               <div className="min-w-0">
                 <div className="text-[13px] font-bold leading-tight text-ink">TSADOQ</div>
                 <div className="text-[10px] leading-tight text-mute2">Gestor de casos</div>
@@ -158,6 +162,7 @@ export function Sidebar({ open, onToggle }: { open: boolean; onToggle: () => voi
           </div>
         )}
       </nav>
+      <VideoLogoModal open={videoAbierto} onClose={() => setVideoAbierto(false)} />
     </>
   )
 }
