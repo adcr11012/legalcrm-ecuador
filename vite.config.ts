@@ -18,9 +18,11 @@ export default defineConfig({
           if (id.includes('@supabase')) return 'supabase'
           // React core
           if (id.includes('react-dom') || id.includes('react-router')) return 'react-vendor'
-          // PDF / document processing (heavy)
-          if (id.includes('html2canvas') || id.includes('jspdf')) return 'pdf-export'
-          if (id.includes('pdfium') || id.includes('pdf-parse') || id.includes('mammoth')) return 'doc-reader'
+          // jspdf/html2canvas/pdfium/pdf-parse/mammoth NO se agrupan aquí a
+          // propósito: solo se usan vía import() dinámico donde se necesitan,
+          // y forzarlos a un manualChunk nombrado hace que el bundler los
+          // trate como "vendor" y los precargue en index.html para toda la
+          // app, anulando el lazy-load.
           // DOMPurify
           if (id.includes('dompurify')) return 'sanitize'
         },

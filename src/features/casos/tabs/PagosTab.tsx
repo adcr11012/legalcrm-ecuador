@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { jsPDF } from 'jspdf'
 import type { CasoAnticipo, CasoGasto, CasoHora, Caso } from '@/types/database'
 import { addAnticipo, deleteAnticipo, addGasto, deleteGasto, addHora, deleteHora } from '@/features/casos/pagosApi'
 
@@ -104,7 +103,8 @@ export function PagosTab({
     } finally { setSaving(false) }
   }
 
-  function exportarPDF() {
+  async function exportarPDF() {
+    const { jsPDF } = await import('jspdf')
     const doc = new jsPDF({ unit: 'mm', format: 'a4' })
     const marginX = 20
     let y = 20
