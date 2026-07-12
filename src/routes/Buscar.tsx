@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { listCasos } from '@/features/casos/api'
 import { listClientes } from '@/features/clientes/api'
@@ -9,6 +9,7 @@ import { listAllPlazos } from '@/features/casos/plazosApi'
 import { listAllTareasPendientes } from '@/features/casos/tareasApi'
 import { listDocumentosWorkspace, type DocumentoBusqueda } from '@/features/casos/documentosApi'
 import { MATERIA_LABEL } from '@/features/casos/materias'
+import { ReportesPanel } from '@/features/reportes/ReportesPanel'
 import type { Caso, Cliente, Usuario, Etapa, Plazo, Tarea } from '@/types/database'
 
 function norm(s: string | null | undefined): string {
@@ -35,6 +36,8 @@ export default function Buscar() {
   const [tareas, setTareas] = useState<Tarea[]>([])
   const [loading, setLoading] = useState(true)
   const [q, setQ] = useState('')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const modo: 'buscar' | 'reportes' = searchParams.get('modo') === 'reportes' ? 'reportes' : 'buscar'
 
   // Master/administrador ven todo el workspace; limitado solo sus casos
   // asignados (ya filtrado así por RLS en casos/documentos). Clientes y
@@ -150,6 +153,28 @@ export default function Buscar() {
 
   return (
     <div className="flex-1 overflow-y-auto p-5">
+      {accesoCompleto && (
+        <div className="mx-auto mb-4 flex max-w-[1000px] justify-center">
+          <div className="flex gap-0.5 rounded-[8px] bg-soft p-0.5">
+            <button
+              onClick={() => setSearchParams((prev) => { prev.delete('modo'); return prev })}
+              className={`flex items-center gap-1.5 rounded-[6px] px-3 py-1.5 text-[12px] transition ${modo === 'buscar' ? 'bg-surface text-ink shadow-sm' : 'text-muted'}`}
+            >
+              <i className="ti ti-search" /> Buscar
+            </button>
+            <button
+              onClick={() => setSearchParams((prev) => { prev.set('modo', 'reportes'); return prev })}
+              className={`flex items-center gap-1.5 rounded-[6px] px-3 py-1.5 text-[12px] transition ${modo === 'reportes' ? 'bg-surface text-ink shadow-sm' : 'text-muted'}`}
+            >
+              <i className="ti ti-report-analytics" /> Reportes
+            </button>
+          </div>
+        </div>
+      )}
+
+      {modo === 'reportes' && accesoCompleto ? (
+        <ReportesPanel />
+      ) : (
       <div className="mx-auto max-w-[720px]">
         <div className="relative mb-5">
           <i className="ti ti-search absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-mute2" />
@@ -302,6 +327,7 @@ export default function Buscar() {
           </div>
         )}
       </div>
+      )}
     </div>
   )
 }
