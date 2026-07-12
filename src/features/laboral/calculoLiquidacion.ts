@@ -7,12 +7,46 @@
 
 export type TipoTerminacion = 'despido_intempestivo' | 'renuncia_voluntaria' | 'mutuo_acuerdo' | 'visto_bueno'
 
+export type TipoContrato =
+  | 'indefinido'
+  | 'eventual'
+  | 'ocasional'
+  | 'temporada'
+  | 'obra_o_servicio'
+  | 'domestico'
+  | 'sector_publico'
+  | 'servicios_profesionales'
+
+// Contratos con plazo/obra pactada — si la relación termina al cumplirse
+// ese plazo (no por decisión unilateral anticipada), no hay indemnización
+// ni bonificación por desahucio, solo la liquidación de haberes.
+export const CONTRATOS_CON_PLAZO: TipoContrato[] = ['eventual', 'ocasional', 'temporada', 'obra_o_servicio']
+
+// Regímenes donde el Código del Trabajo NO aplica — la calculadora no debe
+// usarse para estos casos (se maneja en la UI con un bloqueo explícito).
+export const REGIMENES_NO_APLICABLES: TipoContrato[] = ['sector_publico', 'servicios_profesionales']
+
+export function mensajeNoAplica(tipo: TipoContrato): string | null {
+  if (tipo === 'sector_publico') {
+    return 'El sector público se rige por la LOSEP, no por el Código del Trabajo — esta calculadora no aplica para este caso.'
+  }
+  if (tipo === 'servicios_profesionales') {
+    return 'Una relación de servicios profesionales/honorarios es civil, no laboral — el Código del Trabajo no aplica, esta calculadora no corresponde.'
+  }
+  return null
+}
+
 export type DatosLiquidacion = {
   fechaIngreso: string // YYYY-MM-DD
   fechaSalida: string // YYYY-MM-DD
   sueldoMensual: number
   mejorSueldoHistorico?: number // si es distinto al actual — afecta la indemnización (Art. 188)
+  tipoContrato: TipoContrato
   tipoTerminacion: TipoTerminacion
+  // Solo relevante si tipoContrato está en CONTRATOS_CON_PLAZO: si la
+  // relación terminó al cumplirse el plazo/obra pactada, no corresponde
+  // indemnización ni desahucio, sin importar tipoTerminacion.
+  terminacionAlVencerPlazo?: boolean
   diasVacacionesPendientes: number
   decimoTerceroPendienteDesde?: string // por defecto, últimos 12 meses hasta la salida
   decimoCuartoPendienteDesde?: string
@@ -95,7 +129,9 @@ function round2(n: number): number {
 }
 
 export function calcularLiquidacion(datos: DatosLiquidacion, sbu: number): ResultadoLiquidacion {
-  const { fechaIngreso, fechaSalida, sueldoMensual, tipoTerminacion, diasVacacionesPendientes } = datos
+  const { fechaIngreso, fechaSalida, sueldoMensual, tipoContrato, tipoTerminacion, diasVacacionesPendientes } = datos
+  const esContratoConPlazo = CONTRATOS_CON_PLAZO.includes(tipoContrato)
+  const terminoAlVencerPlazo = esContratoConPlazo && Boolean(datos.terminacionAlVencerPlazo)
   const mejorSueldo = datos.mejorSueldoHistorico && datos.mejorSueldoHistorico > sueldoMensual
     ? datos.mejorSueldoHistorico
     : sueldoMensual
@@ -135,7 +171,10 @@ export function calcularLiquidacion(datos: DatosLiquidacion, sbu: number): Resul
     })
   }
 
-  if (tipoTerminacion === 'despido_intempestivo') {
+  if (terminoAlVencerPlazo) {
+    // Terminación natural del plazo/obra pactada: solo liquidación de
+    // haberes, sin indemnización ni desahucio a cargo del empleador.
+  } else if (tipoTerminacion === 'despido_intempestivo') {
     rubros.push({
       concepto: 'Bonificación por desahucio (Art. 185)',
       monto: bonificacionDesahucio(sueldoMensual, añosCompletos),
