@@ -43,6 +43,8 @@ export default function CalculadoraLaboral() {
   const [proteccionDirigenteSindical, setProteccionDirigenteSindical] = useState(false)
   const [tieneAportesIessPendientes, setTieneAportesIessPendientes] = useState(false)
   const [fondosDeReservaMensualizados, setFondosDeReservaMensualizados] = useState(false)
+  const [decimoTerceroMensualizado, setDecimoTerceroMensualizado] = useState(false)
+  const [decimoCuartoMensualizado, setDecimoCuartoMensualizado] = useState(false)
   const [diasVacacionesPendientes, setDiasVacacionesPendientes] = useState('0')
   const [resultado, setResultado] = useState<ResultadoLiquidacion | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -81,6 +83,8 @@ export default function CalculadoraLaboral() {
         proteccionDirigenteSindical: porCausaDelEmpleador ? proteccionDirigenteSindical : false,
         tieneAportesIessPendientes,
         fondosDeReservaMensualizados,
+        decimoTerceroMensualizado,
+        decimoCuartoMensualizado,
         diasVacacionesPendientes: Number(diasVacacionesPendientes) || 0,
       },
       sbu,
@@ -206,6 +210,16 @@ export default function CalculadoraLaboral() {
               <label className="flex items-center gap-2 text-[12px] text-muted">
                 <input type="checkbox" checked={fondosDeReservaMensualizados} onChange={(e) => setFondosDeReservaMensualizados(e.target.checked)} />
                 Los fondos de reserva ya se pagaron mensualizados (con el sueldo), no corresponde incluirlos aquí
+              </label>
+
+              <label className="flex items-center gap-2 text-[12px] text-muted">
+                <input type="checkbox" checked={decimoTerceroMensualizado} onChange={(e) => setDecimoTerceroMensualizado(e.target.checked)} />
+                El décimo tercero ya se paga mensualizado (con el sueldo)
+              </label>
+
+              <label className="flex items-center gap-2 text-[12px] text-muted">
+                <input type="checkbox" checked={decimoCuartoMensualizado} onChange={(e) => setDecimoCuartoMensualizado(e.target.checked)} />
+                El décimo cuarto ya se paga mensualizado (con el sueldo)
               </label>
 
               {error && <div className="rounded-[8px] bg-danger-soft px-3 py-2 text-[12px] text-danger">{error}</div>}

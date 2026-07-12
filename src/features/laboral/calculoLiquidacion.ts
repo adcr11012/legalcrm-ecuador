@@ -66,6 +66,12 @@ export type DatosLiquidacion = {
   // vez de acumularlos para pagarlos de golpe al terminar la relación. Si
   // ya se pagaron mensualizados, no corresponde incluirlos de nuevo aquí.
   fondosDeReservaMensualizados?: boolean
+  // El trabajador puede solicitar por escrito (Art. 111 y 113 CT) que el
+  // décimo tercero y/o cuarto se paguen mes a mes junto con el sueldo, en
+  // vez de recibirlos de golpe (dic. / mar.-ago. según región). Si ya se
+  // pagan mensualizados, no queda nada pendiente que liquidar.
+  decimoTerceroMensualizado?: boolean
+  decimoCuartoMensualizado?: boolean
   diasVacacionesPendientes: number
   decimoTerceroPendienteDesde?: string // por defecto, últimos 12 meses hasta la salida
   decimoCuartoPendienteDesde?: string
@@ -184,17 +190,21 @@ export function calcularLiquidacion(datos: DatosLiquidacion, sbu: number): Resul
 
   const rubros: RubroLiquidacion[] = []
 
-  rubros.push({
-    concepto: 'Décimo tercero proporcional',
-    monto: decimoTercero(sueldoMensual, dias13, fechaSalida),
-    detalle: 'Sueldo mensual ÷ 360 × días trabajados desde el último pago',
-  })
+  if (!datos.decimoTerceroMensualizado) {
+    rubros.push({
+      concepto: 'Décimo tercero proporcional',
+      monto: decimoTercero(sueldoMensual, dias13, fechaSalida),
+      detalle: 'Sueldo mensual ÷ 360 × días trabajados desde el último pago',
+    })
+  }
 
-  rubros.push({
-    concepto: 'Décimo cuarto proporcional',
-    monto: decimoCuarto(sbu, dias14, fechaSalida),
-    detalle: `SBU ($${sbu}) ÷ 360 × días trabajados desde el último pago`,
-  })
+  if (!datos.decimoCuartoMensualizado) {
+    rubros.push({
+      concepto: 'Décimo cuarto proporcional',
+      monto: decimoCuarto(sbu, dias14, fechaSalida),
+      detalle: `SBU ($${sbu}) ÷ 360 × días trabajados desde el último pago`,
+    })
+  }
 
   if (diasVacacionesPendientes > 0) {
     rubros.push({
