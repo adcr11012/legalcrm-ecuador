@@ -40,7 +40,7 @@ Conceptos que puedes explicar:
 - Cosas que la calculadora NO calcula: aportes IESS pendientes (solo avisa que existen), descuentos legales (préstamos, anticipos, pensiones alimenticias), impuesto a la renta, ni condiciones de un contrato colectivo (si existe uno con beneficios superiores a la ley, prevalece sobre el resultado de la calculadora).
 
 Si te preguntan "¿cuánto le corresponde a fulano?", pide los datos relevantes (fechas de ingreso/salida, sueldo, tipo de contrato, tipo de terminación) y explica qué rubros probablemente apliquen, pero remite el cálculo final a la Calculadora Laboral del menú — no des una cifra final tú misma.
-`.trim()`
+`.trim()
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -78,9 +78,14 @@ Deno.serve(async (req) => {
     ])
 
     const etapaNombre = new Map((etapas ?? []).map((e) => [e.id, e.nombre]))
-    const casosTexto = (casos ?? [])
-      .map((c) => `- "${c.titulo}" · ${c.materia ?? 'sin materia'} · etapa: ${etapaNombre.get(c.etapa_id) ?? 'sin etapa'}${c.numero_causa ? ` · causa ${c.numero_causa}` : ''}`)
-      .join('\n')
+    function lineaCaso(c: { titulo: string; materia: string | null; etapa_id: string | null; numero_causa: string | null }): string {
+      const materia = c.materia ?? 'sin materia'
+      const etapa = etapaNombre.get(c.etapa_id ?? '') ?? 'sin etapa'
+      const partes = ['- "' + c.titulo + '"', materia, 'etapa: ' + etapa]
+      if (c.numero_causa) partes.push('causa ' + c.numero_causa)
+      return partes.join(' - ')
+    }
+    const casosTexto = (casos ?? []).map(lineaCaso).join('\n')
     const clientesTexto = (clientes ?? []).map((c) => `- ${c.nombre} (${c.estado})`).join('\n')
     const plazosTexto = (plazos ?? []).map((p) => `- ${p.fecha}: ${p.titulo} (${p.tipo})`).join('\n')
 
