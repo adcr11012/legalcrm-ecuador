@@ -172,7 +172,7 @@ export default function Configuracion() {
           <div className="text-[13px] font-medium capitalize text-ink">{workspace.plan}</div>
         </div>
 
-        {puedeEditar && <MisCodigosReferido />}
+        {puedeEditar && <MisCodigosReferido workspaceId={workspace.id} />}
 
         <div className="rounded-[10px] border border-border bg-surface p-3">
           <label className={labelClass}>Google Drive + Calendar</label>

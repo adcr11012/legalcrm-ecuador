@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react'
 import { listMisCodigosReferido } from '@/features/referidos/api'
 import type { CodigoReferido } from '@/types/database'
 
-export function MisCodigosReferido() {
+export function MisCodigosReferido({ workspaceId }: { workspaceId: string }) {
   const [codigos, setCodigos] = useState<CodigoReferido[]>([])
   const [loading, setLoading] = useState(true)
   const [copiado, setCopiado] = useState<string | null>(null)
 
   useEffect(() => {
-    listMisCodigosReferido().then(setCodigos).finally(() => setLoading(false))
-  }, [])
+    listMisCodigosReferido(workspaceId).then(setCodigos).finally(() => setLoading(false))
+  }, [workspaceId])
 
   function copiar(codigo: string) {
     navigator.clipboard.writeText(codigo)
