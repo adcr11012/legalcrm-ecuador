@@ -14,8 +14,9 @@ function csvEscape(v: string | number): string {
 
 function descargarCsv(filas: FilaReporte[], etapasById: Map<string, Etapa>) {
   const encabezados = [
-    'Caso', 'Materia', 'Etapa', 'Estado', 'Usuario(s)', 'Fecha inicio', 'Fecha cierre',
+    'Caso', 'Materia', 'Etapa', 'Estado', 'Usuario(s)', 'Cliente(s)', 'Fecha inicio', 'Fecha cierre',
     'Días para cierre', 'Horas facturadas', 'Monto horas ($)', 'Anticipos ($)', 'Gastos cobrables ($)', 'Gastos no cobrables ($)',
+    'Plazos pendientes', 'Próximo plazo', 'Tareas pendientes',
   ]
   const filasCsv = filas.map((f) => [
     f.caso.titulo,
@@ -23,6 +24,7 @@ function descargarCsv(filas: FilaReporte[], etapasById: Map<string, Etapa>) {
     f.caso.etapa_id ? etapasById.get(f.caso.etapa_id)?.nombre ?? '' : '',
     f.caso.fecha_finalizado ? 'Cerrado' : 'Abierto',
     f.abogados.join('; '),
+    f.clientes.join('; '),
     f.caso.created_at.slice(0, 10),
     f.caso.fecha_finalizado ?? '',
     f.diasParaCierre ?? '',
@@ -31,6 +33,9 @@ function descargarCsv(filas: FilaReporte[], etapasById: Map<string, Etapa>) {
     f.anticipos,
     f.gastosCobrables,
     f.gastosNoCobrables,
+    f.plazosPendientes,
+    f.proximoPlazo ?? '',
+    f.tareasPendientes,
   ])
   const contenido = [encabezados, ...filasCsv].map((fila) => fila.map(csvEscape).join(',')).join('\n')
   const blob = new Blob(['﻿' + contenido], { type: 'text/csv;charset=utf-8' })
@@ -53,6 +58,7 @@ export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean
   const [materia, setMateria] = useState('')
   const [etapaId, setEtapaId] = useState('')
   const [abogado, setAbogado] = useState('')
+  const [cliente, setCliente] = useState('')
   const [estado, setEstado] = useState<Estado>('')
 
   useEffect(() => {
@@ -67,6 +73,11 @@ export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean
     for (const f of filas) for (const a of f.abogados) set.add(a)
     return [...set].sort()
   }, [filas])
+  const clientesDisponibles = useMemo(() => {
+    const set = new Set<string>()
+    for (const f of filas) for (const c of f.clientes) set.add(c)
+    return [...set].sort()
+  }, [filas])
 
   const filtradas = useMemo(() => {
     return filas.filter((f) => {
@@ -75,11 +86,12 @@ export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean
       if (materia && f.caso.materia !== materia) return false
       if (etapaId && f.caso.etapa_id !== etapaId) return false
       if (abogado && !f.abogados.includes(abogado)) return false
+      if (cliente && !f.clientes.includes(cliente)) return false
       if (estado === 'abierto' && f.caso.fecha_finalizado) return false
       if (estado === 'cerrado' && !f.caso.fecha_finalizado) return false
       return true
     })
-  }, [filas, desde, hasta, materia, etapaId, abogado, estado])
+  }, [filas, desde, hasta, materia, etapaId, abogado, cliente, estado])
 
   const totales = useMemo(() => {
     const cerrados = filtradas.filter((f) => f.diasParaCierre != null)
@@ -91,11 +103,13 @@ export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean
       anticipos: filtradas.reduce((s, f) => s + f.anticipos, 0),
       gastosCobrables: filtradas.reduce((s, f) => s + f.gastosCobrables, 0),
       promedioDias,
+      plazosPendientes: filtradas.reduce((s, f) => s + f.plazosPendientes, 0),
+      tareasPendientes: filtradas.reduce((s, f) => s + f.tareasPendientes, 0),
     }
   }, [filtradas])
 
   function limpiarFiltros() {
-    setDesde(''); setHasta(''); setMateria(''); setEtapaId(''); setAbogado(''); setEstado('')
+    setDesde(''); setHasta(''); setMateria(''); setEtapaId(''); setAbogado(''); setCliente(''); setEstado('')
   }
 
   return (
@@ -141,6 +155,14 @@ export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean
           </select>
         </div>
         <div>
+          <label className="mb-1 block text-[10px] font-medium text-mute2">Cliente</label>
+          <select value={cliente} onChange={(e) => setCliente(e.target.value)}
+            className="rounded-[6px] border border-border bg-bg px-2 py-1.5 text-[12px] text-ink outline-none">
+            <option value="">Todos</option>
+            {clientesDisponibles.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <div>
           <label className="mb-1 block text-[10px] font-medium text-mute2">Estado</label>
           <select value={estado} onChange={(e) => setEstado(e.target.value as Estado)}
             className="rounded-[6px] border border-border bg-bg px-2 py-1.5 text-[12px] text-ink outline-none">
@@ -168,7 +190,7 @@ export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean
         <div className="rounded-[10px] border border-dashed border-border p-8 text-center text-[13px] text-mute2">Sin resultados para estos filtros.</div>
       ) : (
         <>
-          <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
+          <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-7">
             <div className="rounded-[8px] border border-border bg-surface p-2.5 text-center">
               <div className="text-[16px] font-bold text-ink">{totales.casos}</div>
               <div className="text-[10px] text-mute2">Casos</div>
@@ -189,6 +211,14 @@ export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean
               <div className="text-[16px] font-bold text-ink">${totales.anticipos.toFixed(0)}</div>
               <div className="text-[10px] text-mute2">Anticipos</div>
             </div>
+            <div className="rounded-[8px] border border-border bg-surface p-2.5 text-center">
+              <div className="text-[16px] font-bold text-ink">{totales.plazosPendientes}</div>
+              <div className="text-[10px] text-mute2">Plazos pendientes</div>
+            </div>
+            <div className="rounded-[8px] border border-border bg-surface p-2.5 text-center">
+              <div className="text-[16px] font-bold text-ink">{totales.tareasPendientes}</div>
+              <div className="text-[10px] text-mute2">Tareas pendientes</div>
+            </div>
           </div>
 
           <div className="overflow-x-auto rounded-[10px] border border-border bg-surface">
@@ -199,10 +229,12 @@ export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean
                   <th className="px-3 py-2 font-medium">Materia</th>
                   <th className="px-3 py-2 font-medium">Etapa</th>
                   <th className="px-3 py-2 font-medium">Usuario(s)</th>
+                  <th className="px-3 py-2 font-medium">Cliente(s)</th>
                   <th className="px-3 py-2 font-medium">Estado</th>
                   <th className="px-3 py-2 text-right font-medium">Días cierre</th>
                   <th className="px-3 py-2 text-right font-medium">Horas</th>
                   <th className="px-3 py-2 text-right font-medium">Anticipos</th>
+                  <th className="px-3 py-2 font-medium">Próximo plazo</th>
                 </tr>
               </thead>
               <tbody>
@@ -212,6 +244,7 @@ export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean
                     <td className="px-3 py-2 text-muted">{f.caso.materia ? MATERIA_LABEL[f.caso.materia] : '—'}</td>
                     <td className="px-3 py-2 text-muted">{f.caso.etapa_id ? etapasById.get(f.caso.etapa_id)?.nombre ?? '—' : '—'}</td>
                     <td className="px-3 py-2 text-muted">{f.abogados.join(', ') || '—'}</td>
+                    <td className="px-3 py-2 text-muted">{f.clientes.join(', ') || '—'}</td>
                     <td className="px-3 py-2">
                       <span className={`rounded-full px-2 py-0.5 text-[10px] ${f.caso.fecha_finalizado ? 'bg-soft text-mute2' : 'bg-success-soft text-success'}`}>
                         {f.caso.fecha_finalizado ? 'Cerrado' : 'Abierto'}
@@ -220,6 +253,7 @@ export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean
                     <td className="px-3 py-2 text-right text-muted">{f.diasParaCierre ?? '—'}</td>
                     <td className="px-3 py-2 text-right text-muted">{f.horasFacturadas || '—'}</td>
                     <td className="px-3 py-2 text-right text-muted">{f.anticipos > 0 ? `$${f.anticipos.toFixed(2)}` : '—'}</td>
+                    <td className="px-3 py-2 text-muted">{f.proximoPlazo ? f.proximoPlazo.slice(0, 10) : '—'}</td>
                   </tr>
                 ))}
               </tbody>

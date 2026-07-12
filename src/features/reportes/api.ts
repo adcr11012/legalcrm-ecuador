@@ -1,15 +1,19 @@
 import { supabase } from '@/lib/supabase'
-import type { Caso, CasoAnticipo, CasoGasto, CasoHora, CasoPersona } from '@/types/database'
+import type { Caso, CasoAnticipo, CasoGasto, CasoHora, CasoPersona, Plazo, Tarea } from '@/types/database'
 
 export type FilaReporte = {
   caso: Caso
   abogados: string[]
+  clientes: string[]
   horasFacturadas: number
   montoHoras: number
   anticipos: number
   gastosCobrables: number
   gastosNoCobrables: number
   diasParaCierre: number | null
+  plazosPendientes: number
+  proximoPlazo: string | null
+  tareasPendientes: number
 }
 
 // Trae todo lo necesario para el reporte en pocas consultas — RLS ya
@@ -21,12 +25,14 @@ export async function listDatosReporte(): Promise<FilaReporte[]> {
   const casoIds = (casos ?? []).map((c) => c.id)
   if (casoIds.length === 0) return []
 
-  const [{ data: personas }, { data: horas }, { data: anticipos }, { data: gastos }, { data: usuarios }] = await Promise.all([
+  const [{ data: personas }, { data: horas }, { data: anticipos }, { data: gastos }, { data: usuarios }, { data: plazos }, { data: tareas }] = await Promise.all([
     supabase.from('caso_personas').select('*').in('caso_id', casoIds),
     supabase.from('caso_horas').select('*').in('caso_id', casoIds),
     supabase.from('caso_anticipos').select('*').in('caso_id', casoIds),
     supabase.from('caso_gastos').select('*').in('caso_id', casoIds),
     supabase.from('users').select('id, nombre'),
+    supabase.from('plazos').select('*').in('caso_id', casoIds).in('estado', ['pendiente', 'en_progreso', 'vencida']),
+    supabase.from('tareas').select('*').in('caso_id', casoIds).in('estado', ['pendiente', 'en_progreso']),
   ])
   const nombrePorUsuario = new Map((usuarios ?? []).map((u) => [u.id, u.nombre]))
 
@@ -46,12 +52,23 @@ export async function listDatosReporte(): Promise<FilaReporte[]> {
   for (const g of (gastos ?? []) as CasoGasto[]) {
     gastosPorCaso.set(g.caso_id, [...(gastosPorCaso.get(g.caso_id) ?? []), g])
   }
+  const plazosPorCaso = new Map<string, Plazo[]>()
+  for (const p of (plazos ?? []) as Plazo[]) {
+    plazosPorCaso.set(p.caso_id, [...(plazosPorCaso.get(p.caso_id) ?? []), p])
+  }
+  const tareasPorCaso = new Map<string, Tarea[]>()
+  for (const t of (tareas ?? []) as Tarea[]) {
+    tareasPorCaso.set(t.caso_id, [...(tareasPorCaso.get(t.caso_id) ?? []), t])
+  }
 
   return (casos ?? []).map((caso) => {
     const personasDelCaso = personasPorCaso.get(caso.id) ?? []
     const abogados = personasDelCaso
       .filter((p) => p.rol === 'abogado')
       .map((p) => (p.user_id ? nombrePorUsuario.get(p.user_id) ?? '(usuario eliminado)' : p.nombre_externo ?? 'sin nombre'))
+    const clientes = personasDelCaso
+      .filter((p) => p.rol === 'cliente')
+      .map((p) => p.nombre_externo ?? (p.user_id ? nombrePorUsuario.get(p.user_id) ?? '(usuario eliminado)' : 'sin nombre'))
 
     const horasDelCaso = horasPorCaso.get(caso.id) ?? []
     const horasFacturadas = horasDelCaso.reduce((sum, h) => sum + h.horas, 0)
@@ -68,15 +85,25 @@ export async function listDatosReporte(): Promise<FilaReporte[]> {
       ? Math.round((new Date(caso.fecha_finalizado).getTime() - new Date(caso.created_at).getTime()) / 86_400_000)
       : null
 
+    const plazosDelCaso = plazosPorCaso.get(caso.id) ?? []
+    const proximoPlazo = plazosDelCaso.length > 0
+      ? plazosDelCaso.reduce((min, p) => (p.fecha < min ? p.fecha : min), plazosDelCaso[0].fecha)
+      : null
+    const tareasDelCaso = tareasPorCaso.get(caso.id) ?? []
+
     return {
       caso,
       abogados,
+      clientes,
       horasFacturadas: round2(horasFacturadas),
       montoHoras: round2(montoHoras),
       anticipos: round2(anticiposTotal),
       gastosCobrables: round2(gastosCobrables),
       gastosNoCobrables: round2(gastosNoCobrables),
       diasParaCierre,
+      plazosPendientes: plazosDelCaso.length,
+      proximoPlazo,
+      tareasPendientes: tareasDelCaso.length,
     }
   })
 }
