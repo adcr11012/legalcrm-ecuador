@@ -359,6 +359,18 @@ export type Invitacion = {
   expires_at: string
 }
 
+export type CodigoReferido = {
+  id: string
+  codigo: string
+  semillas: number
+  creado_por_workspace_id: string | null
+  usado: boolean
+  usado_por_workspace_id: string | null
+  usado_at: string | null
+  expira_at: string | null
+  created_at: string
+}
+
 type Table<Row, Insert = Partial<Row>, Update = Partial<Row>> = {
   Row: Row
   Insert: Insert
@@ -399,12 +411,27 @@ export type Database = {
       tickets_soporte: Table<TicketSoporte>
       ticket_mensajes: Table<TicketMensaje>
       configuracion_laboral: Table<ConfiguracionLaboral>
+      codigos_referido: Table<CodigoReferido>
     }
     Views: { [_ in never]: never }
     Functions: {
       registrar_workspace: {
-        Args: { p_nombre_workspace: string; p_nombre_usuario: string }
-        Returns: string
+        Args: { p_nombre_workspace: string; p_nombre_usuario: string; p_codigo_referido?: string | null }
+        Returns: {
+          workspace_id: string
+          plan: string
+          codigo_valido: boolean
+          semillas_heredadas: number
+          codigos_generados: string[]
+        }
+      }
+      admin_crear_codigos_referido: {
+        Args: { p_cantidad: number; p_semillas?: number }
+        Returns: string[]
+      }
+      admin_listar_codigos_raiz: {
+        Args: Record<string, never>
+        Returns: CodigoReferido[]
       }
       obtener_invitacion: {
         Args: { p_token: string }

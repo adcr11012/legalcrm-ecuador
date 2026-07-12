@@ -10,6 +10,7 @@ import { AuditoriaDocumentos } from '@/features/workspace/AuditoriaDocumentos'
 import { getTema, setTema, type Tema } from '@/lib/theme'
 import type { Workspace } from '@/types/database'
 import { MobileBlock } from '@/components/mobile/MobileBlock'
+import { MisCodigosReferido } from '@/features/referidos/MisCodigosReferido'
 
 const TEMAS: { value: Tema; label: string; icon: string }[] = [
   { value: 'claro', label: 'Claro', icon: 'ti-sun' },
@@ -170,6 +171,8 @@ export default function Configuracion() {
           <label className={labelClass}>Plan</label>
           <div className="text-[13px] font-medium capitalize text-ink">{workspace.plan}</div>
         </div>
+
+        {puedeEditar && <MisCodigosReferido />}
 
         <div className="rounded-[10px] border border-border bg-surface p-3">
           <label className={labelClass}>Google Drive + Calendar</label>

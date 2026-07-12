@@ -11,6 +11,10 @@ function mapSignUpError(message: string): string {
   return 'No se pudo crear la cuenta. Intenta de nuevo.'
 }
 
+type ResultadoBienvenida = {
+  codigosGenerados: string[]
+}
+
 export default function Register() {
   const navigate = useNavigate()
   const { session, refreshProfile } = useAuth()
@@ -19,20 +23,32 @@ export default function Register() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [nombreWorkspace, setNombreWorkspace] = useState('')
+  const [codigoReferido, setCodigoReferido] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [bienvenida, setBienvenida] = useState<ResultadoBienvenida | null>(null)
 
   async function crearWorkspace() {
-    const { error: rpcError } = await supabase.rpc('registrar_workspace', {
+    const { data, error: rpcError } = await supabase.rpc('registrar_workspace', {
       p_nombre_workspace: nombreWorkspace,
       p_nombre_usuario: nombre,
+      p_codigo_referido: codigoReferido.trim() || null,
     })
     if (rpcError) {
-      setError('No se pudo crear el workspace: ' + rpcError.message)
+      setError(
+        rpcError.message.includes('CODIGO_INVALIDO')
+          ? 'Ese código de referido no es válido, ya fue usado o expiró.'
+          : 'No se pudo crear el workspace: ' + rpcError.message,
+      )
       return false
     }
     await refreshProfile()
+    if (data?.codigo_valido && data.codigos_generados?.length > 0) {
+      setBienvenida({ codigosGenerados: data.codigos_generados })
+      return true
+    }
+    navigate('/dashboard', { replace: true })
     return true
   }
 
@@ -41,9 +57,8 @@ export default function Register() {
     e.preventDefault()
     setError(null)
     setLoading(true)
-    const ok = await crearWorkspace()
+    await crearWorkspace()
     setLoading(false)
-    if (ok) navigate('/dashboard', { replace: true })
   }
 
   // Caso 2: registro desde cero.
@@ -67,9 +82,45 @@ export default function Register() {
       return
     }
 
-    const ok = await crearWorkspace()
+    await crearWorkspace()
     setLoading(false)
-    if (ok) navigate('/dashboard', { replace: true })
+  }
+
+  if (bienvenida) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-bg px-4">
+        <div className="w-full max-w-[460px] rounded-[16px] border border-accent/30 bg-surface p-8 text-center shadow-lg">
+          <div className="mb-3 text-[42px]">🎉</div>
+          <h1 className="mb-2 text-[20px] font-bold text-ink">¡Felicitaciones, {nombre.split(' ')[0]}!</h1>
+          <p className="mb-4 text-[13px] leading-relaxed text-muted">
+            Con tu código de referido has sido beneficiado con el <strong className="text-accent">plan Enterprise</strong> — tienes
+            acceso a todo el sistema de TSADOQ.
+          </p>
+          <p className="mb-4 text-[13px] leading-relaxed text-muted">
+            Además, te hemos asignado <strong className="text-ink">{bienvenida.codigosGenerados.length} código{bienvenida.codigosGenerados.length === 1 ? '' : 's'} de
+            referido</strong> que puedes regalar a quien tú decidas. Quienes los usen heredarán el mismo beneficio, con un código
+            menos para seguir repartiendo.
+          </p>
+          <div className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {bienvenida.codigosGenerados.map((c) => (
+              <div key={c} className="rounded-[8px] border border-border bg-bg px-2 py-2 text-center font-mono text-[13px] font-semibold tracking-wide text-ink">
+                {c}
+              </div>
+            ))}
+          </div>
+          <p className="mb-6 text-[12px] text-mute2">
+            Puedes volver a ver estos códigos cuando quieras en Configuración. Bienvenido — esperamos que goces de esta experiencia
+            de control y operatividad que ningún otro sistema tiene. Este terreno es tuyo, construye. 😊
+          </p>
+          <button
+            onClick={() => navigate('/dashboard', { replace: true })}
+            className="w-full rounded-[8px] bg-accent px-4 py-2.5 text-[13px] font-medium text-white transition hover:bg-accent-hover"
+          >
+            Empezar a usar TSADOQ
+          </button>
+        </div>
+      </div>
+    )
   }
 
   if (session) {
@@ -106,6 +157,17 @@ export default function Register() {
                 onChange={(e) => setNombreWorkspace(e.target.value)}
                 className="w-full rounded-[8px] border border-border bg-bg px-3 py-2.5 text-[13px] text-ink outline-none transition focus:border-accent"
                 placeholder="Estudio MJC"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-mute2">
+                Código de referido (opcional)
+              </label>
+              <input
+                value={codigoReferido}
+                onChange={(e) => setCodigoReferido(e.target.value.toUpperCase())}
+                className="w-full rounded-[8px] border border-border bg-bg px-3 py-2.5 text-[13px] uppercase tracking-wide text-ink outline-none transition focus:border-accent"
+                placeholder="Ej. A1B2C3D4"
               />
             </div>
 
@@ -193,6 +255,17 @@ export default function Register() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-[8px] border border-border bg-bg px-3 py-2.5 text-[13px] text-ink outline-none transition focus:border-accent"
                 placeholder="Mínimo 6 caracteres"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-mute2">
+                Código de referido (opcional)
+              </label>
+              <input
+                value={codigoReferido}
+                onChange={(e) => setCodigoReferido(e.target.value.toUpperCase())}
+                className="w-full rounded-[8px] border border-border bg-bg px-3 py-2.5 text-[13px] uppercase tracking-wide text-ink outline-none transition focus:border-accent"
+                placeholder="Ej. A1B2C3D4"
               />
             </div>
 

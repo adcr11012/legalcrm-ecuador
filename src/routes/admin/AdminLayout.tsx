@@ -84,6 +84,9 @@ export default function AdminLayout() {
               </span>
             )}
           </NavLink>
+          <NavLink to="/admin/referidos" className={navItem}>
+            <i className="ti ti-gift text-[16px]" /> Referidos
+          </NavLink>
         </div>
 
         {/* Pie: email + volver */}

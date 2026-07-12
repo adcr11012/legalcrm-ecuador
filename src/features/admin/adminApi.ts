@@ -113,6 +113,29 @@ export async function generarPeriodo(workspaceId: string): Promise<void> {
   if (error) throw error
 }
 
+// ── Códigos de referido ──────────────────────────────────────────────
+
+export async function crearCodigosReferidoRaiz(cantidad: number, semillas = 6): Promise<string[]> {
+  const { data, error } = await rpc('admin_crear_codigos_referido', { p_cantidad: cantidad, p_semillas: semillas })
+  if (error) throw error
+  return (data ?? []) as string[]
+}
+
+export async function listarCodigosRaiz() {
+  const { data, error } = await rpc('admin_listar_codigos_raiz')
+  if (error) throw error
+  return (data ?? []) as {
+    id: string
+    codigo: string
+    semillas: number
+    usado: boolean
+    usado_por_workspace_id: string | null
+    usado_at: string | null
+    expira_at: string | null
+    created_at: string
+  }[]
+}
+
 export async function registrarPago(pagoId: string, fecha: string, notas?: string): Promise<void> {
   const { error } = await rpc('admin_registrar_pago', {
     p_pago_id: pagoId,
