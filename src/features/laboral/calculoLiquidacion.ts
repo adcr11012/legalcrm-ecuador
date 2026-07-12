@@ -82,6 +82,8 @@ function diasEntre(desde: string, hasta: string): number {
   return Math.max(0, Math.round((b.getTime() - a.getTime()) / 86_400_000))
 }
 
+// Años completos truncados (sin redondear) — usado para la bonificación por
+// desahucio (Art. 185), donde las fracciones de año NO cuentan.
 function añosCompletosEntre(desde: string, hasta: string): number {
   const a = new Date(desde + 'T00:00:00')
   const b = new Date(hasta + 'T00:00:00')
@@ -89,6 +91,14 @@ function añosCompletosEntre(desde: string, hasta: string): number {
   const aniversarioEsteAño = new Date(b.getFullYear(), a.getMonth(), a.getDate())
   if (b < aniversarioEsteAño) años--
   return Math.max(0, años)
+}
+
+// Años para la indemnización por despido intempestivo (Art. 188): cualquier
+// fracción de año se considera un año completo a favor del trabajador (ej.
+// 4 años y 4 meses = 5 años), a diferencia de la bonificación por desahucio.
+function añosParaIndemnizacion(añosCompletos: number, diasTotales: number): number {
+  const diasDelAñoCompleto = añosCompletos * 365
+  return diasTotales > diasDelAñoCompleto ? añosCompletos + 1 : añosCompletos
 }
 
 // Décimo tercero (bono navideño): proporcional a los días trabajados desde
@@ -153,7 +163,9 @@ export function calcularLiquidacion(datos: DatosLiquidacion, sbu: number): Resul
 
   const dias13 = datos.decimoTerceroPendienteDesde ?? fechaIngreso
   const dias14 = datos.decimoCuartoPendienteDesde ?? fechaIngreso
+  const diasTotales0 = diasEntre(fechaIngreso, fechaSalida)
   const añosCompletos = añosCompletosEntre(fechaIngreso, fechaSalida)
+  const añosIndemnizacion = añosParaIndemnizacion(añosCompletos, diasTotales0)
 
   const rubros: RubroLiquidacion[] = []
 
@@ -205,10 +217,10 @@ export function calcularLiquidacion(datos: DatosLiquidacion, sbu: number): Resul
     })
     rubros.push({
       concepto: 'Indemnización por despido intempestivo (Art. 188)',
-      monto: indemnizacionDespidoIntempestivo(mejorSueldo, añosCompletos),
-      detalle: añosCompletos <= 3
-        ? '3 remuneraciones (mejor sueldo histórico) — hasta 3 años de servicio'
-        : `1 remuneración (mejor sueldo histórico) × ${Math.min(añosCompletos, 25)} año(s), tope 25`,
+      monto: indemnizacionDespidoIntempestivo(mejorSueldo, añosIndemnizacion),
+      detalle: añosIndemnizacion <= 3
+        ? '3 remuneraciones (mejor sueldo histórico) — hasta 3 años de servicio (fracción de año cuenta como año completo)'
+        : `1 remuneración (mejor sueldo histórico) × ${Math.min(añosIndemnizacion, 25)} año(s) —fracción de año cuenta como año completo, tope 25`,
     })
 
     if (datos.proteccionEmbarazoOLactancia) {
@@ -243,7 +255,7 @@ export function calcularLiquidacion(datos: DatosLiquidacion, sbu: number): Resul
   // causa del trabajador): sin indemnización ni desahucio.
 
   const total = round2(rubros.reduce((sum, r) => sum + r.monto, 0))
-  const diasTotales = diasEntre(fechaIngreso, fechaSalida)
+  const diasTotales = diasTotales0
 
   const avisos: string[] = []
   if (datos.tieneAportesIessPendientes) {
