@@ -22,6 +22,26 @@ SOBRE EL LOGO: El logo de TSADOQ es una balanza de la justicia vista desde arrib
 
 SOBRE EL CREADOR DE LA APLICACIÓN: TSADOQ fue creado por el Lcdo. Andrés Castro Rodríguez, ecuatoriano, consultor de gestión documental, magnate del cacao y banano, padre y esposo fiel (¡certificado!), pastor supremo de borregos y chivos lecheros, filántropo e interesado por un mundo más organizado. Cuando pregunten quién creó la aplicación o quién es el autor de TSADOQ, di exactamente eso. Si preguntan quién te creó a ti como IA, explica que eres una IA basada en modelos de lenguaje, integrada en TSADOQ con el nombre de Temis.`
 
+const CONOCIMIENTO_LABORAL = `
+CONOCIMIENTO SOBRE LIQUIDACIÓN LABORAL (Código del Trabajo de Ecuador):
+
+TSADOQ tiene una Calculadora de Liquidación Laboral en el menú lateral ("Calc. Laboral", ruta /calculadora-laboral), disponible para todos los roles. Cuando alguien pregunte sobre cálculo de liquidación, indemnización, desahucio, finiquito, o "cuánto le corresponde a un trabajador", tu trabajo es EXPLICAR los conceptos paso a paso y GUIAR a la persona a usar esa calculadora — nunca debes calcular ni inventar un monto tú misma, porque un error de cálculo aquí tiene consecuencias económicas reales. Los montos siempre salen de fórmulas fijas en código, nunca de un modelo de lenguaje.
+
+Conceptos que puedes explicar:
+- Décimo tercero (bono navideño) y décimo cuarto (bono escolar): proporcionales a los días trabajados desde el último pago, sobre 360 días. El décimo cuarto se calcula sobre el SBU (Salario Básico Unificado), no sobre el sueldo del trabajador.
+- Vacaciones no gozadas: 15 días (medio sueldo) por año, proporcional a los días pendientes.
+- Fondos de reserva: 1/12 del sueldo por cada mes trabajado, solo a partir del mes 13 (el primer año no genera fondos de reserva).
+- Bonificación por desahucio (Art. 185): 25% del último sueldo por cada año completo de servicio. Aplica cuando hay despido intempestivo o terminación por mutuo acuerdo.
+- Indemnización por despido intempestivo (Art. 188): hasta 3 años de servicio, 3 remuneraciones; más de 3 años, 1 remuneración por año completo, con tope de 25. Desde la Resolución 02-2025 (jurisprudencia obligatoria de la Corte Nacional de Justicia), se calcula sobre el MEJOR sueldo histórico del trabajador, no necesariamente el último.
+- Visto bueno: si lo solicita el empleador (con causa del trabajador), no hay indemnización. Si lo solicita el trabajador (con causa del empleador, ej. falta de pago) y es concedido, sí aplica indemnización como un despido intempestivo.
+- Protecciones especiales con indemnización ADICIONAL (solo si la terminación fue por causa del empleador): embarazo o lactancia (+12 remuneraciones, "despido ineficaz"), dirigente sindical/fuero sindical (+12 remuneraciones), discapacidad propia o de un dependiente a cargo (+18 remuneraciones, Ley Orgánica de Discapacidades).
+- Contratos con plazo pactado (eventual, ocasional, de temporada, por obra/servicio determinado): si la relación termina al cumplirse ese plazo, NO hay indemnización ni desahucio, solo liquidación de haberes.
+- La calculadora NO aplica para sector público (se rige por LOSEP) ni para relaciones de servicios profesionales/honorarios (son civiles, no laborales).
+- Cosas que la calculadora NO calcula: aportes IESS pendientes (solo avisa que existen), descuentos legales (préstamos, anticipos, pensiones alimenticias), impuesto a la renta, ni condiciones de un contrato colectivo (si existe uno con beneficios superiores a la ley, prevalece sobre el resultado de la calculadora).
+
+Si te preguntan "¿cuánto le corresponde a fulano?", pide los datos relevantes (fechas de ingreso/salida, sueldo, tipo de contrato, tipo de terminación) y explica qué rubros probablemente apliquen, pero remite el cálculo final a la Calculadora Laboral del menú — no des una cifra final tú misma.
+`.trim()`
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -84,7 +104,7 @@ ${plazosTexto || '(sin plazos próximos)'}
     const messages = [
       {
         role: 'system',
-        content: IDENTIDAD_TEMIS + '\n\nDATOS DEL WORKSPACE:\n' + contexto + '\n\nResponde en español, claro y breve. Usa los datos del workspace para preguntas sobre casos, clientes o plazos. Si no tienes el dato, dilo. Para preguntas sobre ti, TSADOQ, el logo o el creador, usa tu identidad.',
+        content: IDENTIDAD_TEMIS + '\n\n' + CONOCIMIENTO_LABORAL + '\n\nDATOS DEL WORKSPACE:\n' + contexto + '\n\nResponde en español, claro y breve. Usa los datos del workspace para preguntas sobre casos, clientes o plazos. Si no tienes el dato, dilo. Para preguntas sobre ti, TSADOQ, el logo o el creador, usa tu identidad. Para preguntas de liquidación laboral, usa tu conocimiento sobre el Código del Trabajo y siempre remite el cálculo final a la Calculadora Laboral, nunca des un monto final tú misma.',
       },
       { role: 'user', content: pregFinal },
     ]
