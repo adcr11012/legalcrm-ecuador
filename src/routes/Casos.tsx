@@ -43,7 +43,7 @@ export default function Casos() {
     const [personas, users, etapasData] = await Promise.all([
       listPersonasForCasos(casosData.map((c) => c.id)),
       listWorkspaceUsers(),
-      listEtapas(),
+      listEtapas(profile!.workspace_id),
     ])
     const pMap = new Map<string, CasoPersona[]>()
     for (const p of personas) {

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@/features/auth/AuthProvider'
 import { listDatosReporte, type FilaReporte } from '@/features/reportes/api'
 import { listEtapas } from '@/features/casos/etapasApi'
 import { MATERIA_LABEL } from '@/features/casos/materias'
@@ -49,6 +50,7 @@ function descargarCsv(filas: FilaReporte[], etapasById: Map<string, Etapa>) {
 
 export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean }) {
   const navigate = useNavigate()
+  const { profile } = useAuth()
   const [filas, setFilas] = useState<FilaReporte[]>([])
   const [etapas, setEtapas] = useState<Etapa[]>([])
   const [loading, setLoading] = useState(true)
@@ -62,10 +64,11 @@ export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean
   const [estado, setEstado] = useState<Estado>('')
 
   useEffect(() => {
-    Promise.all([listDatosReporte(), listEtapas()])
+    if (!profile) return
+    Promise.all([listDatosReporte(), listEtapas(profile.workspace_id)])
       .then(([f, e]) => { setFilas(f); setEtapas(e) })
       .finally(() => setLoading(false))
-  }, [])
+  }, [profile])
 
   const etapasById = useMemo(() => new Map(etapas.map((e) => [e.id, e])), [etapas])
   const abogadosDisponibles = useMemo(() => {

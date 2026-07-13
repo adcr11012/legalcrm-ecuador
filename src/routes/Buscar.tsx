@@ -59,7 +59,7 @@ export default function Buscar() {
       accesoCompleto ? listClientes() : Promise.resolve([]),
       accesoCompleto ? listWorkspaceUsers() : Promise.resolve([]),
       listDocumentosWorkspace(),
-      listEtapas(),
+      listEtapas(profile.workspace_id),
       listAllPlazos(),
       listAllTareasPendientes(),
     ]

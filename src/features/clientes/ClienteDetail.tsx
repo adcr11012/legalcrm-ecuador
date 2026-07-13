@@ -52,7 +52,7 @@ export function ClienteDetail({
         getCliente(clienteId),
         listNotas(clienteId),
         listCasosPorCliente(clienteId),
-        listEtapas(),
+        listEtapas(profile!.workspace_id),
       ])
       setCliente(c)
       setNotas(n)

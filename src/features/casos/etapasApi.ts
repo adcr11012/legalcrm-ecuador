@@ -3,8 +3,16 @@ import type { Etapa } from '@/types/database'
 
 export const MIN_ETAPAS = 3
 
-export async function listEtapas(): Promise<Etapa[]> {
-  const { data, error } = await supabase.from('etapas').select('*').order('posicion', { ascending: true })
+// workspaceId explícito: la política de RLS etapas_superadmin_select le da al
+// superadmin visibilidad de TODAS las etapas de TODOS los workspaces (la usa
+// legítimamente /admin/esatje) — sin este filtro, un superadmin usando su
+// propio workspace ve etapas duplicadas de otros workspaces mezcladas.
+export async function listEtapas(workspaceId: string): Promise<Etapa[]> {
+  const { data, error } = await supabase
+    .from('etapas')
+    .select('*')
+    .eq('workspace_id', workspaceId)
+    .order('posicion', { ascending: true })
   if (error) throw error
   return data
 }

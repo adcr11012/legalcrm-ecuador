@@ -93,7 +93,7 @@ export function CaseDetail({
         listPlazos(casoId),
         listHistorial(casoId),
         listWorkspaceUsers(),
-        listEtapas(),
+        listEtapas(profile!.workspace_id),
         listAnticipos(casoId),
         listGastos(casoId),
         listHoras(casoId),

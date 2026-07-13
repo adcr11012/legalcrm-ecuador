@@ -37,6 +37,24 @@ export async function isSuperadmin(): Promise<boolean> {
   return data === true
 }
 
+export type Superadmin = { user_id: string; email: string; nombre: string | null; created_at: string }
+
+export async function listarSuperadmins(): Promise<Superadmin[]> {
+  const { data, error } = await rpc('admin_listar_superadmins')
+  if (error) throw error
+  return (data ?? []) as Superadmin[]
+}
+
+export async function agregarSuperadmin(email: string): Promise<void> {
+  const { error } = await rpc('admin_agregar_superadmin', { p_email: email })
+  if (error) throw error
+}
+
+export async function quitarSuperadmin(userId: string): Promise<void> {
+  const { error } = await rpc('admin_quitar_superadmin', { p_user_id: userId })
+  if (error) throw error
+}
+
 export async function getGlobalStats(): Promise<GlobalStats> {
   const { data, error } = await rpc('admin_global_stats')
   if (error) throw error

@@ -29,6 +29,7 @@ const AdminEsatje          = lazy(() => import('@/routes/admin/AdminEsatje'))
 const AdminSoporte         = lazy(() => import('@/routes/admin/AdminSoporte'))
 const AdminLaboral         = lazy(() => import('@/routes/admin/AdminLaboral'))
 const AdminReferidos       = lazy(() => import('@/routes/admin/AdminReferidos'))
+const AdminSuperadmins     = lazy(() => import('@/routes/admin/AdminSuperadmins'))
 
 function PageLoader() {
   return <div className="flex h-full flex-1 items-center justify-center text-[13px] text-muted">Cargando…</div>
@@ -76,6 +77,7 @@ function App() {
               <Route path="soporte" element={<AdminSoporte />} />
               <Route path="laboral" element={<AdminLaboral />} />
               <Route path="referidos" element={<AdminReferidos />} />
+              <Route path="superadmins" element={<AdminSuperadmins />} />
             </Route>
 
             <Route path="/" element={<Navigate to="/dashboard" replace />} />

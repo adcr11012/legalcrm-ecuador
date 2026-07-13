@@ -24,11 +24,12 @@ export function EtapasSettings() {
   const [editingNombre, setEditingNombre] = useState('')
 
   useEffect(() => {
-    listEtapas()
+    if (!profile) return
+    listEtapas(profile.workspace_id)
       .then(setEtapas)
       .catch((err) => setError(err instanceof Error ? err.message : 'No se pudieron cargar las etapas.'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [profile])
 
   async function onAgregar() {
     if (!profile || !nuevoNombre.trim()) return

@@ -87,6 +87,9 @@ export default function AdminLayout() {
           <NavLink to="/admin/referidos" className={navItem}>
             <i className="ti ti-gift text-[16px]" /> Referidos
           </NavLink>
+          <NavLink to="/admin/superadmins" className={navItem}>
+            <i className="ti ti-shield-lock text-[16px]" /> Superadmins
+          </NavLink>
         </div>
 
         {/* Pie: email + volver */}

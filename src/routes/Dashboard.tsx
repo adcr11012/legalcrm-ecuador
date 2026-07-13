@@ -40,6 +40,7 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
+    if (!profile) return
     setLoading(true)
     setError(null)
     try {
@@ -50,7 +51,7 @@ export default function Dashboard() {
         countAudienciasProximas(7),
         countClientesActivos(),
         countDocumentos(),
-        listEtapas(),
+        listEtapas(profile.workspace_id),
         listAllPlazos(),
       ])
 
@@ -95,7 +96,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [profile])
 
   useEffect(() => {
     load()
