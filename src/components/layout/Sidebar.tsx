@@ -1,9 +1,10 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { getDriveEstado } from '@/features/workspace/driveApi'
 import { getGroqEstado } from '@/features/workspace/groqApi'
 import { getOpenRouterEstado } from '@/features/workspace/openrouterApi'
+import { isSuperadmin } from '@/features/admin/adminApi'
 import { VideoLogoModal } from '@/components/VideoLogoModal'
 
 const PRINCIPAL = [
@@ -48,7 +49,13 @@ function useServiciosEstado() {
 export function Sidebar({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   const { profile, signOut } = useAuth()
   const servicios = useServiciosEstado()
+  const navigate = useNavigate()
   const [videoAbierto, setVideoAbierto] = useState(false)
+  const [esSuperadmin, setEsSuperadmin] = useState(false)
+
+  useEffect(() => {
+    isSuperadmin().then(setEsSuperadmin)
+  }, [])
 
   const navItemClass = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-2.5 rounded-[6px] px-2.5 py-2 mx-1.5 text-[13px] transition-colors ${
@@ -137,12 +144,22 @@ export function Sidebar({ open, onToggle }: { open: boolean; onToggle: () => voi
         {profile && (
           <div className="border-t border-border p-2">
             <div className={`flex items-center gap-2 rounded-[6px] py-1.5 ${open ? 'px-2.5' : 'justify-center px-0'}`}>
-              <div
-                title={profile.nombre}
-                className="flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent"
-              >
-                {initials(profile.nombre)}
-              </div>
+              {esSuperadmin ? (
+                <button
+                  onClick={() => navigate('/admin')}
+                  title="Panel de superadmin"
+                  className="flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent transition hover:ring-2 hover:ring-accent"
+                >
+                  {initials(profile.nombre)}
+                </button>
+              ) : (
+                <div
+                  title={profile.nombre}
+                  className="flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent"
+                >
+                  {initials(profile.nombre)}
+                </div>
+              )}
               {open && (
                 <>
                   <div className="min-w-0 flex-1">
