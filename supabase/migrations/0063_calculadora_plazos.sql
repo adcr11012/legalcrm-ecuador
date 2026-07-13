@@ -19,9 +19,11 @@ create table if not exists feriados_ecuador (
 
 alter table feriados_ecuador enable row level security;
 
+drop policy if exists feriados_ecuador_select on feriados_ecuador;
 create policy feriados_ecuador_select on feriados_ecuador for select
   using (true);
 
+drop policy if exists feriados_ecuador_admin_write on feriados_ecuador;
 create policy feriados_ecuador_admin_write on feriados_ecuador for all
   using (is_superadmin())
   with check (is_superadmin());
