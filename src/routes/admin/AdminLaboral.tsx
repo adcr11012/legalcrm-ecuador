@@ -110,6 +110,9 @@ export default function AdminLaboral() {
         <p className="mb-3 text-[11px] text-mute2">
           Usados por la Calculadora de Plazos Procesales para excluir días no hábiles. Los feriados se trasladan por
           decreto cada año (Ley de recuperación de feriados) — revisa y verifica esta lista al inicio de cada año.
+          También podés agregar acá cualquier feriado extraordinario que el Ejecutivo declare de un momento a otro
+          (ej. un puente adicional por decreto, o un día no laborable declarado por una celebración puntual) — se
+          aplica de inmediato en la calculadora, sin necesidad de deploy.
         </p>
 
         <form onSubmit={onAgregarFeriado} className="mb-3 flex flex-wrap items-end gap-2">
@@ -123,11 +126,11 @@ export default function AdminLaboral() {
             />
           </div>
           <div className="flex-1 min-w-[160px]">
-            <label className="mb-1 block text-[10px] font-medium text-muted">Nombre</label>
+            <label className="mb-1 block text-[10px] font-medium text-muted">Nombre / motivo</label>
             <input
               value={nuevoNombre}
               onChange={(e) => setNuevoNombre(e.target.value)}
-              placeholder="Ej. Día del Trabajo"
+              placeholder="Ej. Día no laborable declarado por decreto (celebración especial)"
               className="w-full rounded-[6px] border border-border bg-bg px-2.5 py-1.5 text-[12px] text-ink outline-none focus:border-accent"
             />
           </div>
