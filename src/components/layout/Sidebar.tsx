@@ -136,7 +136,6 @@ export function Sidebar({ open, onToggle }: { open: boolean; onToggle: () => voi
                   estado === null ? 'bg-mute2' : estado ? 'bg-success' : 'bg-danger'
                 }`}
               />
-              {open && <span className="ml-1.5 text-[11px] text-mute2">{label}</span>}
             </div>
           ))}
         </div>
