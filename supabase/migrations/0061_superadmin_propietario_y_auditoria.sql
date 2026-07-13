@@ -18,17 +18,18 @@ update superadmins set es_propietario = true
 where user_id = (select id from auth.users where email = 'andrescas@gmail.com');
 
 -- ── Tabla de auditoría ───────────────────────────────────────────────
-create table superadmin_accesos (
+create table if not exists superadmin_accesos (
   id                  uuid primary key default gen_random_uuid(),
   superadmin_user_id  uuid not null references auth.users(id) on delete cascade,
   workspace_id        uuid references workspaces(id) on delete set null,
   accion              text not null,
   created_at          timestamptz not null default now()
 );
-create index superadmin_accesos_workspace_idx on superadmin_accesos(workspace_id);
-create index superadmin_accesos_superadmin_idx on superadmin_accesos(superadmin_user_id);
+create index if not exists superadmin_accesos_workspace_idx on superadmin_accesos(workspace_id);
+create index if not exists superadmin_accesos_superadmin_idx on superadmin_accesos(superadmin_user_id);
 
 alter table superadmin_accesos enable row level security;
+drop policy if exists "superadmin_accesos_select" on superadmin_accesos;
 create policy "superadmin_accesos_select" on superadmin_accesos for select
   using (is_superadmin());
 -- Sin políticas de insert/update/delete para clientes: solo se escribe
@@ -120,6 +121,7 @@ end;
 $$ language plpgsql security definer set search_path = public;
 
 -- ── admin_listar_superadmins: ahora incluye es_propietario ──────────────
+drop function if exists admin_listar_superadmins();
 create or replace function admin_listar_superadmins()
 returns table(user_id uuid, email text, nombre text, created_at timestamptz, es_propietario boolean) as $$
   select s.user_id, au.email, u.nombre, s.created_at, s.es_propietario
