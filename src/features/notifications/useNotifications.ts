@@ -118,7 +118,8 @@ export function useNotifications() {
     } finally {
       setLoading(false)
     }
-  }, [profile])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id, profile?.workspace_id, profile?.rol])
 
   const marcarLeida = useCallback(async (n: Notificacion) => {
     if (n.avisoAdminId) {

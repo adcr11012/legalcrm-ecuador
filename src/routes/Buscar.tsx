@@ -34,7 +34,8 @@ export default function Buscar() {
   const [etapas, setEtapas] = useState<Etapa[]>([])
   const [plazos, setPlazos] = useState<Plazo[]>([])
   const [tareas, setTareas] = useState<Tarea[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [datosCargados, setDatosCargados] = useState(false)
   const [q, setQ] = useState('')
   const [searchParams, setSearchParams] = useSearchParams()
   const modo: 'buscar' | 'reportes' = searchParams.get('modo') === 'reportes' ? 'reportes' : 'buscar'
@@ -44,8 +45,16 @@ export default function Buscar() {
   // usuarios no están acotados por caso, así que se ocultan para limitado.
   const accesoCompleto = profile?.rol === 'administrador' || profile?.rol === 'master'
 
+  // Carga perezosa: no se trae el workspace completo (casos, clientes,
+  // documentos, agenda) hasta que el usuario realmente escribe algo. Antes
+  // se cargaba todo al entrar a /buscar aunque solo se quisiera ver
+  // Reportes o ni siquiera buscar — con miles de casos/plazos/documentos
+  // eso significaba varios MB transferidos en cada visita a la pantalla.
+  // Se cachea una sola vez por sesión (datosCargados) para no repetir la
+  // carga completa en cada tecla.
   useEffect(() => {
-    if (!profile) return
+    if (!profile || modo !== 'buscar' || datosCargados || q.trim().length === 0) return
+    setLoading(true)
     const peticiones: [
       Promise<Caso[]>,
       Promise<Cliente[]> | Promise<[]>,
@@ -72,9 +81,10 @@ export default function Buscar() {
         setEtapas(e)
         setPlazos(p)
         setTareas(t)
+        setDatosCargados(true)
       })
       .finally(() => setLoading(false))
-  }, [profile, accesoCompleto])
+  }, [profile, accesoCompleto, modo, datosCargados, q])
 
   const query = norm(q).trim()
   const terminos = query.split(/\s+/).filter(Boolean)
