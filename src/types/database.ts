@@ -371,6 +371,15 @@ export type CodigoReferido = {
   created_at: string
 }
 
+export type FeriadoEcuador = {
+  id: string
+  fecha: string
+  nombre: string
+  verificado: boolean
+  actualizado_en: string
+  actualizado_por: string | null
+}
+
 type Table<Row, Insert = Partial<Row>, Update = Partial<Row>> = {
   Row: Row
   Insert: Insert
@@ -412,6 +421,7 @@ export type Database = {
       ticket_mensajes: Table<TicketMensaje>
       configuracion_laboral: Table<ConfiguracionLaboral>
       codigos_referido: Table<CodigoReferido>
+      feriados_ecuador: Table<FeriadoEcuador>
     }
     Views: { [_ in never]: never }
     Functions: {
@@ -428,6 +438,14 @@ export type Database = {
       admin_crear_codigos_referido: {
         Args: { p_cantidad: number; p_semillas?: number }
         Returns: string[]
+      }
+      admin_upsert_feriado: {
+        Args: { p_fecha: string; p_nombre: string; p_verificado: boolean }
+        Returns: void
+      }
+      admin_eliminar_feriado: {
+        Args: { p_id: string }
+        Returns: void
       }
       admin_listar_codigos_raiz: {
         Args: Record<string, never>

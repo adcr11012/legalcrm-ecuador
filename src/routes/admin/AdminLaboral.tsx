@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { getConfiguracionLaboral, actualizarSbu } from '@/features/laboral/api'
-import type { ConfiguracionLaboral } from '@/types/database'
+import { listFeriados, upsertFeriado, eliminarFeriado } from '@/features/plazos/api'
+import type { ConfiguracionLaboral, FeriadoEcuador } from '@/types/database'
 
 export default function AdminLaboral() {
   const [config, setConfig] = useState<ConfiguracionLaboral | null>(null)
@@ -10,11 +11,40 @@ export default function AdminLaboral() {
   const [mensaje, setMensaje] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  const [feriados, setFeriados] = useState<FeriadoEcuador[]>([])
+  const [nuevaFecha, setNuevaFecha] = useState('')
+  const [nuevoNombre, setNuevoNombre] = useState('')
+
   function load() {
     getConfiguracionLaboral().then((c) => { setConfig(c); setSbuInput(String(c.sbu)) })
+    loadFeriados()
+  }
+
+  function loadFeriados() {
+    listFeriados().then(setFeriados)
   }
 
   useEffect(() => { load() }, [])
+
+  async function onAgregarFeriado(e: React.FormEvent) {
+    e.preventDefault()
+    if (!nuevaFecha || !nuevoNombre.trim()) return
+    await upsertFeriado(nuevaFecha, nuevoNombre.trim(), true)
+    setNuevaFecha('')
+    setNuevoNombre('')
+    loadFeriados()
+  }
+
+  async function onVerificar(f: FeriadoEcuador) {
+    await upsertFeriado(f.fecha, f.nombre, true)
+    loadFeriados()
+  }
+
+  async function onEliminarFeriado(id: string) {
+    if (!confirm('¿Eliminar este feriado?')) return
+    await eliminarFeriado(id)
+    loadFeriados()
+  }
 
   async function onGuardar() {
     setError(null)
@@ -73,6 +103,63 @@ export default function AdminLaboral() {
 
         {mensaje && <div className="mt-3 rounded-[8px] bg-success-soft px-3 py-2 text-[12px] text-success">{mensaje}</div>}
         {error && <div className="mt-3 rounded-[8px] bg-danger-soft px-3 py-2 text-[12px] text-danger">{error}</div>}
+      </div>
+
+      <div className="mt-5 max-w-[640px] rounded-[10px] border border-border bg-surface p-4">
+        <div className="mb-1 text-[13px] font-semibold text-ink">Feriados nacionales (Ecuador)</div>
+        <p className="mb-3 text-[11px] text-mute2">
+          Usados por la Calculadora de Plazos Procesales para excluir días no hábiles. Los feriados se trasladan por
+          decreto cada año (Ley de recuperación de feriados) — revisa y verifica esta lista al inicio de cada año.
+        </p>
+
+        <form onSubmit={onAgregarFeriado} className="mb-3 flex flex-wrap items-end gap-2">
+          <div>
+            <label className="mb-1 block text-[10px] font-medium text-muted">Fecha</label>
+            <input
+              type="date"
+              value={nuevaFecha}
+              onChange={(e) => setNuevaFecha(e.target.value)}
+              className="rounded-[6px] border border-border bg-bg px-2.5 py-1.5 text-[12px] text-ink outline-none focus:border-accent"
+            />
+          </div>
+          <div className="flex-1 min-w-[160px]">
+            <label className="mb-1 block text-[10px] font-medium text-muted">Nombre</label>
+            <input
+              value={nuevoNombre}
+              onChange={(e) => setNuevoNombre(e.target.value)}
+              placeholder="Ej. Día del Trabajo"
+              className="w-full rounded-[6px] border border-border bg-bg px-2.5 py-1.5 text-[12px] text-ink outline-none focus:border-accent"
+            />
+          </div>
+          <button type="submit" className="rounded-[6px] bg-accent px-3 py-1.5 text-[12px] font-medium text-white transition hover:bg-accent-hover">
+            Agregar
+          </button>
+        </form>
+
+        <div className="flex flex-col gap-1">
+          {feriados.map((f) => (
+            <div key={f.id} className="flex items-center justify-between gap-2 rounded-[6px] border border-border bg-bg px-2.5 py-1.5">
+              <div className="flex items-center gap-2 text-[12px]">
+                <span className="font-medium text-ink">{new Date(f.fecha + 'T00:00:00').toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                <span className="text-muted">{f.nombre}</span>
+                {!f.verificado && (
+                  <span className="rounded-full bg-danger-soft px-2 py-0.5 text-[10px] font-semibold text-danger">Sin verificar</span>
+                )}
+              </div>
+              <div className="flex gap-2">
+                {!f.verificado && (
+                  <button onClick={() => onVerificar(f)} className="text-[11px] text-success hover:underline">
+                    Verificar
+                  </button>
+                )}
+                <button onClick={() => onEliminarFeriado(f.id)} className="text-[11px] text-mute2 hover:text-danger">
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          ))}
+          {feriados.length === 0 && <div className="text-[12px] text-mute2">Sin feriados registrados.</div>}
+        </div>
       </div>
     </div>
   )

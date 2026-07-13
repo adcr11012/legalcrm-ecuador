@@ -14,7 +14,7 @@ const PRINCIPAL = [
   { to: '/agenda', icon: 'ti-calendar', label: 'Agenda' },
   { to: '/buscar', icon: 'ti-search', label: 'Buscar / Reportes' },
   { to: '/soporte', icon: 'ti-lifebuoy', label: 'Soporte' },
-  { to: '/calculadora-laboral', icon: 'ti-calculator', label: 'Calc. Laboral' },
+  { to: '/calculadora', icon: 'ti-calculator', label: 'Calculadora' },
 ]
 
 const WORKSPACE = [

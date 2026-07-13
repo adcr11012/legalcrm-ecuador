@@ -71,7 +71,7 @@ export default function AdminLayout() {
             <i className="ti ti-credit-card text-[16px]" /> Facturación
           </NavLink>
           <NavLink to="/admin/laboral" className={navItem}>
-            <i className="ti ti-calculator text-[16px]" /> Calc. Laboral
+            <i className="ti ti-calculator text-[16px]" /> Calculadora (SBU / Feriados)
           </NavLink>
           <NavLink to="/admin/esatje" className={navItem}>
             <i className="ti ti-gavel text-[16px]" /> eSATJE

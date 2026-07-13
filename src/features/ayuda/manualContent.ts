@@ -121,10 +121,10 @@ export const MANUAL: SeccionManual[] = [
   },
   {
     id: 'calculadora-laboral',
-    titulo: 'Calculadora Laboral',
+    titulo: 'Calculadora — Liquidación laboral',
     icono: 'ti-calculator',
     contenido: [
-      'Herramienta para calcular la liquidación o finiquito de un trabajador, basada en el Código del Trabajo de Ecuador. Disponible para todos los roles en el menú lateral, ruta /calculadora-laboral.',
+      'Herramienta para calcular la liquidación o finiquito de un trabajador, basada en el Código del Trabajo de Ecuador. Disponible para todos los roles en el menú lateral, botón "Calculadora" (ruta /calculadora, pestaña "Liquidación laboral").',
       '— Datos que pide: fecha de ingreso, fecha de salida, tipo de contrato, sueldo, tipo de terminación (renuncia, despido intempestivo, visto bueno, mutuo acuerdo, fin de plazo pactado), y si aplica alguna protección especial.',
       '— Rubros que calcula: décimo tercero (bono navideño, proporcional sobre 360 días desde el último pago), décimo cuarto (bono escolar, sobre el Salario Básico Unificado), vacaciones no gozadas (15 días por año, proporcional), fondos de reserva (a partir del mes 13 de trabajo continuo), bonificación por desahucio (25% del último sueldo por año completo, Art. 185) e indemnización por despido intempestivo (Art. 188: 3 remuneraciones hasta 3 años de servicio, o 1 remuneración por año completo con tope de 25 remuneraciones si supera los 3 años, calculada sobre el mejor sueldo histórico del trabajador según la Resolución 02-2025 de la Corte Nacional de Justicia).',
       '— Casillas de "mensualizado": si el décimo tercero, décimo cuarto o los fondos de reserva ya se le pagan al trabajador junto con el sueldo mensual (una práctica permitida por ley), se marcan esas casillas para que la calculadora no los cuente doble en la liquidación final.',
@@ -134,6 +134,19 @@ export const MANUAL: SeccionManual[] = [
       '— Casos que NO cubre: empleados del sector público (se rigen por la LOSEP, no por el Código del Trabajo) y relaciones de servicios profesionales u honorarios (son de naturaleza civil, no laboral).',
       '— Lo que la calculadora NO incluye en el monto: aportes al IESS pendientes (solo advierte que pueden existir), descuentos legales como préstamos, anticipos o pensiones alimenticias, impuesto a la renta, ni beneficios adicionales de un eventual contrato colectivo (si existe uno más favorable que la ley, ese prevalece).',
       '— Importante: los montos siempre salen de fórmulas fijas programadas, nunca de una estimación de la IA — si le preguntas a Temis "¿cuánto le corresponde a fulano?", ella va a explicarte los conceptos aplicables pero siempre te va a remitir a esta calculadora para el monto final exacto.',
+    ],
+  },
+  {
+    id: 'calculadora-plazos',
+    titulo: 'Calculadora — Plazos procesales',
+    icono: 'ti-calendar-time',
+    contenido: [
+      'Segunda pestaña del botón "Calculadora" (ruta /calculadora, pestaña "Plazos procesales"). Cuenta días hábiles desde una fecha de notificación, siguiendo el régimen general del COGEP (Código Orgánico General de Procesos): se excluyen sábados, domingos, feriados nacionales y — si aplica — los períodos de vacancia judicial.',
+      '— Datos que pide: fecha de notificación, número de días hábiles del término, y opcionalmente la materia del caso (solo para mostrar avisos relevantes, no cambia el cálculo).',
+      '— Vacancia judicial: hay 3 períodos fijos por ley (Art. 96 COFJ): Litoral e Insular del 17 al 31 de marzo, Sierra y Amazonía del 1 al 15 de agosto, y nacional del 23 de diciembre al 6 de enero. La calculadora los pre-carga como sugerencia editable — si tu materia está exceptuada de vacancia (penal, tránsito, violencia contra la mujer, familia/niñez/adolescencia, garantías penitenciarias, justicia constitucional) o el juzgado no aplica ese receso, simplemente quita el período de la lista antes de calcular.',
+      '— Feriados nacionales: se mantienen en una tabla que un Administrador del sistema (superadmin) actualiza cada año, porque los feriados se trasladan por decreto (Ley de recuperación de feriados) y no son fechas fijas indefinidas. Si un feriado aparece marcado como "no verificado", conviene confirmarlo antes de confiar en el resultado para un trámite real.',
+      '— Materia Penal: el COIP tiene reglas de plazos propias (por ejemplo, plazos en horas para casos de flagrancia) que este contador genérico de días hábiles no cubre — la calculadora muestra una advertencia si eliges esta materia.',
+      '— Es una herramienta referencial de apoyo, no un cálculo procesal oficial — siempre debe verificarse antes de un trámite real, especialmente en materias con reglas de plazos especiales.',
     ],
   },
   {

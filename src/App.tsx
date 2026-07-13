@@ -13,7 +13,7 @@ const Agenda          = lazy(() => import('@/routes/Agenda'))
 const Buscar          = lazy(() => import('@/routes/Buscar'))
 const Ayuda           = lazy(() => import('@/routes/Ayuda'))
 const Soporte         = lazy(() => import('@/routes/Soporte'))
-const CalculadoraLaboral = lazy(() => import('@/routes/CalculadoraLaboral'))
+const Calculadora      = lazy(() => import('@/routes/Calculadora'))
 const Anuncios        = lazy(() => import('@/routes/Anuncios'))
 const Usuarios        = lazy(() => import('@/routes/Usuarios'))
 const Invite          = lazy(() => import('@/routes/Invite'))
@@ -59,7 +59,8 @@ function App() {
                 <Route path="/buscar" element={<Buscar />} />
                 <Route path="/ayuda" element={<Ayuda />} />
                 <Route path="/soporte" element={<Soporte />} />
-                <Route path="/calculadora-laboral" element={<CalculadoraLaboral />} />
+                <Route path="/calculadora" element={<Calculadora />} />
+                <Route path="/calculadora-laboral" element={<Navigate to="/calculadora" replace />} />
                 <Route path="/anuncios" element={<Anuncios />} />
                 <Route path="/usuarios" element={<Usuarios />} />
                 <Route path="/drive" element={<Drive />} />
