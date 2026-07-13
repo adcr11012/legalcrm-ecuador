@@ -37,7 +37,7 @@ export async function isSuperadmin(): Promise<boolean> {
   return data === true
 }
 
-export type Superadmin = { user_id: string; email: string; nombre: string | null; created_at: string }
+export type Superadmin = { user_id: string; email: string; nombre: string | null; created_at: string; es_propietario: boolean }
 
 export async function listarSuperadmins(): Promise<Superadmin[]> {
   const { data, error } = await rpc('admin_listar_superadmins')
@@ -53,6 +53,22 @@ export async function agregarSuperadmin(email: string): Promise<void> {
 export async function quitarSuperadmin(userId: string): Promise<void> {
   const { error } = await rpc('admin_quitar_superadmin', { p_user_id: userId })
   if (error) throw error
+}
+
+export type AccesoSuperadmin = {
+  id: string
+  superadmin_email: string
+  superadmin_nombre: string | null
+  workspace_id: string | null
+  workspace_nombre: string | null
+  accion: string
+  created_at: string
+}
+
+export async function listarAccesosSuperadmin(workspaceId?: string): Promise<AccesoSuperadmin[]> {
+  const { data, error } = await rpc('admin_listar_accesos', { p_workspace_id: workspaceId ?? null })
+  if (error) throw error
+  return (data ?? []) as AccesoSuperadmin[]
 }
 
 export async function getGlobalStats(): Promise<GlobalStats> {
