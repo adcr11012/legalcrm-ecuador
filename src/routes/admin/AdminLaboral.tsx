@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { getConfiguracionLaboral, actualizarSbu } from '@/features/laboral/api'
 import { listFeriados, upsertFeriado, eliminarFeriado } from '@/features/plazos/api'
+import { PROVINCIAS_ECUADOR } from '@/features/plazos/provincias'
 import type { ConfiguracionLaboral, FeriadoEcuador } from '@/types/database'
 
 export default function AdminLaboral() {
@@ -14,6 +15,7 @@ export default function AdminLaboral() {
   const [feriados, setFeriados] = useState<FeriadoEcuador[]>([])
   const [nuevaFecha, setNuevaFecha] = useState('')
   const [nuevoNombre, setNuevoNombre] = useState('')
+  const [nuevaProvincia, setNuevaProvincia] = useState('')
 
   function load() {
     getConfiguracionLaboral().then((c) => { setConfig(c); setSbuInput(String(c.sbu)) })
@@ -29,14 +31,15 @@ export default function AdminLaboral() {
   async function onAgregarFeriado(e: React.FormEvent) {
     e.preventDefault()
     if (!nuevaFecha || !nuevoNombre.trim()) return
-    await upsertFeriado(nuevaFecha, nuevoNombre.trim(), true)
+    await upsertFeriado(nuevaFecha, nuevoNombre.trim(), true, nuevaProvincia || null)
     setNuevaFecha('')
     setNuevoNombre('')
+    setNuevaProvincia('')
     loadFeriados()
   }
 
   async function onVerificar(f: FeriadoEcuador) {
-    await upsertFeriado(f.fecha, f.nombre, true)
+    await upsertFeriado(f.fecha, f.nombre, true, f.provincia)
     loadFeriados()
   }
 
@@ -134,6 +137,19 @@ export default function AdminLaboral() {
               className="w-full rounded-[6px] border border-border bg-bg px-2.5 py-1.5 text-[12px] text-ink outline-none focus:border-accent"
             />
           </div>
+          <div>
+            <label className="mb-1 block text-[10px] font-medium text-muted">Provincia (vacío = nacional)</label>
+            <select
+              value={nuevaProvincia}
+              onChange={(e) => setNuevaProvincia(e.target.value)}
+              className="rounded-[6px] border border-border bg-bg px-2.5 py-1.5 text-[12px] text-ink outline-none focus:border-accent"
+            >
+              <option value="">Nacional (todas)</option>
+              {PROVINCIAS_ECUADOR.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+          </div>
           <button type="submit" className="rounded-[6px] bg-accent px-3 py-1.5 text-[12px] font-medium text-white transition hover:bg-accent-hover">
             Agregar
           </button>
@@ -145,6 +161,11 @@ export default function AdminLaboral() {
               <div className="flex items-center gap-2 text-[12px]">
                 <span className="font-medium text-ink">{new Date(f.fecha + 'T00:00:00').toLocaleDateString('es-EC', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                 <span className="text-muted">{f.nombre}</span>
+                {f.provincia ? (
+                  <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-semibold text-accent">Local: {f.provincia}</span>
+                ) : (
+                  <span className="rounded-full bg-soft px-2 py-0.5 text-[10px] font-semibold text-mute2">Nacional</span>
+                )}
                 {!f.verificado && (
                   <span className="rounded-full bg-danger-soft px-2 py-0.5 text-[10px] font-semibold text-danger">Sin verificar</span>
                 )}

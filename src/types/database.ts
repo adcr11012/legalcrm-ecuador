@@ -376,6 +376,7 @@ export type FeriadoEcuador = {
   fecha: string
   nombre: string
   verificado: boolean
+  provincia: string | null // null = feriado nacional, afecta a todas
   actualizado_en: string
   actualizado_por: string | null
 }
@@ -440,7 +441,7 @@ export type Database = {
         Returns: string[]
       }
       admin_upsert_feriado: {
-        Args: { p_fecha: string; p_nombre: string; p_verificado: boolean }
+        Args: { p_fecha: string; p_nombre: string; p_verificado: boolean; p_provincia?: string | null }
         Returns: void
       }
       admin_eliminar_feriado: {

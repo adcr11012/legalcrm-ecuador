@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { listFeriados } from '@/features/plazos/api'
 import { calcularFechaLimite, sugerirVacanciaJudicial, type RangoExcluido } from '@/features/plazos/calculoPlazos'
-import type { Materia } from '@/types/database'
+import { PROVINCIAS_ECUADOR } from '@/features/plazos/provincias'
+import type { Materia, FeriadoEcuador } from '@/types/database'
 
 const inputCls = 'w-full rounded-[8px] border border-border bg-bg px-3 py-2.5 text-[13px] text-ink outline-none transition focus:border-accent'
 const labelCls = 'mb-1 block text-[11px] font-semibold uppercase tracking-wide text-mute2'
@@ -14,17 +15,14 @@ export default function CalculadoraPlazos() {
   const [fechaNotificacion, setFechaNotificacion] = useState(hoyISO())
   const [diasHabiles, setDiasHabiles] = useState(5)
   const [materia, setMateria] = useState<Materia | ''>('')
-  const [feriados, setFeriados] = useState<Set<string>>(new Set())
-  const [feriadosNoVerificados, setFeriadosNoVerificados] = useState(false)
+  const [provincia, setProvincia] = useState('')
+  const [todosFeriados, setTodosFeriados] = useState<FeriadoEcuador[]>([])
   const [loading, setLoading] = useState(true)
   const [rangosVacancia, setRangosVacancia] = useState<RangoExcluido[]>([])
 
   useEffect(() => {
     listFeriados()
-      .then((lista) => {
-        setFeriados(new Set(lista.map((f) => f.fecha)))
-        setFeriadosNoVerificados(lista.some((f) => !f.verificado))
-      })
+      .then(setTodosFeriados)
       .finally(() => setLoading(false))
   }, [])
 
@@ -35,10 +33,19 @@ export default function CalculadoraPlazos() {
 
   const materiaExceptuada = materia === 'penal' || materia === 'familia'
 
+  // Un feriado sin provincia es nacional (afecta a todas); uno con provincia
+  // solo afecta al cómputo si coincide con la provincia elegida.
+  const feriadosAplicables = useMemo(
+    () => todosFeriados.filter((f) => !f.provincia || f.provincia === provincia),
+    [todosFeriados, provincia],
+  )
+  const feriadosSet = useMemo(() => new Set(feriadosAplicables.map((f) => f.fecha)), [feriadosAplicables])
+  const feriadosNoVerificados = feriadosAplicables.some((f) => !f.verificado)
+
   const resultado = useMemo(() => {
     if (!fechaNotificacion || diasHabiles <= 0) return null
-    return calcularFechaLimite(fechaNotificacion, diasHabiles, feriados, rangosVacancia)
-  }, [fechaNotificacion, diasHabiles, feriados, rangosVacancia])
+    return calcularFechaLimite(fechaNotificacion, diasHabiles, feriadosSet, rangosVacancia)
+  }, [fechaNotificacion, diasHabiles, feriadosSet, rangosVacancia])
 
   function quitarRango(id: string) {
     setRangosVacancia((prev) => prev.filter((r) => r.id !== id))
@@ -86,7 +93,7 @@ export default function CalculadoraPlazos() {
               className={inputCls}
             />
           </div>
-          <div className="sm:col-span-2">
+          <div>
             <label className={labelCls}>Materia (opcional, ajusta el aviso)</label>
             <select value={materia} onChange={(e) => setMateria(e.target.value as Materia | '')} className={inputCls}>
               <option value="">Sin especificar</option>
@@ -97,6 +104,15 @@ export default function CalculadoraPlazos() {
               <option value="penal">Penal</option>
               <option value="transito">Tránsito</option>
               <option value="otro">Otro</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>Provincia del juzgado (para feriados locales)</label>
+            <select value={provincia} onChange={(e) => setProvincia(e.target.value)} className={inputCls}>
+              <option value="">Sin especificar (solo feriados nacionales)</option>
+              {PROVINCIAS_ECUADOR.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
             </select>
           </div>
         </div>
