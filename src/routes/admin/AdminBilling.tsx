@@ -13,7 +13,7 @@ export default function AdminBilling() {
     Promise.all([getBillingGlobal(), getAdminWorkspaces()])
       .then(([b, ws]) => {
         setBilling(b)
-        setWorkspaces(ws.filter(w => w.plan !== 'free'))
+        setWorkspaces(ws.filter(w => w.plan !== 'free' && w.plan !== 'demo_enterprise'))
       })
       .finally(() => setLoading(false))
   }, [])

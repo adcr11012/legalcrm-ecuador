@@ -107,10 +107,11 @@ export function PlanBadge({ plan }: { plan: string }) {
     free: 'bg-soft text-muted border border-border',
     pro: 'bg-accent-soft text-accent',
     enterprise: 'bg-success-soft text-success',
+    demo_enterprise: 'bg-purple-soft text-purple border border-dashed border-purple',
   }
   return (
     <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase ${map[plan] ?? map.free}`}>
-      {plan}
+      {plan === 'demo_enterprise' ? 'Demo' : plan}
     </span>
   )
 }

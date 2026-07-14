@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   getWorkspaceDetail, toggleWorkspaceSuspended,
-  getWorkspacePagos, activarPlan, generarPeriodo, registrarPago,
+  getWorkspacePagos, activarPlan, generarPeriodo, registrarPago, setWorkspacePlan,
   type WorkspaceDetail, type PagoPeriodo,
 } from '@/features/admin/adminApi'
 import { PlanBadge } from '@/routes/admin/AdminDashboard'
@@ -64,6 +64,20 @@ export default function AdminWorkspaceDetail() {
       await activarPlan(id, activarPlanSel, monto, activarInicio)
       const [d, p] = await Promise.all([getWorkspaceDetail(id), getWorkspacePagos(id)])
       setDetail(d); setPagos(p)
+    } finally { setSaving(false) }
+  }
+
+  // Plan demo (oculto, sin facturación): acceso completo tipo Enterprise
+  // para cuentas de prueba antes del lanzamiento — no pasa por el flujo de
+  // pago, no genera período de suscripción ni aparece en Facturación.
+  async function handleAsignarDemo() {
+    if (!id) return
+    if (!confirm('¿Asignar el plan demo (acceso completo, sin facturación) a este workspace?')) return
+    setSaving(true)
+    try {
+      await setWorkspacePlan(id, 'demo_enterprise')
+      const d = await getWorkspaceDetail(id)
+      setDetail(d)
     } finally { setSaving(false) }
   }
 
@@ -312,6 +326,19 @@ export default function AdminWorkspaceDetail() {
                   {saving ? '…' : tienePlan ? 'Actualizar plan' : 'Activar plan'}
                 </button>
               </div>
+            </div>
+
+            {/* Plan demo oculto, sin facturación — para cuentas de prueba pre-lanzamiento */}
+            <div className="rounded-[10px] border border-dashed border-purple bg-surface p-4">
+              <h3 className="mb-1 text-[12px] font-semibold text-ink">Plan demo (interno)</h3>
+              <p className="mb-3 text-[11px] text-mute2">
+                Acceso completo tipo Enterprise, sin generar cobro ni aparecer en Facturación. Solo para cuentas de
+                prueba antes del lanzamiento.
+              </p>
+              <button disabled={saving || workspace.plan === 'demo_enterprise'} onClick={handleAsignarDemo}
+                className="w-full rounded-[6px] border border-purple py-1.5 text-[12px] font-semibold text-purple transition disabled:opacity-40 hover:bg-purple-soft">
+                {workspace.plan === 'demo_enterprise' ? 'Ya tiene el plan demo' : 'Asignar plan demo'}
+              </button>
             </div>
 
             {/* Modal inline: registrar pago */}
