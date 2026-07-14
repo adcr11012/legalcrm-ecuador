@@ -19,6 +19,9 @@ export default function CalculadoraPlazos() {
   const [todosFeriados, setTodosFeriados] = useState<FeriadoEcuador[]>([])
   const [loading, setLoading] = useState(true)
   const [rangosVacancia, setRangosVacancia] = useState<RangoExcluido[]>([])
+  const [feriadosQuitadosIds, setFeriadosQuitadosIds] = useState<Set<string>>(new Set())
+  const [fechasExtra, setFechasExtra] = useState<string[]>([])
+  const [nuevaFechaExtra, setNuevaFechaExtra] = useState('')
 
   useEffect(() => {
     listFeriados()
@@ -39,8 +42,28 @@ export default function CalculadoraPlazos() {
     () => todosFeriados.filter((f) => !f.provincia || f.provincia === provincia),
     [todosFeriados, provincia],
   )
-  const feriadosSet = useMemo(() => new Set(feriadosAplicables.map((f) => f.fecha)), [feriadosAplicables])
-  const feriadosNoVerificados = feriadosAplicables.some((f) => !f.verificado)
+  const feriadosSet = useMemo(() => {
+    const set = new Set(
+      feriadosAplicables.filter((f) => !feriadosQuitadosIds.has(f.id)).map((f) => f.fecha),
+    )
+    for (const f of fechasExtra) set.add(f)
+    return set
+  }, [feriadosAplicables, feriadosQuitadosIds, fechasExtra])
+  const feriadosNoVerificados = feriadosAplicables.some((f) => !f.verificado && !feriadosQuitadosIds.has(f.id))
+
+  function quitarFeriado(id: string) {
+    setFeriadosQuitadosIds((prev) => new Set(prev).add(id))
+  }
+
+  function agregarFechaExtra() {
+    if (!nuevaFechaExtra || fechasExtra.includes(nuevaFechaExtra)) return
+    setFechasExtra((prev) => [...prev, nuevaFechaExtra])
+    setNuevaFechaExtra('')
+  }
+
+  function quitarFechaExtra(fecha: string) {
+    setFechasExtra((prev) => prev.filter((f) => f !== fecha))
+  }
 
   const resultado = useMemo(() => {
     if (!fechaNotificacion || diasHabiles <= 0) return null
@@ -138,6 +161,75 @@ export default function CalculadoraPlazos() {
               ))}
             </div>
           )}
+        </div>
+
+        <div className="mb-5 rounded-[10px] border border-border bg-surface p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <label className={labelCls}>Feriados a excluir</label>
+            <span className="text-[11px] text-mute2">Desmarcá los que no apliquen o agregá uno extra</span>
+          </div>
+          {feriadosAplicables.length === 0 ? (
+            <div className="mb-2 text-[12px] text-mute2">No hay feriados registrados para este filtro.</div>
+          ) : (
+            <div className="mb-2 flex flex-col gap-1.5">
+              {feriadosAplicables.map((f) => {
+                const quitado = feriadosQuitadosIds.has(f.id)
+                return (
+                  <div
+                    key={f.id}
+                    className={`flex items-center justify-between gap-2 rounded-[6px] border border-border px-2.5 py-1.5 ${quitado ? 'bg-bg opacity-50' : 'bg-bg'}`}
+                  >
+                    <span className="text-[12px] text-ink">
+                      {new Date(f.fecha + 'T00:00:00').toLocaleDateString('es-EC', { day: 'numeric', month: 'long', year: 'numeric' })} — {f.nombre}
+                      {f.provincia ? ` (${f.provincia})` : ''}
+                      {!f.verificado && !quitado && <span className="ml-1.5 text-[10px] text-danger">sin verificar</span>}
+                    </span>
+                    {quitado ? (
+                      <button
+                        onClick={() => setFeriadosQuitadosIds((prev) => { const s = new Set(prev); s.delete(f.id); return s })}
+                        className="text-[11px] text-mute2 transition hover:text-accent"
+                      >
+                        Restaurar
+                      </button>
+                    ) : (
+                      <button onClick={() => quitarFeriado(f.id)} className="text-[11px] text-mute2 transition hover:text-danger">
+                        Quitar
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {fechasExtra.length > 0 && (
+            <div className="mb-2 flex flex-col gap-1.5">
+              {fechasExtra.map((fecha) => (
+                <div key={fecha} className="flex items-center justify-between gap-2 rounded-[6px] border border-accent/30 bg-accent-soft px-2.5 py-1.5">
+                  <span className="text-[12px] text-ink">
+                    {new Date(fecha + 'T00:00:00').toLocaleDateString('es-EC', { day: 'numeric', month: 'long', year: 'numeric' })} — agregado para este cálculo
+                  </span>
+                  <button onClick={() => quitarFechaExtra(fecha)} className="text-[11px] text-mute2 transition hover:text-danger">
+                    Quitar
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 pt-1">
+            <input type="date" value={nuevaFechaExtra} onChange={(e) => setNuevaFechaExtra(e.target.value)} className={inputCls} />
+            <button
+              onClick={agregarFechaExtra}
+              disabled={!nuevaFechaExtra}
+              className="shrink-0 rounded-[8px] border border-accent bg-accent-soft px-3 py-2.5 text-[12px] font-medium text-accent transition hover:bg-accent hover:text-white disabled:opacity-40"
+            >
+              Agregar fecha
+            </button>
+          </div>
+          <div className="mt-1.5 text-[11px] text-mute2">
+            Esta fecha extra solo aplica a este cálculo puntual — no se guarda en el calendario general de feriados.
+          </div>
         </div>
 
         {loading ? (
