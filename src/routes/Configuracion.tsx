@@ -169,7 +169,9 @@ export default function Configuracion() {
 
         <div className="mb-2.5 rounded-[10px] border border-border bg-surface p-3">
           <label className={labelClass}>Plan</label>
-          <div className="text-[13px] font-medium capitalize text-ink">{workspace.plan}</div>
+          <div className="text-[13px] font-medium capitalize text-ink">
+            {workspace.plan === 'demo_enterprise' ? 'Enterprise' : workspace.plan}
+          </div>
         </div>
 
         {puedeEditar && <MisCodigosReferido workspaceId={workspace.id} />}
