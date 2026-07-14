@@ -100,7 +100,8 @@ export default function Invite() {
     <div className="flex h-screen items-center justify-center overflow-y-auto bg-bg px-4 py-8">
       <div className="w-full max-w-[380px] rounded-[14px] border border-border bg-surface p-8 shadow-sm">
         <div className="mb-6 text-center">
-          <img src="/LOGO.png" alt="TSADOQ" className="mx-auto h-16 w-auto" />
+          <img src="/LOGO_1.png" alt="TSADOQ" className="logo-claro mx-auto h-16 w-auto" />
+          <img src="/LOGO_2.png" alt="TSADOQ" className="logo-oscuro mx-auto h-16 w-auto" />
         </div>
 
         {loadError ? (

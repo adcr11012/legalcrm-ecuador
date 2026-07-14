@@ -81,7 +81,8 @@ export function Sidebar({ open, onToggle }: { open: boolean; onToggle: () => voi
           {open && (
             <>
               <button onClick={() => setVideoAbierto(true)} title="Ver video de TSADOQ">
-                <img src="/LOGO.png" alt="TSADOQ" className="h-7 w-auto object-contain" />
+                <img src="/LOGO_1.png" alt="TSADOQ" className="logo-claro h-7 w-auto object-contain" />
+                <img src="/LOGO_2.png" alt="TSADOQ" className="logo-oscuro h-7 w-auto object-contain" />
               </button>
               <div className="min-w-0">
                 <div className="text-[13px] font-bold leading-tight text-ink">TSADOQ</div>

@@ -89,3 +89,20 @@ body {
 #root {
   height: 100vh;
 }
+
+/* Logo con contraste según tema: versión clara (fondo navy, círculos
+   dorados) para claro/moderno, versión oscura (fondo dorado, círculos
+   navy) para el tema oscuro. Controlado por CSS para no depender de
+   estado de React en cada punto donde se usa el logo. */
+.logo-claro {
+  display: block;
+}
+.logo-oscuro {
+  display: none;
+}
+[data-theme='oscuro'] .logo-claro {
+  display: none;
+}
+[data-theme='oscuro'] .logo-oscuro {
+  display: block;
+}

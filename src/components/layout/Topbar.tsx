@@ -35,7 +35,8 @@ export function Topbar({ action, sidebarOpen }: { action: PageAction; sidebarOpe
     return (
       <div className="relative flex h-[56px] flex-shrink-0 items-center justify-between border-b border-border bg-surface px-4">
         <div className="flex items-center gap-2">
-          <img src="/LOGO.png" alt="TSADOQ" className="h-7 w-auto object-contain" />
+          <img src="/LOGO_1.png" alt="TSADOQ" className="logo-claro h-7 w-auto object-contain" />
+          <img src="/LOGO_2.png" alt="TSADOQ" className="logo-oscuro h-7 w-auto object-contain" />
           <span className="text-[16px] font-bold text-ink">TSADOQ</span>
         </div>
         <div className="flex items-center gap-2">
@@ -85,7 +86,8 @@ export function Topbar({ action, sidebarOpen }: { action: PageAction; sidebarOpe
       {!sidebarOpen && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div className="flex items-center gap-2">
-            <img src="/LOGO.png" alt="TSADOQ" className="h-7 w-auto object-contain" />
+            <img src="/LOGO_1.png" alt="TSADOQ" className="logo-claro h-7 w-auto object-contain" />
+            <img src="/LOGO_2.png" alt="TSADOQ" className="logo-oscuro h-7 w-auto object-contain" />
             <span className="text-[14px] font-bold text-ink">TSADOQ</span>
             <span className="hidden text-[12px] text-mute2 sm:inline">| Gestor de casos</span>
           </div>

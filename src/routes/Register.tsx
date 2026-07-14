@@ -129,7 +129,8 @@ export default function Register() {
       <div className="flex h-screen items-center justify-center overflow-y-auto bg-bg px-4 py-8">
         <div className="w-full max-w-[380px] rounded-[14px] border border-border bg-surface p-8 shadow-sm">
           <div className="mb-7 text-center">
-            <img src="/LOGO.png" alt="TSADOQ" className="mx-auto h-16 w-auto" />
+            <img src="/LOGO_1.png" alt="TSADOQ" className="logo-claro mx-auto h-16 w-auto" />
+            <img src="/LOGO_2.png" alt="TSADOQ" className="logo-oscuro mx-auto h-16 w-auto" />
             <h1 className="mt-3 text-[19px] font-bold text-ink">Crea tu workspace</h1>
             <p className="mt-1 text-[12px] text-muted">Un último paso para empezar.</p>
           </div>
@@ -194,7 +195,8 @@ export default function Register() {
     <div className="flex h-screen items-center justify-center overflow-y-auto bg-bg px-4 py-8">
       <div className="w-full max-w-[380px] rounded-[14px] border border-border bg-surface p-8 shadow-sm">
         <div className="mb-7 text-center">
-          <img src="/LOGO.png" alt="TSADOQ" className="mx-auto h-16 w-auto" />
+          <img src="/LOGO_1.png" alt="TSADOQ" className="logo-claro mx-auto h-16 w-auto" />
+          <img src="/LOGO_2.png" alt="TSADOQ" className="logo-oscuro mx-auto h-16 w-auto" />
           <h1 className="mt-3 text-[19px] font-bold text-ink">Crea tu cuenta</h1>
         </div>
 
