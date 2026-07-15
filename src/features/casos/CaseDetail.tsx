@@ -127,6 +127,8 @@ export function CaseDetail({
     load()
   }, [load])
 
+  const { isMobile } = useDevice()
+
   if (loading) return <div className="flex-1 p-5 text-[13px] text-muted">Cargando caso…</div>
   if (error) return <div className="flex-1 p-5 text-[13px] text-danger">{error}</div>
   if (!caso) return <div className="flex-1 p-5 text-[13px] text-muted">Caso no encontrado.</div>
@@ -204,7 +206,6 @@ export function CaseDetail({
     onDeleted?.()
   }
 
-  const { isMobile } = useDevice()
   const MOBILE_TABS = new Set(['info', 'agenda', 'docs', 'notas'])
   const visibleTabs = TABS.filter((t) => {
     if (t.key === 'notas' && !showNotas) return false
