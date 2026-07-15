@@ -441,6 +441,10 @@ export type Database = {
         Args: { p_cantidad: number; p_semillas?: number }
         Returns: string[]
       }
+      canjear_codigo_referido: {
+        Args: { p_codigo: string }
+        Returns: { plan: string; semillas_heredadas: number; codigos_generados: string[] }
+      }
       admin_upsert_feriado: {
         Args: { p_fecha: string; p_nombre: string; p_verificado: boolean; p_provincia?: string | null }
         Returns: void
