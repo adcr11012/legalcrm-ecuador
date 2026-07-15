@@ -30,6 +30,7 @@ export default function Configuracion() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState<string | null>(null)
+  const [idCopiado, setIdCopiado] = useState(false)
   const [driveEstado, setDriveEstado] = useState<DriveEstado>({ conectado: false, email: null })
   const [driveBusy, setDriveBusy] = useState(false)
   const [driveInfoAbierta, setDriveInfoAbierta] = useState(false)
@@ -173,6 +174,27 @@ export default function Configuracion() {
           <div className="text-[13px] font-medium capitalize text-ink">
             {workspace.plan === 'demo_enterprise' ? 'Enterprise' : workspace.plan}
           </div>
+        </div>
+
+        <div className="mb-2.5 rounded-[10px] border border-border bg-surface p-3">
+          <label className={labelClass}>ID del workspace</label>
+          <div className="flex items-center justify-between gap-2">
+            <span className="truncate font-mono text-[12px] text-ink">{workspace.id}</span>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(workspace.id)
+                setIdCopiado(true)
+                setTimeout(() => setIdCopiado(false), 1500)
+              }}
+              title="Copiar ID"
+              className="shrink-0 rounded-[6px] border border-border px-2 py-1 text-[11px] text-muted transition hover:bg-soft"
+            >
+              <i className={`ti ${idCopiado ? 'ti-check text-success' : 'ti-copy'}`} />
+            </button>
+          </div>
+          <p className="mt-1.5 text-[11px] text-mute2">
+            Identificador único de tu workspace en el sistema — lo puede pedir soporte para ayudarte con tu cuenta.
+          </p>
         </div>
 
         {puedeEditar && (
