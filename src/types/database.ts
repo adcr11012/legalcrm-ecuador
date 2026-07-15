@@ -32,6 +32,7 @@ export type Workspace = {
   dias_inactividad_caso: number
   alertas_inactividad_ultimo_envio: string | null
   satje_sincronizacion_activa: boolean
+  codigo_referido_canjeado: boolean
   created_at: string
 }
 

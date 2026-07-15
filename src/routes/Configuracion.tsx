@@ -11,6 +11,7 @@ import { getTema, setTema, type Tema } from '@/lib/theme'
 import type { Workspace } from '@/types/database'
 import { MobileBlock } from '@/components/mobile/MobileBlock'
 import { MisCodigosReferido } from '@/features/referidos/MisCodigosReferido'
+import { CanjearBeneficios } from '@/features/referidos/CanjearBeneficios'
 
 const TEMAS: { value: Tema; label: string; icon: string }[] = [
   { value: 'claro', label: 'Claro', icon: 'ti-sun' },
@@ -174,6 +175,12 @@ export default function Configuracion() {
           </div>
         </div>
 
+        {puedeEditar && (
+          <CanjearBeneficios
+            yaCanjeado={workspace.codigo_referido_canjeado}
+            onCanjeado={() => setWorkspace((w) => (w ? { ...w, codigo_referido_canjeado: true, plan: 'demo_enterprise' } : w))}
+          />
+        )}
         {puedeEditar && <MisCodigosReferido workspaceId={workspace.id} />}
 
         <div className="rounded-[10px] border border-border bg-surface p-3">
