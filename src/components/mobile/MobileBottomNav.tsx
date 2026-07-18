@@ -34,8 +34,10 @@ export function MobileBottomNav() {
 
   return (
     <>
-      {/* Fixed bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 flex h-[60px] items-center border-t border-border bg-surface"
+      {/* Barra inferior — parte normal del layout flex (no "fixed"), para que
+          el contenido scrolleable de cada pantalla reserve espacio real y no
+          quede tapado detrás. */}
+      <nav className="relative z-40 flex min-h-[60px] flex-shrink-0 items-center border-t border-border bg-surface"
            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         {NAV.map(({ to, icon, label }) => {
           const active = pathname === to || (to !== '/dashboard' && pathname.startsWith(to))

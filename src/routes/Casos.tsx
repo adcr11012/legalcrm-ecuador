@@ -13,11 +13,13 @@ import { CaseDetail } from '@/features/casos/CaseDetail'
 import { CasosKanban } from '@/features/casos/CasosKanban'
 import { Modal } from '@/components/Modal'
 import { diasRestantes, clasificarUrgencia, type Urgencia } from '@/features/casos/plazoUrgencia'
+import { useDevice } from '@/context/DeviceModeContext'
 import type { Caso, CasoPersona, Etapa, Usuario } from '@/types/database'
 
 export default function Casos() {
   const { profile } = useAuth()
   const navigate = useNavigate()
+  const { isMobile } = useDevice()
   const { id } = useParams<{ id: string }>()
   const [casos, setCasos] = useState<Caso[]>([])
   const [etapas, setEtapas] = useState<Etapa[]>([])
@@ -62,7 +64,10 @@ export default function Casos() {
       setCasos(data)
       setTotal(totalCount)
       setFullyLoaded(data.length >= totalCount)
-      if (!id && data[0]) navigate(`/casos/${data[0].id}`, { replace: true })
+      // En mobile la lista ES la pantalla completa cuando no hay :id — auto-
+      // seleccionar el primer caso la ocultaría sin dejar volver a verla. En
+      // desktop sí tiene sentido, para no dejar el panel derecho vacío.
+      if (!id && data[0] && !isMobile) navigate(`/casos/${data[0].id}`, { replace: true })
       await loadPersonasYEtapas(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudieron cargar los casos.')

@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { preguntarWorkspaceIA } from '@/features/workspace/workspaceIaApi'
+import { useDevice } from '@/context/DeviceModeContext'
 
 type Mensaje = { rol: 'user' | 'ia'; texto: string }
 
 export function WorkspaceAssistant() {
+  const { isMobile } = useDevice()
   const [open, setOpen] = useState(false)
   const [mensajes, setMensajes] = useState<Mensaje[]>([])
   const [pregunta, setPregunta] = useState('')
@@ -41,13 +43,15 @@ export function WorkspaceAssistant() {
       <button
         onClick={() => setOpen((v) => !v)}
         title="Asistente TSADOQ IA"
-        className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[6px] text-muted transition hover:bg-soft hover:text-ink"
+        className={`flex flex-shrink-0 items-center justify-center rounded-[6px] text-muted transition hover:bg-soft hover:text-ink ${isMobile ? 'h-9 w-9' : 'h-8 w-8'}`}
       >
         <i className="ti ti-sparkles text-[18px]" />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-[calc(100%+6px)] z-[200] flex max-h-[420px] w-[340px] flex-col overflow-hidden rounded-[10px] border border-border bg-surface shadow-lg">
+        <div
+          className="fixed inset-x-3 top-[60px] z-[200] flex max-h-[70vh] flex-col overflow-hidden rounded-[10px] border border-border bg-surface shadow-lg sm:absolute sm:inset-x-auto sm:right-0 sm:top-[calc(100%+6px)] sm:max-h-[420px] sm:w-[340px]"
+        >
           <div className="border-b border-border px-3.5 py-2.5 text-[12px] font-semibold text-ink">Temis · Workspace</div>
 
           <div className="flex-1 overflow-y-auto p-3">

@@ -206,10 +206,8 @@ export function CaseDetail({
     onDeleted?.()
   }
 
-  const MOBILE_TABS = new Set(['info', 'agenda', 'docs', 'notas'])
   const visibleTabs = TABS.filter((t) => {
     if (t.key === 'notas' && !showNotas) return false
-    if (isMobile && !MOBILE_TABS.has(t.key)) return false
     return true
   })
 

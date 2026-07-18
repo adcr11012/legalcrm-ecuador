@@ -32,14 +32,37 @@ export function Topbar({ action, sidebarOpen }: { action: PageAction; sidebarOpe
   const view: 'list' | 'kanban' = searchParams.get('view') === 'kanban' ? 'kanban' : 'list'
 
   if (isMobile) {
+    const enDashboard = sectionFor(pathname) === '/dashboard'
     return (
-      <div className="relative flex h-[56px] flex-shrink-0 items-center justify-between border-b border-border bg-surface px-4">
-        <div className="flex items-center gap-2">
-          <img src="/LOGO_1.png" alt="TSADOQ" className="logo-claro h-7 w-auto object-contain" />
-          <img src="/LOGO_2.png" alt="TSADOQ" className="logo-oscuro h-7 w-auto object-contain" />
-          <span className="text-[16px] font-bold text-ink">TSADOQ</span>
+      <div className="relative flex h-[56px] flex-shrink-0 items-center justify-between gap-2 border-b border-border bg-surface px-3">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          {enDashboard ? (
+            <>
+              <img src="/LOGO_1.png" alt="TSADOQ" className="logo-claro h-7 w-auto flex-shrink-0 object-contain" />
+              <img src="/LOGO_2.png" alt="TSADOQ" className="logo-oscuro h-7 w-auto flex-shrink-0 object-contain" />
+              <span className="truncate text-[16px] font-bold text-ink">TSADOQ</span>
+            </>
+          ) : (
+            <span className="truncate text-[16px] font-bold text-ink">{title}</span>
+          )}
+          {enCasos && (
+            <div className="flex flex-shrink-0 gap-0.5 rounded-[6px] bg-soft p-0.5">
+              <button
+                onClick={() => setSearchParams((prev) => { prev.set('view', 'list'); return prev })}
+                className={`flex h-7 items-center gap-1 rounded-[5px] px-2 text-[11px] transition ${view === 'list' ? 'bg-surface text-ink shadow-sm' : 'text-muted'}`}
+              >
+                <i className="ti ti-list" />
+              </button>
+              <button
+                onClick={() => setSearchParams((prev) => { prev.set('view', 'kanban'); return prev })}
+                className={`flex h-7 items-center gap-1 rounded-[5px] px-2 text-[11px] transition ${view === 'kanban' ? 'bg-surface text-ink shadow-sm' : 'text-muted'}`}
+              >
+                <i className="ti ti-layout-columns" />
+              </button>
+            </div>
+          )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-shrink-0 items-center gap-1">
           {action && (
             <button
               onClick={action.onClick}
@@ -48,6 +71,7 @@ export function Topbar({ action, sidebarOpen }: { action: PageAction; sidebarOpe
               <i className="ti ti-plus text-[18px]" />
             </button>
           )}
+          <WorkspaceAssistant />
           <button
             onClick={() => navigate('/ayuda')}
             title="Ayuda / Manual"
