@@ -48,7 +48,7 @@ export function WorkspaceAssistant() {
 
       {open && (
         <div className="absolute right-0 top-[calc(100%+6px)] z-[200] flex max-h-[420px] w-[340px] flex-col overflow-hidden rounded-[10px] border border-border bg-surface shadow-lg">
-          <div className="border-b border-border px-3.5 py-2.5 text-[12px] font-semibold text-ink">TSADOQ IA · Workspace</div>
+          <div className="border-b border-border px-3.5 py-2.5 text-[12px] font-semibold text-ink">Temis · Workspace</div>
 
           <div className="flex-1 overflow-y-auto p-3">
             {mensajes.length === 0 && (
