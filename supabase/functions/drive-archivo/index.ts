@@ -31,8 +31,10 @@ async function getAccessToken(refreshToken: string): Promise<string | null> {
       }),
     })
     const j = await res.json()
+    if (!res.ok) console.error('drive-archivo: fallo al refrescar token', j)
     return res.ok ? j.access_token : null
-  } catch {
+  } catch (err) {
+    console.error('drive-archivo: excepción al refrescar token', err)
     return null
   }
 }
