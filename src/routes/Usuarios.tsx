@@ -9,7 +9,6 @@ import { InvitarUsuarioModal } from '@/features/usuarios/InvitarUsuarioModal'
 import { listGrupos, type GrupoConMiembros } from '@/features/users/gruposApi'
 import { GruposSection } from '@/features/users/GruposSection'
 import type { Invitacion, RolUsuario, Usuario } from '@/types/database'
-import { MobileBlock } from '@/components/mobile/MobileBlock'
 
 const ROL_LABEL: Record<RolUsuario, string> = {
   administrador: 'Administrador',
@@ -113,9 +112,8 @@ export default function Usuarios() {
   if (error) return <div className="flex-1 p-5 text-[13px] text-danger">{error}</div>
 
   return (
-    <MobileBlock feature="Gestión de usuarios">
-    <div className="flex-1 overflow-y-auto p-5">
-      <div className="mb-4 flex items-center justify-between">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-5">
+      <div className="mb-4 flex items-center justify-between gap-3">
         <div>
           <div className="text-[15px] font-semibold text-ink">Usuarios del workspace</div>
           <div className="text-[12px] text-muted">{usuarios.length} usuario{usuarios.length === 1 ? '' : 's'}</div>
@@ -123,14 +121,15 @@ export default function Usuarios() {
         {esAdmin && (
           <button
             onClick={() => setModalOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-[8px] bg-accent px-3 py-2 text-[12px] font-medium text-white transition hover:bg-accent-hover"
+            className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-[8px] bg-accent px-3 py-2 text-[12px] font-medium text-white transition hover:bg-accent-hover"
           >
-            <i className="ti ti-user-plus" /> Invitar usuario
+            <i className="ti ti-user-plus" /> <span className="hidden sm:inline">Invitar usuario</span><span className="sm:hidden">Invitar</span>
           </button>
         )}
       </div>
 
-      <div className="overflow-hidden rounded-[10px] border border-border bg-surface">
+      {/* Tabla — pantallas grandes */}
+      <div className="hidden overflow-hidden rounded-[10px] border border-border bg-surface lg:block">
         <div className="grid grid-cols-[2fr_1.4fr_1fr_90px_48px] bg-soft px-4 py-2.5">
           {['Usuario', 'Rol', 'Casos', 'Última vez', ''].map((h) => (
             <span key={h} className="text-[11px] font-semibold uppercase tracking-wide text-mute2">
@@ -193,6 +192,59 @@ export default function Usuarios() {
         ))}
       </div>
 
+      {/* Tarjetas — mobile */}
+      <div className="flex flex-col gap-2 lg:hidden">
+        {usuarios.map((u) => (
+          <div key={u.id} className="rounded-[12px] border border-border bg-surface p-3.5">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-accent-soft text-[12px] font-semibold text-accent">
+                {initials(u.nombre)}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="truncate text-[14px] font-semibold text-ink">{u.nombre}</span>
+                  {u.es_propietario && <i className="ti ti-crown flex-shrink-0 text-[13px] text-warn" title="Propietario del workspace" />}
+                </div>
+                <div className="truncate text-[12px] text-mute2">{u.email}</div>
+              </div>
+              {esAdmin && u.id !== profile?.id && !u.es_propietario && (
+                <button
+                  onClick={() => onRemove(u)}
+                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] border border-border text-muted transition active:bg-danger-soft active:text-danger"
+                >
+                  <i className="ti ti-trash text-[15px]" />
+                </button>
+              )}
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border pt-3">
+              {esAdmin && u.id !== profile?.id && !u.es_propietario ? (
+                <select
+                  value={u.rol}
+                  disabled={cambiandoRol === u.id}
+                  onChange={(e) => onChangeRol(u, e.target.value as RolUsuario)}
+                  className={`cursor-pointer rounded-full border-0 py-1 pl-2.5 pr-7 text-[11px] font-medium outline-none disabled:opacity-60 ${ROL_CLASS[u.rol]}`}
+                >
+                  {ROLES_DISPONIBLES.map((r) => (
+                    <option key={r} value={r}>{ROL_LABEL[r]}</option>
+                  ))}
+                </select>
+              ) : (
+                <span className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${ROL_CLASS[u.rol]}`}>
+                  {ROL_LABEL[u.rol]}
+                </span>
+              )}
+              <span className="text-[11.5px] text-muted">
+                <i className="ti ti-briefcase mr-1 text-[12px] text-mute2" />{casosPorUsuario.get(u.id) ?? 0} caso{(casosPorUsuario.get(u.id) ?? 0) === 1 ? '' : 's'}
+              </span>
+              <span className="text-[11.5px] text-mute2">
+                <i className="ti ti-clock mr-1 text-[12px]" />{lastSeenLabel(u.last_seen_at)}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {esAdmin && (
         <div className="mt-3 rounded-[10px] border border-accent/15 bg-accent-soft px-3.5 py-2.5 text-[12px] text-accent">
           <i className="ti ti-info-circle" />{' '}
@@ -246,6 +298,5 @@ export default function Usuarios() {
         onCreated={(inv) => setInvitaciones((prev) => [inv, ...prev])}
       />
     </div>
-    </MobileBlock>
   )
 }

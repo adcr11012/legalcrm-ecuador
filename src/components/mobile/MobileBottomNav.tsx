@@ -1,6 +1,7 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useDevice } from '@/context/DeviceModeContext'
+import { useAuth } from '@/features/auth/AuthProvider'
 import { supabase } from '@/lib/supabase'
 
 const NAV = [
@@ -9,19 +10,27 @@ const NAV = [
   { to: '/agenda',    icon: 'ti-calendar',          label: 'Agenda' },
 ]
 
-const MORE_LINKS = [
-  { to: '/clientes',      icon: 'ti-users',    label: 'Clientes',      blocked: true },
-  { to: '/usuarios',      icon: 'ti-user-cog', label: 'Usuarios',      blocked: true },
-  { to: '/configuracion', icon: 'ti-settings', label: 'Configuración', blocked: true },
+type MoreLink = { to: string; icon: string; label: string; blocked?: boolean; soloAdmin?: boolean }
+
+const MORE_LINKS: MoreLink[] = [
+  { to: '/clientes',      icon: 'ti-users',         label: 'Clientes' },
+  { to: '/buscar',        icon: 'ti-search',        label: 'Buscar / Reportes' },
+  { to: '/calculadora',   icon: 'ti-calculator',    label: 'Calculadora' },
+  { to: '/soporte',       icon: 'ti-lifebuoy',      label: 'Soporte' },
+  { to: '/anuncios',      icon: 'ti-speakerphone',  label: 'Anuncios',      soloAdmin: true },
+  { to: '/usuarios',      icon: 'ti-user-cog',      label: 'Usuarios',      soloAdmin: true },
+  { to: '/configuracion', icon: 'ti-settings',      label: 'Configuración', blocked: true, soloAdmin: true },
 ]
 
 export function MobileBottomNav() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const { setForceFullView } = useDevice()
+  const { profile } = useAuth()
   const [moreOpen, setMoreOpen] = useState(false)
+  const links = MORE_LINKS.filter((l) => !l.soloAdmin || profile?.rol === 'administrador')
 
-  const isMore = MORE_LINKS.some(l => pathname.startsWith(l.to))
+  const isMore = links.some(l => pathname.startsWith(l.to))
 
   return (
     <>
@@ -54,7 +63,7 @@ export function MobileBottomNav() {
             <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" />
             <div className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted">Otras secciones</div>
             <div className="mb-4 grid grid-cols-2 gap-2">
-              {MORE_LINKS.map(({ to, icon, label, blocked }) => (
+              {links.map(({ to, icon, label, blocked }) => (
                 <button key={to}
                   onClick={() => { navigate(to); setMoreOpen(false) }}
                   className="flex items-center gap-3 rounded-[10px] border border-border bg-bg px-3 py-3 text-left transition hover:bg-soft">
