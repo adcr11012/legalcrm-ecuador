@@ -1,8 +1,17 @@
 import { useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import type { Carpeta, Documento } from '@/types/database'
 import { getDocumentoProxyUrl, registrarAccesoDocumento, compartirDocumento } from '@/features/casos/documentosApi'
 import { moverDocumento, createCarpeta, deleteCarpeta, renameCarpeta, reindexCarpetas } from '@/features/casos/carpetasApi'
 import { useDevice } from '@/context/DeviceModeContext'
+
+// Errores de bajo nivel de las Edge Functions de Drive (texto plano, no
+// pensados para mostrarse tal cual al usuario) — se traducen a un aviso
+// accionable en vez del mensaje crudo del backend.
+const DRIVE_DESCONECTADO_MSGS = ['Drive no conectado', 'Google Drive no conectado']
+function esErrorDriveDesconectado(msg: string): boolean {
+  return DRIVE_DESCONECTADO_MSGS.some((m) => msg.includes(m))
+}
 
 // Muestra un archivo (Blob URL) en la pestaña ya abierta. Navegar
 // directamente a una blob: URL vía location.href a veces hace que Chrome
@@ -126,7 +135,11 @@ function MobileDocRow({ d, casoId, workspaceId }: { d: Documento; casoId: string
       {errorDoc && (
         <div className="flex items-center gap-2 rounded-[8px] bg-danger-soft px-3 py-2 text-[12px] text-danger">
           <i className="ti ti-alert-circle" />
-          <span className="flex-1">{errorDoc}</span>
+          <span className="flex-1">
+            {esErrorDriveDesconectado(errorDoc) ? (
+              <>Google Drive se desconectó. Un administrador debe reconectarlo desde <Link to="/configuracion" className="underline">Configuración</Link>.</>
+            ) : errorDoc}
+          </span>
           <button onClick={() => setErrorDoc(null)}><i className="ti ti-x" /></button>
         </div>
       )}
@@ -227,7 +240,11 @@ function DocRow({
       {errorDoc && (
         <div className="flex items-center gap-2 rounded-[6px] bg-danger-soft px-2 py-1 text-[11px] text-danger">
           <i className="ti ti-alert-circle" />
-          <span className="flex-1">{errorDoc}</span>
+          <span className="flex-1">
+            {esErrorDriveDesconectado(errorDoc) ? (
+              <>Google Drive se desconectó. Un administrador debe reconectarlo desde <Link to="/configuracion" className="underline">Configuración</Link>.</>
+            ) : errorDoc}
+          </span>
           <button onClick={() => setErrorDoc(null)}><i className="ti ti-x text-[11px]" /></button>
         </div>
       )}
