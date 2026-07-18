@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthProvider'
 import { getWorkspace, updateWorkspace } from '@/features/workspace/api'
-import { isGoogleDriveConfigured, buildGoogleConsentUrl, getDriveEstado, desconectarDrive, reconciliarDrive, prepararReconexionDrive, type DriveEstado } from '@/features/workspace/driveApi'
+import { isGoogleDriveConfigured, buildGoogleConsentUrl, getDriveEstado, desconectarDrive, reconciliarDrive, prepararReconexionDrive, verificarDrive, type DriveEstado } from '@/features/workspace/driveApi'
 import { EtapasSettings } from '@/features/casos/EtapasSettings'
 import { GroqSettings } from '@/features/workspace/GroqSettings'
 import { OpenRouterSettings } from '@/features/workspace/OpenRouterSettings'
@@ -34,6 +34,7 @@ export default function Configuracion() {
   const [driveEstado, setDriveEstado] = useState<DriveEstado>({ conectado: false, email: null })
   const [driveBusy, setDriveBusy] = useState(false)
   const [driveInfoAbierta, setDriveInfoAbierta] = useState(false)
+  const [driveTokenRoto, setDriveTokenRoto] = useState(false)
   const [tema, setTemaState] = useState<Tema>('claro')
 
   useEffect(() => {
@@ -54,6 +55,9 @@ export default function Configuracion() {
       setWorkspace(ws)
       setNombre(ws?.nombre ?? '')
       setDriveEstado(estado)
+      if (estado.conectado) {
+        verificarDrive().then((v) => setDriveTokenRoto(!v.valido)).catch(() => {})
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo cargar la configuración.')
     } finally {
@@ -94,6 +98,7 @@ export default function Configuracion() {
     try {
       await desconectarDrive()
       setDriveEstado({ conectado: false, email: null })
+      setDriveTokenRoto(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo desconectar.')
     } finally {
@@ -207,10 +212,18 @@ export default function Configuracion() {
 
         <div className="rounded-[10px] border border-border bg-surface p-3">
           <label className={labelClass}>Google Drive + Calendar</label>
+          {driveTokenRoto && (
+            <div className="mb-2.5 flex items-center gap-2 rounded-[8px] border border-danger/30 bg-danger-soft px-3 py-2 text-[12px] text-danger">
+              <i className="ti ti-alert-circle" />
+              <span className="flex-1">
+                Google dejó de aceptar esta conexión (suele pasar si la app está en modo de prueba en Google Cloud, o si se revocó el acceso). Dale a "Reconectar" para restablecerla.
+              </span>
+            </div>
+          )}
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 text-[13px] text-muted">
-              <span className={`h-1.5 w-1.5 rounded-full ${driveEstado.conectado ? 'bg-success' : 'bg-mute2'}`} />
-              {driveEstado.conectado ? `Conectado · ${driveEstado.email}` : 'No conectado'}
+              <span className={`h-1.5 w-1.5 rounded-full ${driveEstado.conectado && !driveTokenRoto ? 'bg-success' : driveTokenRoto ? 'bg-danger' : 'bg-mute2'}`} />
+              {driveEstado.conectado ? (driveTokenRoto ? `Conexión caducada · ${driveEstado.email}` : `Conectado · ${driveEstado.email}`) : 'No conectado'}
             </div>
             {puedeEditar && isGoogleDriveConfigured() && (
               <div className="flex gap-2">

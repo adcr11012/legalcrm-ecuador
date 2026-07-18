@@ -35,6 +35,21 @@ export async function desconectarDrive(): Promise<void> {
   if (error) throw error
 }
 
+export type VerificacionDrive = { valido: boolean; motivo?: string }
+
+// A diferencia de getDriveEstado() (que solo mira si existe una fila en
+// drive_conexion), esto prueba de verdad si Google todavía acepta el
+// refresh_token — solo llamar desde Configuración, no en cada carga.
+export async function verificarDrive(): Promise<VerificacionDrive> {
+  const { data: session } = await supabase.auth.getSession()
+  const token = session.session?.access_token
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/drive-verificar`
+  const res = await fetch(url, { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
+  const json = await res.json()
+  if (!res.ok) throw new Error(json.error ?? 'No se pudo verificar la conexión')
+  return json
+}
+
 export async function completarConexionDrive(code: string): Promise<{ ok: boolean; email: string }> {
   const { data: session } = await supabase.auth.getSession()
   const token = session.session?.access_token
