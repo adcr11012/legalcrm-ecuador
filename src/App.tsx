@@ -4,6 +4,9 @@ import { AuthProvider } from '@/features/auth/AuthProvider'
 import { ProtectedRoute, GuestRoute } from '@/components/ProtectedRoute'
 import { AppLayout } from '@/components/layout/AppLayout'
 
+const Landing         = lazy(() => import('@/routes/Landing'))
+const Terminos        = lazy(() => import('@/routes/Terminos'))
+const Privacidad      = lazy(() => import('@/routes/Privacidad'))
 const Login           = lazy(() => import('@/routes/Login'))
 const Register        = lazy(() => import('@/routes/Register'))
 const Dashboard       = lazy(() => import('@/routes/Dashboard'))
@@ -46,6 +49,8 @@ function App() {
               <Route path="/register" element={<Register />} />
             </Route>
             <Route path="/invite/:token" element={<Invite />} />
+            <Route path="/terminos" element={<Terminos />} />
+            <Route path="/privacidad" element={<Privacidad />} />
 
             <Route element={<ProtectedRoute />}>
               <Route path="/drive/oauth-callback" element={<DriveOAuthCallback />} />
@@ -81,7 +86,7 @@ function App() {
               <Route path="superadmins" element={<AdminSuperadmins />} />
             </Route>
 
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<Landing />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Suspense>
