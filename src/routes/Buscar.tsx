@@ -167,13 +167,13 @@ export default function Buscar() {
         <div className="flex gap-0.5 rounded-[8px] bg-soft p-0.5">
           <button
             onClick={() => setSearchParams((prev) => { prev.delete('modo'); return prev })}
-            className={`flex items-center gap-1.5 rounded-[6px] px-3 py-1.5 text-[12px] transition ${modo === 'buscar' ? 'bg-surface text-ink shadow-sm' : 'text-muted'}`}
+            className={`flex items-center gap-1.5 rounded-[6px] px-3 py-2 sm:py-1.5 text-[12px] transition ${modo === 'buscar' ? 'bg-surface text-ink shadow-sm' : 'text-muted'}`}
           >
             <i className="ti ti-search" /> Buscar
           </button>
           <button
             onClick={() => setSearchParams((prev) => { prev.set('modo', 'reportes'); return prev })}
-            className={`flex items-center gap-1.5 rounded-[6px] px-3 py-1.5 text-[12px] transition ${modo === 'reportes' ? 'bg-surface text-ink shadow-sm' : 'text-muted'}`}
+            className={`flex items-center gap-1.5 rounded-[6px] px-3 py-2 sm:py-1.5 text-[12px] transition ${modo === 'reportes' ? 'bg-surface text-ink shadow-sm' : 'text-muted'}`}
           >
             <i className="ti ti-report-analytics" /> Reportes
           </button>

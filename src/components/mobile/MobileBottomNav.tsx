@@ -19,7 +19,7 @@ const MORE_LINKS: MoreLink[] = [
   { to: '/soporte',       icon: 'ti-lifebuoy',      label: 'Soporte' },
   { to: '/anuncios',      icon: 'ti-speakerphone',  label: 'Anuncios',      soloAdmin: true },
   { to: '/usuarios',      icon: 'ti-user-cog',      label: 'Usuarios',      soloAdmin: true },
-  { to: '/configuracion', icon: 'ti-settings',      label: 'Configuración', blocked: true, soloAdmin: true },
+  { to: '/configuracion', icon: 'ti-settings',      label: 'Configuración', soloAdmin: true },
 ]
 
 export function MobileBottomNav() {

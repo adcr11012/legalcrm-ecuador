@@ -9,7 +9,6 @@ import { OpenRouterSettings } from '@/features/workspace/OpenRouterSettings'
 import { AuditoriaDocumentos } from '@/features/workspace/AuditoriaDocumentos'
 import { getTema, setTema, type Tema } from '@/lib/theme'
 import type { Workspace } from '@/types/database'
-import { MobileBlock } from '@/components/mobile/MobileBlock'
 import { MisCodigosReferido } from '@/features/referidos/MisCodigosReferido'
 import { CanjearBeneficios } from '@/features/referidos/CanjearBeneficios'
 
@@ -137,8 +136,7 @@ export default function Configuracion() {
   }
 
   return (
-    <MobileBlock feature="Configuración">
-    <div className="flex-1 overflow-y-auto p-5">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-5">
       <div className="max-w-[560px]">
         <div className="mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-mute2">Apariencia</div>
         <div className="mb-6 grid grid-cols-3 gap-2">
@@ -220,18 +218,18 @@ export default function Configuracion() {
               </span>
             </div>
           )}
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-1.5 text-[13px] text-muted">
-              <span className={`h-1.5 w-1.5 rounded-full ${driveEstado.conectado && !driveTokenRoto ? 'bg-success' : driveTokenRoto ? 'bg-danger' : 'bg-mute2'}`} />
+              <span className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${driveEstado.conectado && !driveTokenRoto ? 'bg-success' : driveTokenRoto ? 'bg-danger' : 'bg-mute2'}`} />
               {driveEstado.conectado ? (driveTokenRoto ? `Conexión caducada · ${driveEstado.email}` : `Conectado · ${driveEstado.email}`) : 'No conectado'}
             </div>
             {puedeEditar && isGoogleDriveConfigured() && (
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {driveEstado.conectado && (
                   <button
                     onClick={onPrepararReconexion}
                     disabled={driveBusy}
-                    className="rounded-[6px] border border-border px-2.5 py-1 text-[11px] text-muted transition hover:bg-soft disabled:opacity-60"
+                    className="rounded-[6px] border border-border px-2.5 py-2 text-[11px] text-muted transition hover:bg-soft disabled:opacity-60 sm:py-1"
                   >
                     Preparar reconexión
                   </button>
@@ -240,7 +238,7 @@ export default function Configuracion() {
                   <button
                     onClick={onReconciliarDrive}
                     disabled={driveBusy}
-                    className="rounded-[6px] border border-border px-2.5 py-1 text-[11px] text-muted transition hover:bg-soft disabled:opacity-60"
+                    className="rounded-[6px] border border-border px-2.5 py-2 text-[11px] text-muted transition hover:bg-soft disabled:opacity-60 sm:py-1"
                   >
                     Reconciliar
                   </button>
@@ -249,14 +247,14 @@ export default function Configuracion() {
                   <button
                     onClick={onDesconectarDrive}
                     disabled={driveBusy}
-                    className="rounded-[6px] border border-border px-2.5 py-1 text-[11px] text-muted transition hover:bg-danger-soft hover:text-danger disabled:opacity-60"
+                    className="rounded-[6px] border border-border px-2.5 py-2 text-[11px] text-muted transition hover:bg-danger-soft hover:text-danger disabled:opacity-60 sm:py-1"
                   >
                     Desconectar
                   </button>
                 )}
                 <a
                   href={buildGoogleConsentUrl()}
-                  className="rounded-[6px] bg-accent px-2.5 py-1 text-[11px] font-medium text-white transition hover:bg-accent-hover"
+                  className="rounded-[6px] bg-accent px-2.5 py-2 text-[11px] font-medium text-white transition hover:bg-accent-hover sm:py-1"
                 >
                   {driveEstado.conectado ? 'Reconectar' : 'Conectar'}
                 </a>
@@ -460,6 +458,5 @@ export default function Configuracion() {
         {error && <p className="mt-3 text-[11px] text-danger">{error}</p>}
       </div>
     </div>
-    </MobileBlock>
   )
 }

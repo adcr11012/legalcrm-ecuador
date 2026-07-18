@@ -126,17 +126,17 @@ export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean
         <div>
           <label className="mb-1 block text-[10px] font-medium text-mute2">Desde</label>
           <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)}
-            className="rounded-[6px] border border-border bg-bg px-2 py-1.5 text-[12px] text-ink outline-none focus:border-accent" />
+            className="rounded-[6px] border border-border bg-bg px-2.5 py-2 sm:px-2 sm:py-1.5 text-[12px] text-ink outline-none focus:border-accent" />
         </div>
         <div>
           <label className="mb-1 block text-[10px] font-medium text-mute2">Hasta</label>
           <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)}
-            className="rounded-[6px] border border-border bg-bg px-2 py-1.5 text-[12px] text-ink outline-none focus:border-accent" />
+            className="rounded-[6px] border border-border bg-bg px-2.5 py-2 sm:px-2 sm:py-1.5 text-[12px] text-ink outline-none focus:border-accent" />
         </div>
         <div>
           <label className="mb-1 block text-[10px] font-medium text-mute2">Materia</label>
           <select value={materia} onChange={(e) => setMateria(e.target.value)}
-            className="rounded-[6px] border border-border bg-bg px-2 py-1.5 text-[12px] text-ink outline-none">
+            className="rounded-[6px] border border-border bg-bg px-2.5 py-2 sm:px-2 sm:py-1.5 text-[12px] text-ink outline-none">
             <option value="">Todas</option>
             {Object.entries(MATERIA_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </select>
@@ -144,7 +144,7 @@ export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean
         <div>
           <label className="mb-1 block text-[10px] font-medium text-mute2">Etapa</label>
           <select value={etapaId} onChange={(e) => setEtapaId(e.target.value)}
-            className="rounded-[6px] border border-border bg-bg px-2 py-1.5 text-[12px] text-ink outline-none">
+            className="rounded-[6px] border border-border bg-bg px-2.5 py-2 sm:px-2 sm:py-1.5 text-[12px] text-ink outline-none">
             <option value="">Todas</option>
             {etapas.map((e) => <option key={e.id} value={e.id}>{e.nombre}</option>)}
           </select>
@@ -152,7 +152,7 @@ export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean
         <div>
           <label className="mb-1 block text-[10px] font-medium text-mute2">Usuario</label>
           <select value={abogado} onChange={(e) => setAbogado(e.target.value)}
-            className="rounded-[6px] border border-border bg-bg px-2 py-1.5 text-[12px] text-ink outline-none">
+            className="rounded-[6px] border border-border bg-bg px-2.5 py-2 sm:px-2 sm:py-1.5 text-[12px] text-ink outline-none">
             <option value="">Todos</option>
             {abogadosDisponibles.map((a) => <option key={a} value={a}>{a}</option>)}
           </select>
@@ -160,7 +160,7 @@ export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean
         <div>
           <label className="mb-1 block text-[10px] font-medium text-mute2">Cliente</label>
           <select value={cliente} onChange={(e) => setCliente(e.target.value)}
-            className="rounded-[6px] border border-border bg-bg px-2 py-1.5 text-[12px] text-ink outline-none">
+            className="rounded-[6px] border border-border bg-bg px-2.5 py-2 sm:px-2 sm:py-1.5 text-[12px] text-ink outline-none">
             <option value="">Todos</option>
             {clientesDisponibles.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -168,20 +168,20 @@ export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean
         <div>
           <label className="mb-1 block text-[10px] font-medium text-mute2">Estado</label>
           <select value={estado} onChange={(e) => setEstado(e.target.value as Estado)}
-            className="rounded-[6px] border border-border bg-bg px-2 py-1.5 text-[12px] text-ink outline-none">
+            className="rounded-[6px] border border-border bg-bg px-2.5 py-2 sm:px-2 sm:py-1.5 text-[12px] text-ink outline-none">
             <option value="">Todos</option>
             <option value="abierto">Abiertos</option>
             <option value="cerrado">Cerrados</option>
           </select>
         </div>
-        <button onClick={limpiarFiltros} className="rounded-[6px] border border-border px-2.5 py-1.5 text-[12px] text-muted transition hover:bg-soft">
+        <button onClick={limpiarFiltros} className="rounded-[6px] border border-border px-2.5 py-2 text-[12px] text-muted transition hover:bg-soft sm:py-1.5">
           Limpiar
         </button>
         <div className="flex-1" />
         <button
           onClick={() => descargarCsv(filtradas, etapasById)}
           disabled={filtradas.length === 0}
-          className="inline-flex items-center gap-1.5 rounded-[6px] bg-accent px-3 py-1.5 text-[12px] font-medium text-white transition hover:bg-accent-hover disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-[6px] bg-accent px-3 py-2 text-[12px] font-medium text-white transition hover:bg-accent-hover disabled:opacity-50 sm:py-1.5"
         >
           <i className="ti ti-file-spreadsheet" /> Exportar a Excel (CSV)
         </button>

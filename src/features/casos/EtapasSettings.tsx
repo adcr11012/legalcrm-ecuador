@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/features/auth/AuthProvider'
+import { useDevice } from '@/context/DeviceModeContext'
 import { listEtapas, createEtapa, updateEtapa, reordenarEtapas, deleteEtapa, MIN_ETAPAS } from '@/features/casos/etapasApi'
 import type { Etapa, EtapaColor } from '@/types/database'
 
@@ -16,6 +17,7 @@ const COLORES: EtapaColor[] = ['neutral', 'accent', 'warn', 'danger', 'success',
 
 export function EtapasSettings() {
   const { profile } = useAuth()
+  const { isMobile } = useDevice()
   const [etapas, setEtapas] = useState<Etapa[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -105,16 +107,16 @@ export function EtapasSettings() {
               <button
                 onClick={() => onMove(i, -1)}
                 disabled={i === 0}
-                className="flex h-5 w-5 items-center justify-center rounded text-mute2 transition hover:bg-soft disabled:opacity-30"
+                className={`flex items-center justify-center rounded text-mute2 transition hover:bg-soft disabled:opacity-30 ${isMobile ? 'h-8 w-8' : 'h-5 w-5'}`}
               >
-                <i className="ti ti-chevron-up text-[13px]" />
+                <i className={`ti ti-chevron-up ${isMobile ? 'text-[16px]' : 'text-[13px]'}`} />
               </button>
               <button
                 onClick={() => onMove(i, 1)}
                 disabled={i === etapas.length - 1}
-                className="flex h-5 w-5 items-center justify-center rounded text-mute2 transition hover:bg-soft disabled:opacity-30"
+                className={`flex items-center justify-center rounded text-mute2 transition hover:bg-soft disabled:opacity-30 ${isMobile ? 'h-8 w-8' : 'h-5 w-5'}`}
               >
-                <i className="ti ti-chevron-down text-[13px]" />
+                <i className={`ti ti-chevron-down ${isMobile ? 'text-[16px]' : 'text-[13px]'}`} />
               </button>
             </div>
 
