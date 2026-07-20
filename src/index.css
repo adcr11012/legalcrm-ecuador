@@ -106,3 +106,15 @@ body {
 [data-theme='oscuro'] .logo-oscuro {
   display: block;
 }
+
+/* Safari en iPhone hace zoom automático al enfocar un input con
+   font-size menor a 16px — un efecto molesto y confuso. La mayoría de
+   los inputs de la app usan 12-13px (correcto en desktop), así que se
+   sobreescribe solo en mobile, sin tocar cada formulario uno por uno. */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

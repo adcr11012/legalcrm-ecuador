@@ -45,7 +45,7 @@ export function MobileBottomNav() {
             <NavLink key={to} to={to}
               className={`flex flex-1 flex-col items-center justify-center gap-[3px] py-2 transition ${active ? 'text-accent' : 'text-muted'}`}>
               <i className={`ti ${icon} text-[22px]`} />
-              <span className="text-[10px] font-medium">{label}</span>
+              <span className="text-[11px] font-medium">{label}</span>
             </NavLink>
           )
         })}
@@ -53,7 +53,7 @@ export function MobileBottomNav() {
           onClick={() => setMoreOpen(v => !v)}
           className={`flex flex-1 flex-col items-center justify-center gap-[3px] py-2 transition ${isMore || moreOpen ? 'text-accent' : 'text-muted'}`}>
           <i className="ti ti-dots text-[22px]" />
-          <span className="text-[10px] font-medium">Más</span>
+          <span className="text-[11px] font-medium">Más</span>
         </button>
       </nav>
 
