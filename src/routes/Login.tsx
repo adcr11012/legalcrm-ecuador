@@ -38,7 +38,7 @@ export default function Login() {
             <img src="/LOGO_1.png" alt="TSADOQ" className="logo-claro mx-auto h-16 w-auto object-contain" />
             <img src="/LOGO_2.png" alt="TSADOQ" className="logo-oscuro mx-auto h-16 w-auto object-contain" />
           </button>
-          <div className="mt-2 text-[15px] font-bold uppercase tracking-wide text-ink">TSADOQ</div>
+          <div className="texto-marca mt-2 text-[22px] font-bold uppercase tracking-wide">TSADOQ</div>
           <h1 className="mt-3 text-[19px] font-bold text-ink">Iniciar sesión</h1>
         </div>
 
