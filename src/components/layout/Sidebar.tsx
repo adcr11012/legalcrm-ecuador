@@ -179,7 +179,7 @@ export function Sidebar({ open, onToggle }: { open: boolean; onToggle: () => voi
           </div>
         )}
       </nav>
-      <VideoLogoModal open={videoAbierto} onClose={() => setVideoAbierto(false)} />
+      <VideoLogoModal open={videoAbierto} onClose={() => setVideoAbierto(false)} src="/v_tsadoq_1.mp4" />
     </>
   )
 }

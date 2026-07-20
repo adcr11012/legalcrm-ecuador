@@ -1,4 +1,4 @@
-export function VideoLogoModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function VideoLogoModal({ open, onClose, src }: { open: boolean; onClose: () => void; src: string }) {
   if (!open) return null
 
   return (
@@ -14,7 +14,7 @@ export function VideoLogoModal({ open, onClose }: { open: boolean; onClose: () =
           <i className="ti ti-x text-[20px]" />
         </button>
         <video
-          src="/v_tsadoq_2.mp4"
+          src={src}
           autoPlay
           controls
           playsInline

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
+import { VideoLogoModal } from '@/components/VideoLogoModal'
 
 function mapAuthError(message: string): string {
   if (message.includes('Invalid login credentials')) return 'Correo o contraseña incorrectos.'
@@ -14,6 +15,7 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [videoAbierto, setVideoAbierto] = useState(false)
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -32,14 +34,16 @@ export default function Login() {
     <div className="flex h-screen items-center justify-center overflow-y-auto bg-bg px-4 py-8">
       <div className="w-full max-w-[380px] rounded-[14px] border border-border bg-surface p-8 shadow-sm">
         <div className="mb-7 text-center">
-          <video
-            src="/v_tsadoq_1.mp4"
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="mx-auto h-16 w-auto"
-          />
+          <button onClick={() => setVideoAbierto(true)} title="Ver video de TSADOQ" className="mx-auto block">
+            <video
+              src="/v_tsadoq_1.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="mx-auto h-16 w-auto"
+            />
+          </button>
           <h1 className="mt-3 text-[19px] font-bold text-ink">Iniciar sesión</h1>
         </div>
 
@@ -95,6 +99,7 @@ export default function Login() {
           </Link>
         </p>
       </div>
+      <VideoLogoModal open={videoAbierto} onClose={() => setVideoAbierto(false)} src="/v_tsadoq_2.mp4" />
     </div>
   )
 }

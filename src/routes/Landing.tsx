@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { VideoLogoModal } from '@/components/VideoLogoModal'
 
 const FEATURES = [
   {
@@ -67,6 +69,7 @@ const PLANES = [
 ]
 
 export default function Landing() {
+  const [videoAbierto, setVideoAbierto] = useState(false)
   return (
     <div className="tx">
       <style>{CSS}</style>
@@ -103,6 +106,9 @@ export default function Landing() {
                 <Link to="/register" className="tx-btn tx-btn--primary">Crear cuenta gratis</Link>
                 <a href="#producto" className="tx-btn tx-btn--ghost">Ver qué incluye</a>
               </div>
+              <button onClick={() => setVideoAbierto(true)} className="tx-video-link">
+                <i className="ti ti-player-play-filled" /> Ver video
+              </button>
             </div>
             <div className="tx-hero__mark" aria-hidden="true">
               <div className="tx-scale">
@@ -191,6 +197,7 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+      <VideoLogoModal open={videoAbierto} onClose={() => setVideoAbierto(false)} src="/v_tsadoq_2.mp4" />
     </div>
   )
 }
@@ -298,6 +305,9 @@ const CSS = `
 .tx-hero__title { font-size: clamp(34px, 5vw, 54px); line-height: 1.08; font-weight: 600; letter-spacing: -0.01em; }
 .tx-hero__lede { margin-top: 22px; max-width: 46ch; font-size: 17px; line-height: 1.6; color: var(--tx-muted); }
 .tx-hero__cta { display: flex; gap: 14px; margin-top: 34px; flex-wrap: wrap; }
+.tx-video-link { display: inline-flex; align-items: center; gap: 7px; margin-top: 18px; font-size: 13px; font-weight: 600; color: var(--tx-gold); }
+.tx-video-link i { font-size: 12px; }
+.tx-video-link:hover { text-decoration: underline; }
 
 .tx-scale { position: relative; height: 260px; display: flex; align-items: center; justify-content: center; }
 .tx-scale span {
