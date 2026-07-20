@@ -12,7 +12,7 @@ import { marcarOnboardingCompletado } from '@/features/users/api'
 function AppLayoutInner() {
   const [action, setAction] = useState<PageAction>(null)
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024)
-  const { isMobile, mode, width, forceFullView, setForceFullView } = useDevice()
+  const { isMobile, mode, forceFullView, setForceFullView } = useDevice()
   const isRealMobileForced = mode === 'mobile' && forceFullView
   const { profile, refreshProfile } = useAuth()
   const [onboardingVisible, setOnboardingVisible] = useState(false)
@@ -42,10 +42,6 @@ function AppLayoutInner() {
 
   return (
     <div className="flex h-screen bg-bg">
-      {/* Debug temporal — quitar después de diagnosticar el bug del menú mobile */}
-      <div className="fixed left-1 top-1 z-[999] rounded bg-black/80 px-1.5 py-0.5 text-[10px] font-bold text-white">
-        w:{width} m:{mode}
-      </div>
       {!isMobile && <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen((v) => !v)} />}
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <Topbar action={action} sidebarOpen={isMobile ? false : sidebarOpen} />

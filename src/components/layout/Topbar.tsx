@@ -1,8 +1,12 @@
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import type { PageAction } from '@/components/layout/PageActionContext'
 import { NotificationsBell } from '@/features/notifications/NotificationsBell'
 import { WorkspaceAssistant } from '@/features/workspace/WorkspaceAssistant'
 import { useDevice } from '@/context/DeviceModeContext'
+import { useAuth } from '@/features/auth/AuthProvider'
+import { useSetupInicial } from '@/hooks/useSetupInicial'
+import { SetupInicialWizard, debeResumirSetup } from '@/components/setup/SetupInicialWizard'
 
 const TITLES: Record<string, string> = {
   '/dashboard': 'Dashboard',
@@ -27,13 +31,43 @@ export function Topbar({ action, sidebarOpen }: { action: PageAction; sidebarOpe
   const navigate = useNavigate()
   const title = TITLES[sectionFor(pathname)] ?? ''
   const { isMobile } = useDevice()
+  const { profile } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
   const enCasos = sectionFor(pathname) === '/casos'
   const view: 'list' | 'kanban' = searchParams.get('view') === 'kanban' ? 'kanban' : 'list'
 
+  const esAdmin = profile?.rol === 'administrador'
+  const { driveConectado, groqConectado, pendiente, refetch } = useSetupInicial(esAdmin)
+  const [setupOpen, setSetupOpen] = useState(false)
+
+  useEffect(() => {
+    if (debeResumirSetup()) setSetupOpen(true)
+  }, [])
+
+  function cerrarSetup() {
+    setSetupOpen(false)
+    refetch()
+  }
+
+  const botonSetup = pendiente && (
+    <button
+      onClick={() => setSetupOpen(true)}
+      title="Configuración inicial pendiente"
+      className={`flex flex-shrink-0 items-center gap-1.5 rounded-full bg-danger px-2.5 text-[11px] font-medium text-white transition hover:opacity-90 ${isMobile ? 'h-9' : 'h-7'}`}
+    >
+      <i className="ti ti-alert-circle text-[13px]" />
+      <span className={isMobile ? '' : 'hidden sm:inline'}>Configurar</span>
+    </button>
+  )
+
+  const wizard = setupOpen && (
+    <SetupInicialWizard driveConectado={driveConectado} groqConectado={groqConectado} onClose={cerrarSetup} />
+  )
+
   if (isMobile) {
     const enDashboard = sectionFor(pathname) === '/dashboard'
     return (
+      <>
       <div className="relative flex h-[56px] flex-shrink-0 items-center justify-between gap-2 border-b border-border bg-surface px-3">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           {enDashboard ? (
@@ -45,6 +79,7 @@ export function Topbar({ action, sidebarOpen }: { action: PageAction; sidebarOpe
           ) : (
             <span className="truncate text-[16px] font-bold text-ink">{title}</span>
           )}
+          {botonSetup}
           {enCasos && (
             <div className="flex flex-shrink-0 gap-0.5 rounded-[6px] bg-soft p-0.5">
               <button
@@ -82,13 +117,17 @@ export function Topbar({ action, sidebarOpen }: { action: PageAction; sidebarOpe
           <NotificationsBell />
         </div>
       </div>
+      {wizard}
+      </>
     )
   }
 
   return (
+    <>
     <div className="relative flex h-[52px] flex-shrink-0 items-center border-b border-border bg-surface px-3 sm:px-5">
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <span className="truncate text-[15px] font-semibold text-ink">{title}</span>
+        {botonSetup}
         {enCasos && (
           <div className="flex flex-shrink-0 gap-0.5 rounded-[6px] bg-soft p-0.5">
             <button
@@ -135,5 +174,7 @@ export function Topbar({ action, sidebarOpen }: { action: PageAction; sidebarOpe
         </button>
       )}
     </div>
+    {wizard}
+    </>
   )
 }
