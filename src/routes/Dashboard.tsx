@@ -5,7 +5,7 @@ import { useDevice } from '@/context/DeviceModeContext'
 import { listAllPlazos } from '@/features/casos/plazosApi'
 import type { Plazo } from '@/types/database'
 import { listCasos } from '@/features/casos/api'
-import { diasRestantes, clasificarUrgencia, labelDias, URGENCIA_CLASS, URGENCIA_DOT } from '@/features/casos/plazoUrgencia'
+import { diasRestantes, clasificarUrgencia, labelDias, URGENCIA_CLASS } from '@/features/casos/plazoUrgencia'
 import { listPersonasForCasos } from '@/features/casos/personasApi'
 import { listHistorialReciente } from '@/features/casos/historialApi'
 import { countDocumentos } from '@/features/casos/documentosApi'
@@ -114,56 +114,69 @@ export default function Dashboard() {
   })()
 
   if (isMobile) {
+    const [masUrgente, ...resto] = plazosProximos
+    const diasUrgente = masUrgente ? diasRestantes(masUrgente.fecha) : 0
+
     return (
-      <div className="flex-1 overflow-y-auto px-4 py-5 pb-[76px]">
+      <div className="flex-1 overflow-y-auto px-4 py-5">
         <div className="mb-1 text-[19px] font-semibold text-ink">{greeting}{profile?.nombre ? `, ${profile.nombre.split(' ')[0]}` : ''}</div>
-        <div className="mb-5 text-[13px] text-muted">
+        <div className="mb-4 text-[13px] text-muted">
           {new Date().toLocaleDateString('es-EC', { weekday: 'long', day: 'numeric', month: 'long' })}
         </div>
 
-        {/* Stats 2 columnas */}
-        <div className="mb-5 grid grid-cols-2 gap-3">
-          {[
-            { icon: 'ti-briefcase', label: 'Casos activos', value: stats.casosActivos, color: 'bg-accent-soft text-accent' },
-            { icon: 'ti-clock',     label: 'Plazos próximos', value: stats.audienciasProximas, color: 'bg-danger-soft text-danger' },
-            { icon: 'ti-users',     label: 'Clientes', value: stats.clientesActivos, color: 'bg-success-soft text-success' },
-            { icon: 'ti-files',     label: 'Documentos', value: stats.documentos, color: 'bg-soft text-muted' },
-          ].map(s => (
-            <div key={s.label} className="rounded-[12px] border border-border bg-surface p-4">
-              <div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-[8px] ${s.color}`}>
-                <i className={`ti ${s.icon} text-[18px]`} />
-              </div>
-              <div className="text-[24px] font-bold text-ink">{s.value}</div>
-              <div className="mt-0.5 text-[11px] uppercase tracking-wide text-muted">{s.label}</div>
-            </div>
-          ))}
+        {/* Franja de totales */}
+        <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-1.5">
+          <span className="text-[12px] text-muted"><b className="font-semibold text-ink">{stats.casosActivos}</b> casos</span>
+          <span className="text-[12px] text-muted"><b className="font-semibold text-ink">{stats.audienciasProximas}</b> plazos</span>
+          <span className="text-[12px] text-muted"><b className="font-semibold text-ink">{stats.clientesActivos}</b> clientes</span>
+          <span className="text-[12px] text-muted"><b className="font-semibold text-ink">{stats.documentos}</b> documentos</span>
         </div>
 
-        {/* Plazos próximos */}
-        <div className="mb-3 text-[15px] font-semibold text-ink">Plazos próximos</div>
-        {plazosProximos.length === 0 ? (
+        <div className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-mute2">Necesita tu atención</div>
+
+        {!masUrgente ? (
           <div className="rounded-[12px] border border-border bg-surface py-8 text-center text-[13px] text-muted">
             Sin plazos próximos
           </div>
         ) : (
-          <div className="flex flex-col gap-2">
-            {plazosProximos.map(p => {
-              const dias = diasRestantes(p.fecha)
-              const urgencia = clasificarUrgencia(dias)
-              return (
-                <button key={p.id}
-                  onClick={() => navigate(`/casos/${p.caso_id}`)}
-                  className="flex items-center gap-3 rounded-[12px] border border-border bg-surface px-4 py-3 text-left transition hover:bg-soft">
-                  <div className={`h-2.5 w-2.5 flex-shrink-0 rounded-full ${URGENCIA_DOT[urgencia]}`} />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-[14px] font-medium text-ink">{p.descripcion}</div>
-                    <div className="text-[12px] text-muted">{p.tipo}</div>
-                  </div>
-                  <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium flex-shrink-0 ${URGENCIA_CLASS[urgencia]}`}>{labelDias(dias)}</span>
-                </button>
-              )
-            })}
-          </div>
+          <>
+            {/* Bloque grande: lo más urgente */}
+            <button
+              onClick={() => navigate(`/casos/${masUrgente.caso_id}`)}
+              className="mb-2 block w-full rounded-[12px] bg-accent p-4 text-left transition active:opacity-90"
+            >
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-white/70">
+                Más urgente · {labelDias(diasUrgente)}
+              </div>
+              <div className="mt-1 text-[15px] font-semibold leading-snug text-white">{masUrgente.descripcion}</div>
+              <div className="mt-0.5 text-[12px] text-white/80">
+                {casosById.get(masUrgente.caso_id)?.titulo ?? masUrgente.tipo}
+              </div>
+            </button>
+
+            {/* Resto: filas comprimidas */}
+            {resto.length > 0 && (
+              <div className="overflow-hidden rounded-[10px] border border-border">
+                {resto.map((p, i) => {
+                  const dias = diasRestantes(p.fecha)
+                  const urgencia = clasificarUrgencia(dias)
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => navigate(`/casos/${p.caso_id}`)}
+                      className={`flex w-full items-center justify-between gap-3 bg-surface px-3.5 py-2.5 text-left transition active:bg-soft ${i > 0 ? 'border-t border-border' : ''}`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-[12.5px] font-medium text-ink">{p.descripcion}</div>
+                        <div className="truncate text-[11px] text-mute2">{casosById.get(p.caso_id)?.titulo ?? p.tipo}</div>
+                      </div>
+                      <span className={`flex-shrink-0 rounded-full px-2 py-0.5 text-[10.5px] font-medium ${URGENCIA_CLASS[urgencia]}`}>{labelDias(dias)}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </>
         )}
       </div>
     )
