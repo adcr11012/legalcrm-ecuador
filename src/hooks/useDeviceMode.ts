@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react'
 
-const FORCE_KEY = 'tsadoq_force_full_view'
-
 function getWidth() {
   return window.innerWidth
 }
@@ -11,16 +9,15 @@ export type DeviceMode = 'mobile' | 'tablet' | 'desktop'
 export function useDeviceMode() {
   const [width, setWidth] = useState(getWidth)
 
-  // ?mobile in URL resets forceFullView and forces mobile mode
+  // ?mobile en la URL fuerza modo mobile (para pruebas)
   const urlForceMobile = new URLSearchParams(window.location.search).has('mobile')
 
-  const [forceFullView, setForceFullViewState] = useState(() => {
-    if (urlForceMobile) {
-      localStorage.setItem(FORCE_KEY, '0')
-      return false
-    }
-    return localStorage.getItem(FORCE_KEY) === '1'
-  })
+  // "Ver versión completa" es solo para la pestaña/sesión actual — a
+  // propósito NO se guarda en localStorage. Guardarlo permanente dejaba a
+  // cualquiera que lo tocara una vez atascado en modo escritorio en su
+  // celular para siempre, sin ver el menú mobile, hasta encontrar el botón
+  // flotante "Vista móvil" (poco visible) o borrar datos del navegador.
+  const [forceFullView, setForceFullViewState] = useState(false)
 
   useEffect(() => {
     const handler = () => setWidth(getWidth())
@@ -31,7 +28,6 @@ export function useDeviceMode() {
   const mode: DeviceMode = (width < 768 || urlForceMobile) ? 'mobile' : width < 1024 ? 'tablet' : 'desktop'
 
   function setForceFullView(value: boolean) {
-    localStorage.setItem(FORCE_KEY, value ? '1' : '0')
     setForceFullViewState(value)
   }
 
