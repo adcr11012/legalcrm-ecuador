@@ -214,6 +214,7 @@ const CSS = `
   background: var(--tx-paper);
   color: var(--tx-ink);
   height: 100vh;
+  height: 100dvh;
   overflow-y: auto;
 }
 @media (prefers-color-scheme: dark) {

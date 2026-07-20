@@ -88,6 +88,20 @@ body {
 
 #root {
   height: 100vh;
+  height: 100dvh;
+}
+
+/* Bug clásico de navegadores móviles: 100vh se calcula con la barra de
+   direcciones oculta (el alto máximo posible), pero al cargar la página
+   esa barra está visible — el alto real disponible es menor, y cualquier
+   contenido pegado "al fondo" (como el menú inferior) queda fuera de la
+   pantalla, sin scroll posible para alcanzarlo. 100dvh sí se ajusta en
+   vivo al alto realmente visible. Se sobreescribe acá para toda la app de
+   una sola vez, en vez de tocar cada lugar que usa la utilidad h-screen
+   de Tailwind. */
+.h-screen {
+  height: 100vh;
+  height: 100dvh;
 }
 
 /* Logo con contraste según tema: versión clara (fondo navy, círculos

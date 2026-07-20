@@ -50,7 +50,7 @@ const CSS = `
   --tx-navy: #1B2E4C; --tx-gold: #A9803E; --tx-paper: #EDEEF1; --tx-paper-alt: #E3E5EA;
   --tx-ink: #14213A; --tx-muted: #4B5568; --tx-border: rgba(20,33,58,0.16); --tx-surface: #FFFFFF;
   font-family: 'Source Sans 3', system-ui, sans-serif;
-  background: var(--tx-paper); color: var(--tx-ink); height: 100vh; overflow-y: auto; display: flex; flex-direction: column;
+  background: var(--tx-paper); color: var(--tx-ink); height: 100vh; height: 100dvh; overflow-y: auto; display: flex; flex-direction: column;
 }
 @media (prefers-color-scheme: dark) {
   .txl { --tx-navy: #0F1A2E; --tx-gold: #D9B36C; --tx-paper: #0F1A2E; --tx-paper-alt: #16233C; --tx-ink: #EDEEF1; --tx-muted: #A7B0C2; --tx-border: rgba(237,238,241,0.14); --tx-surface: #16233C; }
