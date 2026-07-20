@@ -35,14 +35,8 @@ export default function Login() {
       <div className="w-full max-w-[380px] rounded-[14px] border border-border bg-surface p-8 shadow-sm">
         <div className="mb-7 text-center">
           <button onClick={() => setVideoAbierto(true)} title="Ver video de TSADOQ" className="mx-auto block">
-            <video
-              src="/v_tsadoq_1.mp4"
-              autoPlay
-              muted
-              loop
-              playsInline
-              className="mx-auto h-16 w-auto"
-            />
+            <img src="/LOGO_1.png" alt="TSADOQ" className="logo-claro mx-auto h-16 w-auto object-contain" />
+            <img src="/LOGO_2.png" alt="TSADOQ" className="logo-oscuro mx-auto h-16 w-auto object-contain" />
           </button>
           <h1 className="mt-3 text-[19px] font-bold text-ink">Iniciar sesión</h1>
         </div>
