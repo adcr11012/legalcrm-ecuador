@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react'
-import { listMisCodigosReferido } from '@/features/referidos/api'
+import { listMisCodigosReferido, listMisReferidosArbol, type NodoReferido } from '@/features/referidos/api'
 import type { CodigoReferido } from '@/types/database'
 
 export function MisCodigosReferido({ workspaceId }: { workspaceId: string }) {
   const [codigos, setCodigos] = useState<CodigoReferido[]>([])
+  const [arbol, setArbol] = useState<NodoReferido[]>([])
   const [loading, setLoading] = useState(true)
   const [copiado, setCopiado] = useState<string | null>(null)
 
   useEffect(() => {
-    listMisCodigosReferido(workspaceId).then(setCodigos).finally(() => setLoading(false))
+    listMisCodigosReferido(workspaceId).then(setCodigos).catch(() => {}).finally(() => setLoading(false))
+    listMisReferidosArbol().then(setArbol).catch(() => {})
   }, [workspaceId])
 
   function copiar(codigo: string) {
@@ -18,10 +20,10 @@ export function MisCodigosReferido({ workspaceId }: { workspaceId: string }) {
   }
 
   if (loading) return null
-  if (codigos.length === 0) return null
+  if (codigos.length === 0 && arbol.length === 0) return null
 
   const disponibles = codigos.filter((c) => !c.usado)
-  const usados = codigos.filter((c) => c.usado)
+  const usadosEnArbol = arbol.filter((n) => n.usado)
 
   return (
     <div className="mb-2.5 rounded-[10px] border border-border bg-surface p-3">
@@ -45,8 +47,32 @@ export function MisCodigosReferido({ workspaceId }: { workspaceId: string }) {
           ))}
         </div>
       )}
-      {usados.length > 0 && (
-        <div className="mt-2 text-[11px] text-mute2">{usados.length} código{usados.length === 1 ? '' : 's'} ya usado{usados.length === 1 ? '' : 's'}.</div>
+
+      {usadosEnArbol.length > 0 && (
+        <>
+          <div className="mb-1.5 mt-3 text-[11px] font-semibold uppercase tracking-wide text-mute2">
+            Quién se registró con tus códigos ({usadosEnArbol.length})
+          </div>
+          <div className="flex flex-col gap-1.5">
+            {usadosEnArbol.map((n) => (
+              <div
+                key={n.id}
+                className="rounded-[6px] border border-border bg-bg px-2.5 py-1.5"
+                style={{ marginLeft: (n.nivel - 1) * 16 }}
+              >
+                <div className="flex items-center gap-1.5">
+                  {n.nivel > 1 && <i className="ti ti-corner-down-right text-[11px] text-mute2" />}
+                  <span className="text-[12px] font-medium text-ink">{n.usado_por_nombre ?? 'Sin nombre'}</span>
+                  <span className="font-mono text-[10px] text-mute2">· {n.codigo}</span>
+                </div>
+                <div className="mt-0.5 text-[11px] text-mute2">
+                  {n.usado_por_email ?? 'Sin correo'}
+                  {n.usado_at && ` · ${new Date(n.usado_at).toLocaleDateString('es-EC')}`}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   )

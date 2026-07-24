@@ -7,8 +7,10 @@ export type WorkspaceStat = {
   suspended: boolean
   created_at: string
   usuarios: number
+  limite_usuarios: number
   casos: number
   documentos: number
+  owner_nombre: string | null
   owner_email: string | null
 }
 

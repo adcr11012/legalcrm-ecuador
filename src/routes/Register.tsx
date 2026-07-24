@@ -93,7 +93,7 @@ export default function Register() {
           <div className="mb-3 text-[42px]">🎉</div>
           <h1 className="mb-2 text-[20px] font-bold text-ink">¡Felicitaciones, {nombre.split(' ')[0]}!</h1>
           <p className="mb-4 text-[13px] leading-relaxed text-muted">
-            Con tu código de referido has sido beneficiado con el <strong className="text-accent">plan Enterprise</strong> — tienes
+            Con tu código de referido has sido beneficiado con el <strong className="text-accent">plan Ilimitado</strong> — tienes
             acceso a todo el sistema de TSADOQ.
           </p>
           <p className="mb-4 text-[13px] leading-relaxed text-muted">

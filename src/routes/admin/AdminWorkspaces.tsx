@@ -18,7 +18,8 @@ export default function AdminWorkspaces() {
 
   const filtered = workspaces.filter(ws =>
     ws.nombre.toLowerCase().includes(query.toLowerCase()) ||
-    (ws.owner_email ?? '').toLowerCase().includes(query.toLowerCase())
+    (ws.owner_email ?? '').toLowerCase().includes(query.toLowerCase()) ||
+    (ws.owner_nombre ?? '').toLowerCase().includes(query.toLowerCase())
   )
 
   async function handleToggleSuspend(ws: WorkspaceStat, e: React.MouseEvent) {
@@ -86,10 +87,15 @@ export default function AdminWorkspaces() {
                 >
                   <td className="px-4 py-3">
                     <div className="text-[13px] font-medium text-ink">{ws.nombre}</div>
-                    <div className="text-[11px] text-mute2">{ws.owner_email ?? '—'}</div>
+                    <div className="text-[11px] text-mute2">
+                      {ws.owner_nombre ?? '—'}{ws.owner_email ? ` · ${ws.owner_email}` : ''}
+                    </div>
                   </td>
                   <td className="px-4 py-3"><PlanBadge plan={ws.plan} /></td>
-                  <td className="px-4 py-3 text-right text-[13px] text-ink">{ws.usuarios}</td>
+                  <td className="px-4 py-3 text-right text-[13px] text-ink">
+                    <span className={ws.usuarios > ws.limite_usuarios ? 'font-semibold text-warn' : ''}>{ws.usuarios}</span>
+                    <span className="text-mute2">/{ws.limite_usuarios}</span>
+                  </td>
                   <td className="px-4 py-3 text-right text-[13px] text-ink">{ws.casos}</td>
                   <td className="px-4 py-3 text-right text-[13px] text-ink">{ws.documentos}</td>
                   <td className="px-4 py-3 text-[12px] text-muted">

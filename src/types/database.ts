@@ -445,6 +445,23 @@ export type Database = {
         Args: { p_codigo: string }
         Returns: { plan: string; semillas_heredadas: number; codigos_generados: string[] }
       }
+      mis_referidos_arbol: {
+        Args: Record<string, never>
+        Returns: {
+          id: string
+          codigo: string
+          semillas: number
+          usado: boolean
+          expira_at: string | null
+          created_at: string
+          usado_at: string | null
+          nivel: number
+          generado_por_nombre: string | null
+          generado_por_email: string | null
+          usado_por_nombre: string | null
+          usado_por_email: string | null
+        }[]
+      }
       admin_upsert_feriado: {
         Args: { p_fecha: string; p_nombre: string; p_verificado: boolean; p_provincia?: string | null }
         Returns: void
