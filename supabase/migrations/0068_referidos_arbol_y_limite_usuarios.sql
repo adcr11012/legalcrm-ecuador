@@ -51,6 +51,8 @@ $$ language sql stable security definer set search_path = public;
 -- el panel algo tipo "3/15" en vez de solo el número absoluto.
 -- ════════════════════════════════════════════════════════════════════════
 
+drop function if exists public.admin_workspaces();
+
 create or replace function public.admin_workspaces()
 returns table(
   id             uuid,
