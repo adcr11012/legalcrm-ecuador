@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { isSuperadmin } from '@/features/admin/adminApi'
-import { useDevice } from '@/context/DeviceModeContext'
+import { DeviceModeProvider, useDevice } from '@/context/DeviceModeContext'
 
-export default function AdminLayout() {
+function AdminLayoutInner() {
   const navigate = useNavigate()
   const { isMobile, setForceFullView } = useDevice()
   const [checking, setChecking] = useState(true)
@@ -165,5 +165,13 @@ export default function AdminLayout() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function AdminLayout() {
+  return (
+    <DeviceModeProvider>
+      <AdminLayoutInner />
+    </DeviceModeProvider>
   )
 }
