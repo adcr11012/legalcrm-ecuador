@@ -55,8 +55,8 @@ export default function AdminReferidos() {
       <div className="mb-4">
         <h1 className="text-[18px] font-bold text-ink">Códigos de referido</h1>
         <p className="mt-0.5 text-[12px] text-muted">
-          Sistema de semillas decrecientes tipo invite-only. Quien se registra con un código obtiene plan Enterprise de
-          inmediato y hereda (semillas - 1) códigos propios para seguir la cadena.
+          Sistema de semillas decrecientes tipo invite-only. Quien se registra con un código obtiene plan Ilimitado
+          (demo_enterprise) de inmediato y hereda (semillas - 1) códigos propios para seguir la cadena.
         </p>
       </div>
 
