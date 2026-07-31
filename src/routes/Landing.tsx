@@ -70,6 +70,7 @@ const PLANES = [
 
 export default function Landing() {
   const [videoAbierto, setVideoAbierto] = useState(false)
+  const [videoLogoAbierto, setVideoLogoAbierto] = useState(false)
   return (
     <div className="tx">
       <style>{CSS}</style>
@@ -142,6 +143,9 @@ export default function Landing() {
               "Tsadoq" — el sacerdote hebreo conocido por su rectitud — le da nombre al sistema.
               Dos tradiciones, un mismo valor: la balanza en equilibrio.
             </blockquote>
+            <button onClick={() => setVideoLogoAbierto(true)} className="tx-video-link">
+              <i className="ti ti-player-play-filled" /> Conoce de dónde viene nuestro logo
+            </button>
           </div>
         </section>
 
@@ -198,6 +202,7 @@ export default function Landing() {
         </div>
       </footer>
       <VideoLogoModal open={videoAbierto} onClose={() => setVideoAbierto(false)} src="/v_tsadoq_2.mp4" />
+      <VideoLogoModal open={videoLogoAbierto} onClose={() => setVideoLogoAbierto(false)} src="/v_tsadoq_1.mp4" />
     </div>
   )
 }
