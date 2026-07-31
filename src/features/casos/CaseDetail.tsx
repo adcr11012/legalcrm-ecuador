@@ -72,6 +72,7 @@ export function CaseDetail({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tab, setTab] = useState<TabKey>('info')
+  const [mobileSectionAbierta, setMobileSectionAbierta] = useState(false)
 
   const [addPersonaOpen, setAddPersonaOpen] = useState(false)
   const [addPlazoOpen, setAddPlazoOpen] = useState(false)
@@ -85,6 +86,7 @@ export function CaseDetail({
     setLoading(true)
     setError(null)
     setTab('info')
+    setMobileSectionAbierta(false)
     try {
       const [c, p, d, pl, h, u, e, ant, gas, hor, carp, com] = await Promise.all([
         getCaso(casoId),
@@ -276,7 +278,47 @@ export function CaseDetail({
         )
       })()}
 
-      <div className={`flex flex-shrink-0 gap-0 overflow-x-auto border-b border-border bg-surface ${isMobile ? 'px-2' : 'px-3 sm:px-5'}`}>
+      {isMobile && !mobileSectionAbierta ? (
+        <div className="min-h-0 flex-1 overflow-y-auto px-3 pt-3 pb-[80px]">
+          {visibleTabs.map((t) => {
+            const agendaCount = t.key === 'agenda' ? plazos.filter((p) => p.estado !== 'completada').length : 0
+            return (
+              <button
+                key={t.key}
+                onClick={() => { setTab(t.key); setMobileSectionAbierta(true) }}
+                className="mb-2 flex w-full items-center gap-3 rounded-[14px] border border-border bg-surface px-4 py-3.5 text-left transition active:bg-soft"
+              >
+                <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[10px] bg-accent-soft text-accent">
+                  <i className={`ti ${t.icon} text-[20px]`} />
+                </span>
+                <span className="flex-1 text-[16px] font-medium text-ink">{t.label}</span>
+                {t.key === 'agenda' && agendaCount > 0 && (
+                  <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-semibold text-accent">{agendaCount}</span>
+                )}
+                {t.key === 'docs' && documentos.length > 0 && (
+                  <span className="rounded-full bg-soft px-2 py-0.5 text-[11px] font-medium text-mute2">{documentos.length}</span>
+                )}
+                <i className="ti ti-chevron-right text-[18px] text-mute2" />
+              </button>
+            )
+          })}
+        </div>
+      ) : (
+      <>
+      {isMobile && mobileSectionAbierta && (
+        <div className="flex flex-shrink-0 items-center gap-2 border-b border-border bg-surface px-3 py-2.5">
+          <button
+            onClick={() => setMobileSectionAbierta(false)}
+            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px] text-muted transition hover:bg-soft hover:text-ink"
+          >
+            <i className="ti ti-arrow-left text-[20px]" />
+          </button>
+          <span className="text-[15px] font-semibold text-ink">{visibleTabs.find((t) => t.key === tab)?.label}</span>
+        </div>
+      )}
+
+      {!isMobile && (
+      <div className="flex flex-shrink-0 gap-0 overflow-x-auto border-b border-border bg-surface px-3 sm:px-5">
         {visibleTabs.map((t) => {
           const isActive = tab === t.key
           const agendaCount = t.key === 'agenda' ? plazos.filter(p => p.estado !== 'completada').length : 0
@@ -287,14 +329,10 @@ export function CaseDetail({
               title={t.label}
               className={`relative flex items-center gap-1.5 whitespace-nowrap border-b-2 transition ${
                 isActive ? 'border-accent font-medium text-accent' : 'border-transparent text-muted hover:text-ink'
-              } ${isMobile ? 'flex-col gap-[3px] px-3 py-2.5 text-[10px]' : 'px-3 py-2.5 text-[13px]'}`}
+              } px-3 py-2.5 text-[13px]`}
             >
-              <i className={`ti ${t.icon} ${isMobile ? 'text-[20px]' : 'text-[16px]'}`} />
-              {isMobile ? (
-                <span>{t.label}</span>
-              ) : (
-                isActive && <span>{t.label}</span>
-              )}
+              <i className={`ti ${t.icon} text-[16px]`} />
+              {isActive && <span>{t.label}</span>}
               {t.key === 'agenda' && agendaCount > 0 && (
                 <span className={`rounded-full px-1.5 text-[10px] ${isActive ? 'bg-accent/20 text-accent' : 'bg-accent-soft text-accent'}`}>
                   {agendaCount}
@@ -307,6 +345,7 @@ export function CaseDetail({
           )
         })}
       </div>
+      )}
 
       <div className={`min-h-0 flex-1 overflow-y-auto ${isMobile ? 'px-3 pt-3 pb-[80px]' : 'p-3 sm:p-5'}`}>
         {campoError && (
@@ -397,6 +436,8 @@ export function CaseDetail({
         {tab === 'notas' && showNotas && <NotasTab nota={caso.nota_interna} onSave={onSaveNota} />}
         {tab === 'ia' && <IATab casoId={caso.id} />}
       </div>
+      </>
+      )}
 
       <AddPersonaModal
         open={addPersonaOpen}
