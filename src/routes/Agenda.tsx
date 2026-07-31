@@ -156,7 +156,7 @@ export default function Agenda() {
                 >
                   <i className="ti ti-chevron-left text-[18px]" />
                 </button>
-                <span className="text-[15px] font-semibold capitalize text-ink">
+                <span className="text-[16px] font-semibold capitalize text-ink">
                   {month.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' })}
                 </span>
                 <button
@@ -169,7 +169,7 @@ export default function Agenda() {
 
               <div className="grid grid-cols-7 gap-1">
                 {DIAS_SEMANA.map((d, i) => (
-                  <div key={i} className="py-1 text-center text-[11px] font-semibold text-mute2">{d}</div>
+                  <div key={i} className="py-1 text-center text-[12.5px] font-semibold text-mute2">{d}</div>
                 ))}
                 {grid.map((d, i) => {
                   if (!d) return <div key={i} />
@@ -179,7 +179,7 @@ export default function Agenda() {
                   return (
                     <div
                       key={i}
-                      className={`relative rounded-[8px] py-2 text-center text-[13.5px] ${
+                      className={`relative rounded-[8px] py-2 text-center text-[14.5px] ${
                         isToday ? 'bg-accent font-semibold text-white' : 'text-ink'
                       }`}
                     >
