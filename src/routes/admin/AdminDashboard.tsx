@@ -111,7 +111,7 @@ export function PlanBadge({ plan }: { plan: string }) {
   }
   return (
     <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase ${map[plan] ?? map.free}`}>
-      {plan === 'demo_enterprise' ? 'Demo' : plan}
+      {plan === 'enterprise' ? 'Enterprise-Ilimitado' : plan === 'demo_enterprise' ? 'Demo-Ilimitado' : plan}
     </span>
   )
 }
