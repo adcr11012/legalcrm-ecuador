@@ -37,17 +37,17 @@ export default function AdminWorkspaceDetail() {
   useEffect(() => {
     if (!id) return
     setLoadError(null)
-    Promise.all([getWorkspaceDetail(id), getWorkspacePagos(id)])
-      .then(([d, p]) => {
-        setDetail(d)
-        setPagos(p)
-      })
+    getWorkspaceDetail(id)
+      .then(setDetail)
       .catch((err) => {
         console.error(err)
         const msg = err?.message || err?.error_description || err?.hint || err?.details || JSON.stringify(err)
         setLoadError(msg || 'Error desconocido cargando el workspace')
       })
       .finally(() => setLoading(false))
+    // La tabla de pagos depende de la migración 0025 (aún pendiente antes del
+    // lanzamiento) — si no existe, no debe tumbar el resto del detalle.
+    getWorkspacePagos(id).then(setPagos).catch(() => setPagos([]))
   }, [id])
 
   async function handleToggleSuspend() {
