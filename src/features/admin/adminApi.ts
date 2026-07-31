@@ -169,6 +169,8 @@ export async function listarCodigosRaiz() {
     usado_at: string | null
     expira_at: string | null
     created_at: string
+    usado_por_nombre: string | null
+    usado_por_email: string | null
   }[]
 }
 

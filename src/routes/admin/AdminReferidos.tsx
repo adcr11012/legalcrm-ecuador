@@ -123,6 +123,7 @@ export default function AdminReferidos() {
                 <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-mute2">Código</th>
                 <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wide text-mute2">Semillas</th>
                 <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-mute2">Estado</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-mute2">Usado por</th>
                 <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-mute2">Expira</th>
                 <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wide text-mute2">Creado</th>
               </tr>
@@ -145,6 +146,16 @@ export default function AdminReferidos() {
                       <span className="rounded-full bg-soft px-2 py-0.5 text-[10px] font-semibold text-mute2">Usado</span>
                     ) : (
                       <span className="rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-semibold text-success">Disponible</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5 text-[12px] text-muted">
+                    {c.usado_por_nombre ? (
+                      <>
+                        <div className="text-ink">{c.usado_por_nombre}</div>
+                        <div className="text-mute2">{c.usado_por_email}</div>
+                      </>
+                    ) : (
+                      '—'
                     )}
                   </td>
                   <td className="px-4 py-2.5 text-[12px] text-muted">
