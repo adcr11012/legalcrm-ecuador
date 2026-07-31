@@ -259,6 +259,23 @@ export function CaseDetail({
         </div>
       </div>
 
+      {isMobile && etapas.length > 1 && (() => {
+        const idx = caso.etapa_id ? etapas.findIndex((e) => e.id === caso.etapa_id) : -1
+        if (idx < 0) return null
+        const pct = Math.round((idx / (etapas.length - 1)) * 100)
+        return (
+          <div className="flex-shrink-0 border-b border-border bg-surface px-4 pb-3 pt-1">
+            <div className="mb-1.5 flex items-center justify-between text-[12px] font-semibold">
+              <span className="text-ink">Perfil del caso</span>
+              <span className="text-accent">{pct}%</span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-soft">
+              <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+        )
+      })()}
+
       <div className={`flex flex-shrink-0 gap-0 overflow-x-auto border-b border-border bg-surface ${isMobile ? 'px-2' : 'px-3 sm:px-5'}`}>
         {visibleTabs.map((t) => {
           const isActive = tab === t.key

@@ -51,38 +51,34 @@ export function ClienteSidebar({
             className="w-full bg-transparent text-[12px] text-ink outline-none placeholder:text-mute2"
           />
         </div>
-        <div>
-          <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
-            {(['todos', 'activo', 'inactivo'] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFiltro(f)}
-                className={`flex-shrink-0 rounded-full px-2.5 py-1 text-[11px] transition ${
-                  filtro === f ? 'bg-accent text-white' : 'border border-border text-muted hover:bg-soft'
-                }`}
-              >
-                {f === 'todos' ? 'Todos' : ESTADO_LABEL[f]}
-              </button>
-            ))}
-          </div>
-          <div style={{ display: 'flex', gap: '4px' }}>
+        <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+          {(['todos', 'activo', 'inactivo'] as const).map((f) => (
             <button
-              onClick={() => setFiltro('potencial')}
-              className={`flex-shrink-0 rounded-full px-2.5 py-1 text-[11px] transition ${
-                filtro === 'potencial' ? 'bg-accent text-white' : 'border border-border text-muted hover:bg-soft'
+              key={f}
+              onClick={() => setFiltro(f)}
+              className={`flex-shrink-0 whitespace-nowrap rounded-full px-2.5 py-1.5 text-[11px] transition ${
+                filtro === f ? 'bg-accent text-white' : 'border border-border text-muted hover:bg-soft'
               }`}
             >
-              {ESTADO_LABEL['potencial']}
+              {f === 'todos' ? 'Todos' : ESTADO_LABEL[f]}
             </button>
-            <button
-              onClick={() => setFiltro('seguimiento')}
-              className={`flex-shrink-0 rounded-full px-2.5 py-1 text-[11px] transition ${
-                filtro === 'seguimiento' ? 'bg-warn text-white' : 'border border-warn/30 bg-warn-soft text-warn'
-              }`}
-            >
-              Seguimiento{pendientes > 0 ? ` (${pendientes})` : ''}
-            </button>
-          </div>
+          ))}
+          <button
+            onClick={() => setFiltro('potencial')}
+            className={`flex-shrink-0 whitespace-nowrap rounded-full px-2.5 py-1.5 text-[11px] transition ${
+              filtro === 'potencial' ? 'bg-accent text-white' : 'border border-border text-muted hover:bg-soft'
+            }`}
+          >
+            {ESTADO_LABEL['potencial']}
+          </button>
+          <button
+            onClick={() => setFiltro('seguimiento')}
+            className={`flex-shrink-0 whitespace-nowrap rounded-full px-2.5 py-1.5 text-[11px] transition ${
+              filtro === 'seguimiento' ? 'bg-warn text-white' : 'border border-warn/30 bg-warn-soft text-warn'
+            }`}
+          >
+            Seguimiento{pendientes > 0 ? ` (${pendientes})` : ''}
+          </button>
         </div>
       </div>
 
