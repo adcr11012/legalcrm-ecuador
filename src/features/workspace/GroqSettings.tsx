@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getGroqEstado, conectarGroq, desconectarGroq, probarGroq, GROQ_MODEL_LABEL } from '@/features/workspace/groqApi'
+import { useBorrador } from '@/hooks/useBorrador'
 
 const labelClass = 'mb-1 block text-[11px] font-semibold uppercase tracking-wide text-mute2'
 const inputClass =
@@ -8,7 +9,7 @@ const inputClass =
 export function GroqSettings({ puedeEditar }: { puedeEditar: boolean }) {
   const [conectado, setConectado] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [apiKey, setApiKey] = useState('')
+  const [apiKey, setApiKey] = useBorrador('groq_api_key')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [probando, setProbando] = useState(false)
