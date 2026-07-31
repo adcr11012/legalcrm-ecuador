@@ -84,6 +84,7 @@ export default function Agenda() {
   const [casosById, setCasosById] = useState<Map<string, Caso>>(new Map())
   const [usersById, setUsersById] = useState<Map<string, Usuario>>(new Map())
   const [month, setMonth] = useState(() => startOfMonth(new Date()))
+  const [mesAbierto, setMesAbierto] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -136,23 +137,35 @@ export default function Agenda() {
   if (isMobile) {
     return (
       <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Selector de mes, sin grilla — difícil de tocar en celular */}
-        <div className="flex flex-shrink-0 items-center justify-between border-b border-border bg-surface px-4 py-3">
+        {/* Encabezado "Agenda" — al tocar despliega el selector de mes. Sin
+            grilla de calendario, difícil de tocar en celular. */}
+        <div className="flex-shrink-0 border-b border-border bg-surface">
           <button
-            onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}
-            className="flex h-10 w-10 items-center justify-center rounded-[10px] text-muted transition active:bg-soft"
+            onClick={() => setMesAbierto((v) => !v)}
+            className="flex w-full items-center justify-between px-4 py-3"
           >
-            <i className="ti ti-chevron-left text-[20px]" />
+            <span className="text-[17px] font-semibold text-ink">Agenda</span>
+            <i className={`ti ti-chevron-down text-[18px] text-mute2 transition-transform ${mesAbierto ? 'rotate-180' : ''}`} />
           </button>
-          <span className="text-[17px] font-semibold capitalize text-ink">
-            {month.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' })}
-          </span>
-          <button
-            onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}
-            className="flex h-10 w-10 items-center justify-center rounded-[10px] text-muted transition active:bg-soft"
-          >
-            <i className="ti ti-chevron-right text-[20px]" />
-          </button>
+          {mesAbierto && (
+            <div className="flex items-center justify-between border-t border-border px-4 py-3">
+              <button
+                onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}
+                className="flex h-10 w-10 items-center justify-center rounded-[10px] text-muted transition active:bg-soft"
+              >
+                <i className="ti ti-chevron-left text-[20px]" />
+              </button>
+              <span className="text-[16px] font-semibold capitalize text-ink">
+                {month.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' })}
+              </span>
+              <button
+                onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}
+                className="flex h-10 w-10 items-center justify-center rounded-[10px] text-muted transition active:bg-soft"
+              >
+                <i className="ti ti-chevron-right text-[20px]" />
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-3 pt-3 pb-[80px]">
