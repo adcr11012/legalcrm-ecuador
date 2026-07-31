@@ -141,3 +141,14 @@ body {
     font-size: 16px !important;
   }
 }
+
+/* Las pestañas de detalle de caso (Información, Agenda, Documentos...) se
+   escribieron con tamaños pensados para desktop (10-13px), correctos ahí
+   pero chicos en celular. En vez de tocar los ~9 archivos de pestañas uno
+   por uno, se agranda el texto dentro del contenedor de sección móvil
+   (.mobile-tab-content, ver CaseDetail.tsx) hacia la escala recomendada
+   (cuerpo 14.5-16.5px, labels 12.5-14px), sin afectar desktop. */
+.mobile-tab-content .text-\[10px\] { font-size: 12.5px !important; }
+.mobile-tab-content .text-\[11px\] { font-size: 13px !important; }
+.mobile-tab-content .text-\[12px\] { font-size: 14px !important; }
+.mobile-tab-content .text-\[13px\] { font-size: 15px !important; }

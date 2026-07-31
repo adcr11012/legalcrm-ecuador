@@ -347,7 +347,7 @@ export function CaseDetail({
       </div>
       )}
 
-      <div className={`min-h-0 flex-1 overflow-y-auto ${isMobile ? 'px-3 pt-3 pb-[80px]' : 'p-3 sm:p-5'}`}>
+      <div className={`min-h-0 flex-1 overflow-y-auto ${isMobile ? 'mobile-tab-content px-3 pt-3 pb-[80px]' : 'p-3 sm:p-5'}`}>
         {campoError && (
           <div className="mb-3 rounded-[6px] border border-danger/20 bg-danger-soft px-3 py-2 text-[12px] text-danger">
             {campoError}
