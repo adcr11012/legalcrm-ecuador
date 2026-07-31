@@ -55,11 +55,12 @@ Deno.serve(async (req) => {
       return json({ error: 'Falta la clave de API' }, 400)
     }
 
-    // Validar la clave con una llamada mínima antes de guardarla.
-    const testRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${api_key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: VISION_MODEL, messages: [{ role: 'user', content: 'Responde solo: OK' }] }),
+    // Validar la clave con el endpoint liviano de info (no corre ningún
+    // modelo) — antes se probaba con una llamada real al modelo de visión
+    // gratis, que en horas de mucha demanda puede tardar muchísimo o
+    // quedarse colgado en cola, dejando al usuario esperando sin respuesta.
+    const testRes = await fetch('https://openrouter.ai/api/v1/auth/key', {
+      headers: { Authorization: `Bearer ${api_key}` },
     })
     const testJson = await testRes.json()
     if (!testRes.ok) {

@@ -22,9 +22,25 @@ async function authHeader() {
 
 export async function conectarOpenRouter(apiKey: string): Promise<void> {
   const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/openrouter-conectar`
-  const res = await fetch(url, { method: 'POST', headers: await authHeader(), body: JSON.stringify({ api_key: apiKey }) })
-  const json = await res.json()
-  if (!res.ok) throw new Error(json.error ?? 'No se pudo conectar')
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 20000)
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: await authHeader(),
+      body: JSON.stringify({ api_key: apiKey }),
+      signal: controller.signal,
+    })
+    const json = await res.json()
+    if (!res.ok) throw new Error(json.error ?? 'No se pudo conectar')
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error('OpenRouter está tardando demasiado en responder. Intenta de nuevo en un momento.')
+    }
+    throw err
+  } finally {
+    clearTimeout(timeout)
+  }
 }
 
 export async function probarOpenRouter(prompt?: string): Promise<string> {
