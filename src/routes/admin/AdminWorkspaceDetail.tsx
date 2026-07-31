@@ -44,7 +44,8 @@ export default function AdminWorkspaceDetail() {
       })
       .catch((err) => {
         console.error(err)
-        setLoadError(err instanceof Error ? err.message : 'Error desconocido cargando el workspace')
+        const msg = err?.message || err?.error_description || err?.hint || err?.details || JSON.stringify(err)
+        setLoadError(msg || 'Error desconocido cargando el workspace')
       })
       .finally(() => setLoading(false))
   }, [id])
