@@ -22,6 +22,7 @@ export default function AdminWorkspaceDetail() {
   const [detail, setDetail] = useState<WorkspaceDetail | null>(null)
   const [pagos, setPagos] = useState<PagoPeriodo[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   // Activar plan form
   const [activarMonto, setActivarMonto] = useState('')
@@ -35,10 +36,15 @@ export default function AdminWorkspaceDetail() {
 
   useEffect(() => {
     if (!id) return
+    setLoadError(null)
     Promise.all([getWorkspaceDetail(id), getWorkspacePagos(id)])
       .then(([d, p]) => {
         setDetail(d)
         setPagos(p)
+      })
+      .catch((err) => {
+        console.error(err)
+        setLoadError(err instanceof Error ? err.message : 'Error desconocido cargando el workspace')
       })
       .finally(() => setLoading(false))
   }, [id])
@@ -101,6 +107,7 @@ export default function AdminWorkspaceDetail() {
   }
 
   if (loading) return <div className="p-6 text-[13px] text-muted">Cargando…</div>
+  if (loadError) return <div className="p-6 text-[13px] text-danger">Error cargando el workspace: {loadError}</div>
   if (!detail) return <div className="p-6 text-[13px] text-danger">Workspace no encontrado.</div>
 
   const { workspace, usuarios, stats } = detail
