@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Plazo, TipoPlazo, EstadoAgenda, Usuario } from '@/types/database'
 import { diasRestantes, clasificarUrgencia, labelDias, URGENCIA_CLASS } from '@/features/casos/plazoUrgencia'
-import { SemaforoDot } from '@/features/casos/SemaforoDot'
+import { UrgenciaBars } from '@/features/casos/UrgenciaBars'
 import { updatePlazo, deletePlazo } from '@/features/casos/plazosApi'
 import { useDevice } from '@/context/DeviceModeContext'
 
@@ -111,6 +111,7 @@ function AgendaItem({
     return (
       <div className="rounded-[14px] border border-border bg-surface">
         <div className="flex items-start gap-3 px-3.5 py-3.5">
+          <UrgenciaBars urgencia={urgencia} height={48} />
           <div className="flex flex-shrink-0 flex-col items-center rounded-[10px] bg-soft px-2.5 py-1.5">
             <div className="text-[20px] font-bold leading-none text-ink">{fecha.getDate()}</div>
             <div className="text-[11.5px] font-medium uppercase text-mute2">{MESES[fecha.getMonth()]}</div>
@@ -169,7 +170,7 @@ function AgendaItem({
   return (
     <div className="rounded-[10px] border border-border bg-surface">
       <div className="flex items-center gap-3 px-3 py-3">
-        <SemaforoDot urgencia={urgencia} />
+        <UrgenciaBars urgencia={urgencia} height={40} />
 
         {/* Fecha */}
         <div className="min-w-[40px] text-center">

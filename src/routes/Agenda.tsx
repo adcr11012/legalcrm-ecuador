@@ -4,7 +4,7 @@ import { listAllPlazos } from '@/features/casos/plazosApi'
 import { listCasos } from '@/features/casos/api'
 import { listWorkspaceUsers } from '@/features/users/api'
 import { diasRestantes, clasificarUrgencia, labelDias, URGENCIA_CLASS } from '@/features/casos/plazoUrgencia'
-import { SemaforoDot } from '@/features/casos/SemaforoDot'
+import { UrgenciaBars } from '@/features/casos/UrgenciaBars'
 import { useDevice } from '@/context/DeviceModeContext'
 import type { Caso, EstadoAgenda, Plazo, TipoPlazo, Usuario } from '@/types/database'
 
@@ -173,6 +173,7 @@ export default function Agenda() {
                       onClick={() => caso && navigate(`/casos/${caso.id}`)}
                       className="flex items-start gap-3 rounded-[14px] border border-border bg-surface px-3.5 py-3.5 text-left transition active:bg-soft"
                     >
+                      <UrgenciaBars urgencia={urgencia} height={48} />
                       <div className="flex flex-shrink-0 flex-col items-center rounded-[10px] bg-soft px-2.5 py-1.5">
                         <div className="text-[20px] font-bold leading-none text-ink">{fechaObj.getDate()}</div>
                         <div className="text-[11.5px] font-medium uppercase text-mute2">{MESES[fechaObj.getMonth()]}</div>
@@ -312,7 +313,7 @@ export default function Agenda() {
                     onClick={() => caso && navigate(`/casos/${caso.id}`)}
                     className="flex items-center gap-3 rounded-[10px] border border-border bg-surface px-3 py-3 text-left transition hover:bg-soft"
                   >
-                    <SemaforoDot urgencia={urgencia} />
+                    <UrgenciaBars urgencia={urgencia} height={40} />
 
                     <div className="min-w-[40px] text-center">
                       <div className="text-[20px] font-bold leading-none text-ink">{fechaObj.getDate()}</div>
