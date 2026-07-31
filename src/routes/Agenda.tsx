@@ -5,6 +5,7 @@ import { listCasos } from '@/features/casos/api'
 import { listWorkspaceUsers } from '@/features/users/api'
 import { diasRestantes, clasificarUrgencia, labelDias, URGENCIA_CLASS } from '@/features/casos/plazoUrgencia'
 import { SemaforoDot } from '@/features/casos/SemaforoDot'
+import { useDevice } from '@/context/DeviceModeContext'
 import type { Caso, EstadoAgenda, Plazo, TipoPlazo, Usuario } from '@/types/database'
 
 const DIAS_SEMANA = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
@@ -78,6 +79,7 @@ const TIPO_BADGE: Record<TipoPlazo, string> = {
 
 export default function Agenda() {
   const navigate = useNavigate()
+  const { isMobile } = useDevice()
   const [plazos, setPlazos] = useState<Plazo[]>([])
   const [casosById, setCasosById] = useState<Map<string, Caso>>(new Map())
   const [usersById, setUsersById] = useState<Map<string, Usuario>>(new Map())
@@ -130,6 +132,93 @@ export default function Agenda() {
 
   if (loading) return <div className="flex-1 p-5 text-[13px] text-muted">Cargando agenda…</div>
   if (error) return <div className="flex-1 p-5 text-[13px] text-danger">{error}</div>
+
+  if (isMobile) {
+    return (
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Selector de mes, sin grilla — difícil de tocar en celular */}
+        <div className="flex flex-shrink-0 items-center justify-between border-b border-border bg-surface px-4 py-3">
+          <button
+            onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}
+            className="flex h-10 w-10 items-center justify-center rounded-[10px] text-muted transition active:bg-soft"
+          >
+            <i className="ti ti-chevron-left text-[20px]" />
+          </button>
+          <span className="text-[16px] font-semibold capitalize text-ink">
+            {month.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' })}
+          </span>
+          <button
+            onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}
+            className="flex h-10 w-10 items-center justify-center rounded-[10px] text-muted transition active:bg-soft"
+          >
+            <i className="ti ti-chevron-right text-[20px]" />
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto px-3 pt-3 pb-[80px]">
+          {Array.from(proximos.entries()).map(([fecha, items]) => (
+            <div key={fecha} className="mb-4">
+              <div className="mb-2 text-[12.5px] font-semibold uppercase tracking-wide text-mute2">{labelFecha(fecha)}</div>
+              <div className="flex flex-col gap-2">
+                {items.map((p) => {
+                  const dias = diasRestantes(p.fecha)
+                  const urgencia = clasificarUrgencia(dias)
+                  const estado = calcularEstado(p)
+                  const fechaObj = new Date(p.fecha + 'T00:00:00')
+                  const caso = casosById.get(p.caso_id)
+                  const asignado = p.asignado_a ? usersById.get(p.asignado_a) : null
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => caso && navigate(`/casos/${caso.id}`)}
+                      className="flex items-start gap-3 rounded-[14px] border border-border bg-surface px-3.5 py-3.5 text-left transition active:bg-soft"
+                    >
+                      <div className="flex flex-shrink-0 flex-col items-center rounded-[10px] bg-soft px-2.5 py-1.5">
+                        <div className="text-[19px] font-bold leading-none text-ink">{fechaObj.getDate()}</div>
+                        <div className="text-[10.5px] font-medium uppercase text-mute2">{MESES[fechaObj.getMonth()]}</div>
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[15px] font-semibold leading-snug text-ink">{p.titulo}</div>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                          <span className={`rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${TIPO_BADGE[p.tipo]}`}>
+                            {TIPO_LABEL[p.tipo]}
+                          </span>
+                          <span className={`rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${ESTADO_COLOR[estado]}`}>
+                            {ESTADO_LABEL[estado]}
+                          </span>
+                          <span className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-medium ${URGENCIA_CLASS[urgencia]}`}>
+                            {labelDias(dias)}
+                          </span>
+                        </div>
+                        <div className="mt-1.5 text-[13px] text-muted">{caso?.titulo ?? 'Caso no disponible'}</div>
+                        {asignado && (
+                          <div className="mt-1.5 flex items-center gap-1 text-[12.5px] text-muted">
+                            <i className="ti ti-user text-[12px]" /> {asignado.nombre}
+                          </div>
+                        )}
+                        {p.nota && (
+                          <div className="mt-2 rounded-[8px] bg-warn-soft px-2.5 py-1.5 text-[12.5px] text-warn">
+                            <i className="ti ti-notes mr-1" />{p.nota}
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+
+          {proximos.size === 0 && (
+            <div className="rounded-[10px] border border-dashed border-border p-8 text-center text-[13px] text-muted">
+              No hay eventos próximos en la agenda.
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
