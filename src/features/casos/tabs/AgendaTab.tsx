@@ -3,6 +3,7 @@ import type { Plazo, TipoPlazo, EstadoAgenda, Usuario } from '@/types/database'
 import { diasRestantes, clasificarUrgencia, labelDias, URGENCIA_CLASS } from '@/features/casos/plazoUrgencia'
 import { SemaforoDot } from '@/features/casos/SemaforoDot'
 import { updatePlazo, deletePlazo } from '@/features/casos/plazosApi'
+import { useDevice } from '@/context/DeviceModeContext'
 
 const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 
@@ -54,6 +55,7 @@ function AgendaItem({
   const [notaOpen, setNotaOpen] = useState(false)
   const [notaVal, setNotaVal] = useState(p.nota ?? '')
   const [saving, setSaving] = useState(false)
+  const { isMobile } = useDevice()
 
   const dias = diasRestantes(p.fecha)
   const urgencia = clasificarUrgencia(dias)
@@ -71,6 +73,97 @@ function AgendaItem({
     setSaving(true)
     try { onChange(await updatePlazo(p.id, { nota: notaVal })); setNotaOpen(false) }
     finally { setSaving(false) }
+  }
+
+  const notaBlock = notaOpen && (
+    <div className={`flex gap-2 border-t border-border ${isMobile ? 'px-3.5 py-3' : 'px-3 py-2'}`}>
+      <input
+        autoFocus
+        value={notaVal}
+        onChange={e => setNotaVal(e.target.value)}
+        placeholder="Agregar nota…"
+        className={`flex-1 rounded-[8px] border border-border bg-bg text-ink outline-none focus:border-accent ${isMobile ? 'px-3 py-2 text-[14px]' : 'px-2 py-1 text-[12px]'}`}
+        onKeyDown={e => { if (e.key === 'Enter') guardarNota(); if (e.key === 'Escape') setNotaOpen(false) }}
+      />
+      <button onClick={guardarNota} disabled={saving}
+        className={`rounded-[8px] bg-accent text-white disabled:opacity-50 ${isMobile ? 'px-3 py-2 text-[13px]' : 'px-2.5 py-1 text-[11px]'}`}>
+        {saving ? '…' : 'Guardar'}
+      </button>
+      <button onClick={() => setNotaOpen(false)} className="flex items-center text-muted hover:text-ink">
+        <i className={`ti ti-x ${isMobile ? 'text-[18px]' : 'text-[14px]'}`} />
+      </button>
+    </div>
+  )
+
+  const estadoTareaBlock = puedeEditar && p.tipo === 'tarea' && estado !== 'vencida' && (
+    <div className={`flex gap-1.5 border-t border-border ${isMobile ? 'flex-wrap px-3.5 py-2.5' : 'px-3 py-2'}`}>
+      {(['pendiente', 'en_progreso', 'completada'] as EstadoAgenda[]).map(s => (
+        <button key={s} disabled={saving || estado === s}
+          onClick={() => cambiarEstado(s)}
+          className={`rounded-full font-medium transition ${estado === s ? ESTADO_COLOR[s] : 'bg-soft text-muted hover:bg-soft/80'} ${isMobile ? 'px-3 py-1.5 text-[12.5px]' : 'px-2.5 py-0.5 text-[10px]'}`}>
+          {ESTADO_LABEL[s]}
+        </button>
+      ))}
+    </div>
+  )
+
+  if (isMobile) {
+    return (
+      <div className="rounded-[14px] border border-border bg-surface">
+        <div className="flex items-start gap-3 px-3.5 py-3.5">
+          <div className="flex flex-shrink-0 flex-col items-center rounded-[10px] bg-soft px-2.5 py-1.5">
+            <div className="text-[19px] font-bold leading-none text-ink">{fecha.getDate()}</div>
+            <div className="text-[10.5px] font-medium uppercase text-mute2">{MESES[fecha.getMonth()]}</div>
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <div className="text-[15px] font-semibold leading-snug text-ink">{p.titulo}</div>
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+              <span className={`rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${TIPO_COLOR[p.tipo]}`}>
+                {TIPO_LABEL[p.tipo]}
+              </span>
+              <span className={`rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${ESTADO_COLOR[estado]}`}>
+                {ESTADO_LABEL[estado]}
+              </span>
+              <span className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-medium ${URGENCIA_CLASS[urgencia]}`}>
+                {labelDias(dias)}
+              </span>
+            </div>
+            {p.descripcion && <div className="mt-1.5 text-[13px] leading-snug text-muted">{p.descripcion}</div>}
+            {asignado && (
+              <div className="mt-1.5 flex items-center gap-1 text-[12.5px] text-muted">
+                <i className="ti ti-user text-[12px]" /> {asignado.nombre}
+              </div>
+            )}
+            {p.nota && (
+              <div className="mt-2 rounded-[8px] bg-warn-soft px-2.5 py-1.5 text-[12.5px] text-warn">
+                <i className="ti ti-notes mr-1" />{p.nota}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {puedeEditar && (
+          <div className="flex gap-2 border-t border-border px-3.5 py-2.5">
+            <button onClick={() => onEdit(p)}
+              className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-[8px] border border-border text-[13px] font-medium text-muted transition active:bg-soft">
+              <i className="ti ti-edit text-[15px]" /> Editar
+            </button>
+            <button onClick={() => setNotaOpen(v => !v)}
+              className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-[8px] border border-border text-[13px] font-medium text-muted transition active:bg-soft">
+              <i className="ti ti-notes text-[15px]" /> Nota
+            </button>
+            <button onClick={() => onDelete(p.id)}
+              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-[8px] border border-border text-muted transition active:bg-danger-soft active:text-danger">
+              <i className="ti ti-trash text-[15px]" />
+            </button>
+          </div>
+        )}
+
+        {estadoTareaBlock}
+        {notaBlock}
+      </div>
+    )
   }
 
   return (
@@ -137,39 +230,8 @@ function AgendaItem({
         </div>
       </div>
 
-      {/* Estado inline para tareas */}
-      {puedeEditar && p.tipo === 'tarea' && estado !== 'vencida' && (
-        <div className="flex gap-1 border-t border-border px-3 py-2">
-          {(['pendiente', 'en_progreso', 'completada'] as EstadoAgenda[]).map(s => (
-            <button key={s} disabled={saving || estado === s}
-              onClick={() => cambiarEstado(s)}
-              className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium transition ${estado === s ? ESTADO_COLOR[s] : 'bg-soft text-muted hover:bg-soft/80'}`}>
-              {ESTADO_LABEL[s]}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Nota inline */}
-      {notaOpen && (
-        <div className="flex gap-2 border-t border-border px-3 py-2">
-          <input
-            autoFocus
-            value={notaVal}
-            onChange={e => setNotaVal(e.target.value)}
-            placeholder="Agregar nota…"
-            className="flex-1 rounded-[6px] border border-border bg-bg px-2 py-1 text-[12px] text-ink outline-none focus:border-accent"
-            onKeyDown={e => { if (e.key === 'Enter') guardarNota(); if (e.key === 'Escape') setNotaOpen(false) }}
-          />
-          <button onClick={guardarNota} disabled={saving}
-            className="rounded-[6px] bg-accent px-2.5 py-1 text-[11px] text-white disabled:opacity-50">
-            {saving ? '…' : 'Guardar'}
-          </button>
-          <button onClick={() => setNotaOpen(false)} className="text-muted hover:text-ink">
-            <i className="ti ti-x text-[14px]" />
-          </button>
-        </div>
-      )}
+      {estadoTareaBlock}
+      {notaBlock}
     </div>
   )
 }
@@ -188,6 +250,7 @@ export function AgendaTab({
   onPlazosChange: (plazos: Plazo[]) => void
 }) {
   const [plazos, setPlazos] = useState(plazosInit)
+  const { isMobile } = useDevice()
 
   function handleChange(updated: Plazo) {
     const next = plazos.map(p => p.id === updated.id ? updated : p)
@@ -229,7 +292,7 @@ export function AgendaTab({
 
       {puedeEditar && (
         <button onClick={onOpenAdd}
-          className="mt-1 inline-flex items-center gap-1.5 self-start rounded-[6px] border border-border px-3 py-1.5 text-[12px] text-muted transition hover:bg-soft">
+          className={`mt-1 inline-flex items-center gap-1.5 self-start rounded-[8px] border border-border text-muted transition hover:bg-soft ${isMobile ? 'w-full justify-center px-3 py-2.5 text-[14px]' : 'px-3 py-1.5 text-[12px]'}`}>
           <i className="ti ti-plus" /> Agregar
         </button>
       )}
