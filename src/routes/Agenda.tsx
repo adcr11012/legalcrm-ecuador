@@ -148,22 +148,53 @@ export default function Agenda() {
             <i className={`ti ti-chevron-down text-[18px] text-mute2 transition-transform ${mesAbierto ? 'rotate-180' : ''}`} />
           </button>
           {mesAbierto && (
-            <div className="flex items-center justify-between border-t border-border px-4 py-3">
-              <button
-                onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}
-                className="flex h-10 w-10 items-center justify-center rounded-[10px] text-muted transition active:bg-soft"
-              >
-                <i className="ti ti-chevron-left text-[20px]" />
-              </button>
-              <span className="text-[16px] font-semibold capitalize text-ink">
-                {month.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' })}
-              </span>
-              <button
-                onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}
-                className="flex h-10 w-10 items-center justify-center rounded-[10px] text-muted transition active:bg-soft"
-              >
-                <i className="ti ti-chevron-right text-[20px]" />
-              </button>
+            <div className="border-t border-border px-4 py-3">
+              <div className="mb-2 flex items-center justify-between">
+                <button
+                  onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}
+                  className="flex h-9 w-9 items-center justify-center rounded-[10px] text-muted transition active:bg-soft"
+                >
+                  <i className="ti ti-chevron-left text-[18px]" />
+                </button>
+                <span className="text-[15px] font-semibold capitalize text-ink">
+                  {month.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' })}
+                </span>
+                <button
+                  onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}
+                  className="flex h-9 w-9 items-center justify-center rounded-[10px] text-muted transition active:bg-soft"
+                >
+                  <i className="ti ti-chevron-right text-[18px]" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-7 gap-1">
+                {DIAS_SEMANA.map((d, i) => (
+                  <div key={i} className="py-1 text-center text-[11px] font-semibold text-mute2">{d}</div>
+                ))}
+                {grid.map((d, i) => {
+                  if (!d) return <div key={i} />
+                  const dStr = toDateStr(d)
+                  const isToday = dStr === todayStr
+                  const hasEvent = eventDates.has(dStr)
+                  return (
+                    <div
+                      key={i}
+                      className={`relative rounded-[8px] py-2 text-center text-[13.5px] ${
+                        isToday ? 'bg-accent font-semibold text-white' : 'text-ink'
+                      }`}
+                    >
+                      {d.getDate()}
+                      {hasEvent && (() => {
+                        const evs = proximos.get(dStr) ?? []
+                        const minDias = Math.min(...evs.map((ev) => diasRestantes(ev.fecha)))
+                        const urg = clasificarUrgencia(minDias)
+                        const dotCls = isToday ? 'bg-white' : urg === 'rojo' ? 'bg-danger' : urg === 'amarillo' ? 'bg-warn' : 'bg-success'
+                        return <span className={`absolute bottom-0.5 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full ${dotCls}`} />
+                      })()}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )}
         </div>
