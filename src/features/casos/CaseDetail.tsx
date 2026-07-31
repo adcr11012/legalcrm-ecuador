@@ -226,7 +226,7 @@ export function CaseDetail({
             </button>
           )}
           <div className="min-w-0">
-            <div className={`truncate font-bold tracking-tight text-ink ${isMobile ? 'text-[18px] leading-snug' : 'text-[17px] sm:text-[19px]'}`}>{caso.titulo}</div>
+            <div className={`truncate font-bold tracking-tight text-ink ${isMobile ? 'text-[19px] leading-snug' : 'text-[17px] sm:text-[19px]'}`}>{caso.titulo}</div>
             <div className="mt-2 flex flex-wrap gap-1.5">
               <EtapaPill etapa={caso.etapa_id ? etapas.find((e) => e.id === caso.etapa_id) : null} />
               <span className={`inline-block rounded-full border border-border bg-soft px-2 py-0.5 font-medium text-muted ${isMobile ? 'text-[12px]' : 'text-[10px]'}`}>
@@ -267,7 +267,7 @@ export function CaseDetail({
         const pct = Math.round((idx / (etapas.length - 1)) * 100)
         return (
           <div className="flex-shrink-0 border-b border-border bg-surface px-4 pb-3 pt-1">
-            <div className="mb-1.5 flex items-center justify-between text-[12px] font-semibold">
+            <div className="mb-1.5 flex items-center justify-between text-[13px] font-semibold">
               <span className="text-ink">Perfil del caso</span>
               <span className="text-accent">{pct}%</span>
             </div>
@@ -291,12 +291,12 @@ export function CaseDetail({
                 <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[10px] bg-accent-soft text-accent">
                   <i className={`ti ${t.icon} text-[20px]`} />
                 </span>
-                <span className="flex-1 text-[16px] font-medium text-ink">{t.label}</span>
+                <span className="flex-1 text-[17px] font-medium text-ink">{t.label}</span>
                 {t.key === 'agenda' && agendaCount > 0 && (
-                  <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-semibold text-accent">{agendaCount}</span>
+                  <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[12px] font-semibold text-accent">{agendaCount}</span>
                 )}
                 {t.key === 'docs' && documentos.length > 0 && (
-                  <span className="rounded-full bg-soft px-2 py-0.5 text-[11px] font-medium text-mute2">{documentos.length}</span>
+                  <span className="rounded-full bg-soft px-2 py-0.5 text-[12px] font-medium text-mute2">{documentos.length}</span>
                 )}
                 <i className="ti ti-chevron-right text-[18px] text-mute2" />
               </button>
@@ -313,7 +313,7 @@ export function CaseDetail({
           >
             <i className="ti ti-arrow-left text-[20px]" />
           </button>
-          <span className="text-[15px] font-semibold text-ink">{visibleTabs.find((t) => t.key === tab)?.label}</span>
+          <span className="text-[16px] font-semibold text-ink">{visibleTabs.find((t) => t.key === tab)?.label}</span>
         </div>
       )}
 

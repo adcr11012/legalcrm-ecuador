@@ -100,7 +100,7 @@ function AgendaItem({
       {(['pendiente', 'en_progreso', 'completada'] as EstadoAgenda[]).map(s => (
         <button key={s} disabled={saving || estado === s}
           onClick={() => cambiarEstado(s)}
-          className={`rounded-full font-medium transition ${estado === s ? ESTADO_COLOR[s] : 'bg-soft text-muted hover:bg-soft/80'} ${isMobile ? 'px-3 py-1.5 text-[12.5px]' : 'px-2.5 py-0.5 text-[10px]'}`}>
+          className={`rounded-full font-medium transition ${estado === s ? ESTADO_COLOR[s] : 'bg-soft text-muted hover:bg-soft/80'} ${isMobile ? 'px-3 py-1.5 text-[13.5px]' : 'px-2.5 py-0.5 text-[10px]'}`}>
           {ESTADO_LABEL[s]}
         </button>
       ))}
@@ -112,31 +112,31 @@ function AgendaItem({
       <div className="rounded-[14px] border border-border bg-surface">
         <div className="flex items-start gap-3 px-3.5 py-3.5">
           <div className="flex flex-shrink-0 flex-col items-center rounded-[10px] bg-soft px-2.5 py-1.5">
-            <div className="text-[19px] font-bold leading-none text-ink">{fecha.getDate()}</div>
-            <div className="text-[10.5px] font-medium uppercase text-mute2">{MESES[fecha.getMonth()]}</div>
+            <div className="text-[20px] font-bold leading-none text-ink">{fecha.getDate()}</div>
+            <div className="text-[11.5px] font-medium uppercase text-mute2">{MESES[fecha.getMonth()]}</div>
           </div>
 
           <div className="min-w-0 flex-1">
-            <div className="text-[15px] font-semibold leading-snug text-ink">{p.titulo}</div>
+            <div className="text-[16px] font-semibold leading-snug text-ink">{p.titulo}</div>
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              <span className={`rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${TIPO_COLOR[p.tipo]}`}>
+              <span className={`rounded-full px-2 py-0.5 text-[11.5px] font-semibold ${TIPO_COLOR[p.tipo]}`}>
                 {TIPO_LABEL[p.tipo]}
               </span>
-              <span className={`rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${ESTADO_COLOR[estado]}`}>
+              <span className={`rounded-full px-2 py-0.5 text-[11.5px] font-semibold ${ESTADO_COLOR[estado]}`}>
                 {ESTADO_LABEL[estado]}
               </span>
-              <span className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-medium ${URGENCIA_CLASS[urgencia]}`}>
+              <span className={`ml-auto rounded-full px-2 py-0.5 text-[12px] font-medium ${URGENCIA_CLASS[urgencia]}`}>
                 {labelDias(dias)}
               </span>
             </div>
-            {p.descripcion && <div className="mt-1.5 text-[13px] leading-snug text-muted">{p.descripcion}</div>}
+            {p.descripcion && <div className="mt-1.5 text-[14px] leading-snug text-muted">{p.descripcion}</div>}
             {asignado && (
-              <div className="mt-1.5 flex items-center gap-1 text-[12.5px] text-muted">
-                <i className="ti ti-user text-[12px]" /> {asignado.nombre}
+              <div className="mt-1.5 flex items-center gap-1 text-[13.5px] text-muted">
+                <i className="ti ti-user text-[13px]" /> {asignado.nombre}
               </div>
             )}
             {p.nota && (
-              <div className="mt-2 rounded-[8px] bg-warn-soft px-2.5 py-1.5 text-[12.5px] text-warn">
+              <div className="mt-2 rounded-[8px] bg-warn-soft px-2.5 py-1.5 text-[13.5px] text-warn">
                 <i className="ti ti-notes mr-1" />{p.nota}
               </div>
             )}
@@ -146,11 +146,11 @@ function AgendaItem({
         {puedeEditar && (
           <div className="flex gap-2 border-t border-border px-3.5 py-2.5">
             <button onClick={() => onEdit(p)}
-              className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-[8px] border border-border text-[13px] font-medium text-muted transition active:bg-soft">
+              className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-[8px] border border-border text-[14px] font-medium text-muted transition active:bg-soft">
               <i className="ti ti-edit text-[15px]" /> Editar
             </button>
             <button onClick={() => setNotaOpen(v => !v)}
-              className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-[8px] border border-border text-[13px] font-medium text-muted transition active:bg-soft">
+              className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-[8px] border border-border text-[14px] font-medium text-muted transition active:bg-soft">
               <i className="ti ti-notes text-[15px]" /> Nota
             </button>
             <button onClick={() => onDelete(p.id)}
@@ -292,7 +292,7 @@ export function AgendaTab({
 
       {puedeEditar && (
         <button onClick={onOpenAdd}
-          className={`mt-1 inline-flex items-center gap-1.5 self-start rounded-[8px] border border-border text-muted transition hover:bg-soft ${isMobile ? 'w-full justify-center px-3 py-2.5 text-[14px]' : 'px-3 py-1.5 text-[12px]'}`}>
+          className={`mt-1 inline-flex items-center gap-1.5 self-start rounded-[8px] border border-border text-muted transition hover:bg-soft ${isMobile ? 'w-full justify-center px-3 py-2.5 text-[15px]' : 'px-3 py-1.5 text-[12px]'}`}>
           <i className="ti ti-plus" /> Agregar
         </button>
       )}
