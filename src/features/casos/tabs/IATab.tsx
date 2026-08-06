@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { preguntarCasoIA } from '@/features/casos/casoIaApi'
+import { preguntarCasoIA, type MensajeHistorial } from '@/features/casos/casoIaApi'
+
+const MAX_HISTORIAL = 10
 
 type Mensaje = { rol: 'user' | 'ia'; texto: string }
 
@@ -17,12 +19,15 @@ export function IATab({ casoId }: { casoId: string }) {
   async function enviar(textoPregunta?: string) {
     const texto = textoPregunta ?? pregunta.trim()
     if (!texto || loading) return
+    const historial: MensajeHistorial[] = mensajes
+      .slice(-MAX_HISTORIAL)
+      .map((m) => ({ role: m.rol === 'user' ? 'user' as const : 'assistant' as const, content: m.texto }))
     setMensajes((prev) => [...prev, { rol: 'user', texto }])
     setPregunta('')
     setLoading(true)
     setError(null)
     try {
-      const respuesta = await preguntarCasoIA(casoId, texto)
+      const respuesta = await preguntarCasoIA(casoId, texto, historial)
       setMensajes((prev) => [...prev, { rol: 'ia', texto: respuesta }])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'La IA no respondió.')

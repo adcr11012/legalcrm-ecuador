@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { preguntarWorkspaceIA } from '@/features/workspace/workspaceIaApi'
+import { preguntarWorkspaceIA, type MensajeHistorial } from '@/features/workspace/workspaceIaApi'
 import { useDevice } from '@/context/DeviceModeContext'
 
 type Mensaje = { rol: 'user' | 'ia'; texto: string }
+const MAX_HISTORIAL = 10
 
 export function WorkspaceAssistant() {
   const { isMobile } = useDevice()
@@ -24,12 +25,15 @@ export function WorkspaceAssistant() {
   async function enviar() {
     const texto = pregunta.trim()
     if (!texto || loading) return
+    const historial: MensajeHistorial[] = mensajes
+      .slice(-MAX_HISTORIAL)
+      .map((m) => ({ role: m.rol === 'user' ? 'user' as const : 'assistant' as const, content: m.texto }))
     setMensajes((prev) => [...prev, { rol: 'user', texto }])
     setPregunta('')
     setLoading(true)
     setError(null)
     try {
-      const respuesta = await preguntarWorkspaceIA(texto)
+      const respuesta = await preguntarWorkspaceIA(texto, historial)
       setMensajes((prev) => [...prev, { rol: 'ia', texto: respuesta }])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'La IA no respondió.')

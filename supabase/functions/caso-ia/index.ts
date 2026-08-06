@@ -60,8 +60,16 @@ Deno.serve(async (req) => {
     const { data: userData, error: userError } = await userClient.auth.getUser()
     if (userError || !userData.user) return json({ error: 'No autenticado' }, 401)
 
-    const { caso_id, pregunta } = await req.json()
+    const { caso_id, pregunta, historial } = await req.json()
     if (!caso_id) return json({ error: 'Falta caso_id' }, 400)
+    const historialValido: { role: 'user' | 'assistant'; content: string }[] = Array.isArray(historial)
+      ? historial
+          .filter((m: unknown): m is { role: string; content: string } =>
+            !!m && typeof m === 'object' && ('role' in m) && ('content' in m) &&
+            (m as { role: unknown }).role !== undefined && typeof (m as { content: unknown }).content === 'string')
+          .map((m: { role: string; content: string }) => ({ role: m.role === 'assistant' ? 'assistant' as const : 'user' as const, content: m.content }))
+          .slice(-10)
+      : []
 
     // RLS del propio cliente filtra automáticamente por permisos del usuario.
     const [{ data: caso, error: casoError }, { data: personas }, { data: plazos }, { data: historial }, { data: documentos }, { data: anticipos }, { data: gastos }, { data: horas }] =
@@ -147,6 +155,7 @@ ${documentosTexto}
         role: 'system',
         content: IDENTIDAD_TEMIS + '\n\nDATOS DEL CASO:\n' + contexto + '\n\nResponde en español, claro y breve. Usa los datos del caso para preguntas legales. Si no tienes el dato en el caso, dilo. Para preguntas sobre ti, TSADOQ, el logo o el creador, usa siempre tu identidad.',
       },
+      ...historialValido,
       { role: 'user', content: pregFinal },
     ]
 

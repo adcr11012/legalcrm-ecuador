@@ -127,14 +127,23 @@ ${plazosTexto || '(sin plazos próximos)'}
     const { data: groqApiKey } = await admin.rpc('get_groq_key', { p_workspace_id: perfil.workspace_id })
     if (!groqApiKey) return json({ error: 'TSADOQ IA no está conectada en este workspace' }, 400)
 
-    const { pregunta } = await req.json()
+    const { pregunta, historial } = await req.json()
     const pregFinal = typeof pregunta === 'string' && pregunta.trim() ? pregunta.trim() : '¿Qué debería priorizar hoy?'
+    const historialValido: { role: 'user' | 'assistant'; content: string }[] = Array.isArray(historial)
+      ? historial
+          .filter((m: unknown): m is { role: string; content: string } =>
+            !!m && typeof m === 'object' && ('role' in m) && ('content' in m) &&
+            (m as { role: unknown }).role !== undefined && typeof (m as { content: unknown }).content === 'string')
+          .map((m: { role: string; content: string }) => ({ role: m.role === 'assistant' ? 'assistant' as const : 'user' as const, content: m.content }))
+          .slice(-10)
+      : []
 
     const messages = [
       {
         role: 'system',
         content: IDENTIDAD_TEMIS + '\n\n' + CONOCIMIENTO_LABORAL + '\n\n' + CONOCIMIENTO_SISTEMA + '\n\nDATOS DEL WORKSPACE:\n' + contexto + '\n\nResponde en español, claro y breve. Usa los datos del workspace para preguntas sobre casos, clientes o plazos. Si no tienes el dato, dilo. Para preguntas sobre ti, TSADOQ, el logo o el creador, usa tu identidad. Para preguntas de liquidación laboral, usa tu conocimiento sobre el Código del Trabajo y siempre remite el cálculo final a la Calculadora Laboral, nunca des un monto final tú misma. Para preguntas de "cómo uso X" o "dónde encuentro Y", usa el manual de uso del sistema.',
       },
+      ...historialValido,
       { role: 'user', content: pregFinal },
     ]
 
