@@ -108,6 +108,7 @@ async function leerImagenConVision(buffer: ArrayBuffer | Buffer, mimeType: strin
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model,
+      max_tokens: 4000,
       messages: [{
         role: 'user',
         content: [
