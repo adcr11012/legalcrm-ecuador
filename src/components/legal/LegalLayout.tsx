@@ -89,8 +89,8 @@ const CSS = `
 .txl-body p { margin: 0 0 14px; color: var(--tx-ink); }
 .txl-body ul, .txl-body ol { margin: 0 0 14px; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
 .txl-body strong { font-weight: 700; }
-.txl-body table { width: 100%; border-collapse: collapse; margin: 0 0 18px; font-size: 13.5px; }
-.txl-body th, .txl-body td { border: 1px solid var(--tx-border); padding: 8px 10px; text-align: left; vertical-align: top; }
+.txl-body table { display: block; overflow-x: auto; width: 100%; border-collapse: collapse; margin: 0 0 18px; font-size: 13.5px; -webkit-overflow-scrolling: touch; }
+.txl-body th, .txl-body td { border: 1px solid var(--tx-border); padding: 8px 10px; text-align: left; vertical-align: top; white-space: nowrap; }
 .txl-body th { background: var(--tx-paper-alt); font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
 .txl-body blockquote { margin: 0 0 14px; padding-left: 16px; border-left: 2px solid var(--tx-gold); color: var(--tx-muted); font-size: 13.5px; }
 .txl-body table + p, .txl-body ul + p { margin-top: 10px; }
@@ -100,4 +100,17 @@ const CSS = `
 .txl-footer__inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--tx-muted); max-width: 900px; }
 .txl-footer__links { display: flex; gap: 18px; }
 .txl-footer__links a:hover { color: var(--tx-gold); }
+
+@media (max-width: 640px) {
+  .txl-shell { padding: 0 16px; }
+  .txl-nav__inner { height: auto; min-height: 56px; padding: 10px 0; flex-wrap: wrap; gap: 8px 12px; }
+  .txl-nav__links { gap: 14px; font-size: 12.5px; flex-wrap: wrap; }
+  .txl-main { padding: 32px 16px 56px; }
+  .txl-main h1 { font-size: clamp(22px, 6vw, 30px); margin-bottom: 18px; }
+  .txl-banner { font-size: 12.5px; padding: 12px 14px; margin-bottom: 28px; }
+  .txl-body { font-size: 14px; }
+  .txl-body h2 { font-size: 18px; margin: 32px 0 12px; }
+  .txl-body h3 { font-size: 14.5px; }
+  .txl-footer__inner { justify-content: center; text-align: center; }
+}
 `

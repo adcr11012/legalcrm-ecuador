@@ -152,3 +152,16 @@ body {
 .mobile-tab-content .text-\[11px\] { font-size: 14px !important; }
 .mobile-tab-content .text-\[12px\] { font-size: 15px !important; }
 .mobile-tab-content .text-\[13px\] { font-size: 16px !important; }
+
+/* Mismo problema en el resto de la app (Clientes, Dashboard, Buscar,
+   badges, etc.): mucho texto quedó con tamaños de desktop (9-13px) que en
+   celular se ven diminutos. Se agranda de forma global solo en mobile —
+   las reglas de .mobile-tab-content de arriba, al ser más específicas,
+   siguen ganando donde ya se habían afinado a mano. */
+@media (max-width: 767px) {
+  .text-\[9px\] { font-size: 12.5px !important; }
+  .text-\[10px\] { font-size: 13px !important; }
+  .text-\[11px\] { font-size: 13.5px !important; }
+  .text-\[12px\] { font-size: 14.5px !important; }
+  .text-\[13px\] { font-size: 15.5px !important; }
+}
