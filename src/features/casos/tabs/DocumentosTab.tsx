@@ -350,6 +350,12 @@ function DocRow({
               )}
             </div>
           )}
+
+          {!editing && d.estado_lectura === 'error' && d.error_lectura && (
+            <div className="mt-1.5 rounded-[6px] bg-danger-soft px-2 py-1 text-[11px] text-danger">
+              <i className="ti ti-alert-circle mr-1" />{d.error_lectura}
+            </div>
+          )}
         </div>
       </div>
     </div>
