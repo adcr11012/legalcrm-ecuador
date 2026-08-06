@@ -50,31 +50,35 @@ function buildMonthGrid(month: Date): (Date | null)[] {
 }
 
 const TIPO_LABEL: Record<TipoPlazo, string> = {
-  audiencia: 'Audiencia',
-  plazo:     'Plazo',
-  tarea:     'Tarea',
-  otro:      'Otro',
+  audiencia:   'Audiencia',
+  plazo:       'Plazo',
+  tarea:       'Tarea',
+  prejudicial: 'Gestión prejudicial',
+  otro:        'Otro',
 }
 
 const TIPO_ICON: Record<TipoPlazo, string> = {
-  audiencia: 'ti-gavel',
-  plazo:     'ti-clock',
-  tarea:     'ti-checkbox',
-  otro:      'ti-calendar',
+  audiencia:   'ti-gavel',
+  plazo:       'ti-clock',
+  tarea:       'ti-checkbox',
+  prejudicial: 'ti-scale',
+  otro:        'ti-calendar',
 }
 
 const TIPO_COLOR: Record<TipoPlazo, string> = {
-  audiencia: 'bg-orange-100 text-orange-500',
-  plazo:     'bg-danger-soft text-danger',
-  tarea:     'bg-accent-soft text-accent',
-  otro:      'bg-soft text-muted',
+  audiencia:   'bg-orange-100 text-orange-500',
+  plazo:       'bg-danger-soft text-danger',
+  tarea:       'bg-accent-soft text-accent',
+  prejudicial: 'bg-purple-soft text-purple',
+  otro:        'bg-soft text-muted',
 }
 
 const TIPO_BADGE: Record<TipoPlazo, string> = {
-  audiencia: 'bg-orange-100 text-orange-600',
-  plazo:     'bg-danger-soft text-danger',
-  tarea:     'bg-accent-soft text-accent',
-  otro:      'bg-soft text-muted',
+  audiencia:   'bg-orange-100 text-orange-600',
+  plazo:       'bg-danger-soft text-danger',
+  tarea:       'bg-accent-soft text-accent',
+  prejudicial: 'bg-purple-soft text-purple',
+  otro:        'bg-soft text-muted',
 }
 
 export default function Agenda() {

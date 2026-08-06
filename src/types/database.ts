@@ -14,7 +14,7 @@ export type Materia =
 export type EtapaColor = 'neutral' | 'accent' | 'warn' | 'danger' | 'success' | 'purple'
 export type RolPersona = 'abogado' | 'cliente' | 'otro'
 export type Visibilidad = 'privado' | 'compartido'
-export type TipoPlazo = 'audiencia' | 'plazo' | 'tarea' | 'otro'
+export type TipoPlazo = 'audiencia' | 'plazo' | 'tarea' | 'otro' | 'prejudicial'
 export type EstadoAgenda = 'pendiente' | 'en_progreso' | 'completada' | 'vencida'
 export type EstadoCliente = 'activo' | 'inactivo' | 'potencial'
 export type TipoCliente = 'persona_natural' | 'empresa'
@@ -150,6 +150,8 @@ export type Caso = {
   honorarios_notas: string | null
   etiquetas: string[]
   fecha_finalizado: string | null
+  paso_por_prejudicial: boolean
+  resultado_prejudicial: 'acuerdo' | 'judicializado' | null
   created_by: string
   created_at: string
   updated_at: string

@@ -36,6 +36,8 @@ const INSTANCIA_LABEL: Record<string, string> = {
 const TIPO_PLAZO_LABEL: Record<string, string> = {
   audiencia: 'Audiencia',
   plazo: 'Plazo',
+  tarea: 'Tarea',
+  prejudicial: 'Gestión prejudicial',
   otro: 'Otro',
 }
 

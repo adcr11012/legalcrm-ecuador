@@ -123,9 +123,11 @@ export function InfoTab({
         </div>
       )}
 
-      <div className="mb-4">
-        <InstanciaStepper caso={caso} puedeEditar={puedeEditar} onChange={(instancia) => onUpdateCampo({ instancia_actual: instancia })} />
-      </div>
+      {etapas.find((e) => e.id === caso.etapa_id)?.nombre !== 'Prejudicial' && (
+        <div className="mb-4">
+          <InstanciaStepper caso={caso} puedeEditar={puedeEditar} onChange={(instancia) => onUpdateCampo({ instancia_actual: instancia })} />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
         <div className="rounded-[10px] border border-border bg-surface p-3">

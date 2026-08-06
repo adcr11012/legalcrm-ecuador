@@ -7,6 +7,7 @@ import { MATERIA_LABEL } from '@/features/casos/materias'
 import type { Etapa } from '@/types/database'
 
 type Estado = '' | 'abierto' | 'cerrado'
+type Prejudicial = '' | 'si' | 'no'
 
 function csvEscape(v: string | number): string {
   const s = String(v)
@@ -17,7 +18,7 @@ function descargarCsv(filas: FilaReporte[], etapasById: Map<string, Etapa>) {
   const encabezados = [
     'Caso', 'Materia', 'Etapa', 'Estado', 'Usuario(s)', 'Cliente(s)', 'Fecha inicio', 'Fecha cierre',
     'Días para cierre', 'Horas facturadas', 'Monto horas ($)', 'Anticipos ($)', 'Gastos cobrables ($)', 'Gastos no cobrables ($)',
-    'Plazos pendientes', 'Próximo plazo', 'Tareas pendientes',
+    'Plazos pendientes', 'Próximo plazo', 'Tareas pendientes', 'Pasó por prejudicial', 'Resultado prejudicial',
   ]
   const filasCsv = filas.map((f) => [
     f.caso.titulo,
@@ -37,6 +38,8 @@ function descargarCsv(filas: FilaReporte[], etapasById: Map<string, Etapa>) {
     f.plazosPendientes,
     f.proximoPlazo ?? '',
     f.tareasPendientes,
+    f.caso.paso_por_prejudicial ? 'Sí' : 'No',
+    f.caso.resultado_prejudicial === 'acuerdo' ? 'Acuerdo prejudicial' : f.caso.resultado_prejudicial === 'judicializado' ? 'Judicializado' : '',
   ])
   const contenido = [encabezados, ...filasCsv].map((fila) => fila.map(csvEscape).join(',')).join('\n')
   const blob = new Blob(['﻿' + contenido], { type: 'text/csv;charset=utf-8' })
@@ -62,6 +65,7 @@ export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean
   const [abogado, setAbogado] = useState('')
   const [cliente, setCliente] = useState('')
   const [estado, setEstado] = useState<Estado>('')
+  const [prejudicial, setPrejudicial] = useState<Prejudicial>('')
 
   useEffect(() => {
     if (!profile) return
@@ -92,13 +96,20 @@ export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean
       if (cliente && !f.clientes.includes(cliente)) return false
       if (estado === 'abierto' && f.caso.fecha_finalizado) return false
       if (estado === 'cerrado' && !f.caso.fecha_finalizado) return false
+      if (prejudicial === 'si' && !f.caso.paso_por_prejudicial) return false
+      if (prejudicial === 'no' && f.caso.paso_por_prejudicial) return false
       return true
     })
-  }, [filas, desde, hasta, materia, etapaId, abogado, cliente, estado])
+  }, [filas, desde, hasta, materia, etapaId, abogado, cliente, estado, prejudicial])
 
   const totales = useMemo(() => {
     const cerrados = filtradas.filter((f) => f.diasParaCierre != null)
     const promedioDias = cerrados.length > 0 ? Math.round(cerrados.reduce((s, f) => s + (f.diasParaCierre ?? 0), 0) / cerrados.length) : null
+    const pasaronPorPrejudicial = filtradas.filter((f) => f.caso.paso_por_prejudicial)
+    const resueltosEnPrejudicial = pasaronPorPrejudicial.filter((f) => f.caso.resultado_prejudicial === 'acuerdo')
+    const pctResueltoEnPrejudicial = pasaronPorPrejudicial.length > 0
+      ? Math.round((resueltosEnPrejudicial.length / pasaronPorPrejudicial.length) * 100)
+      : null
     return {
       casos: filtradas.length,
       horas: filtradas.reduce((s, f) => s + f.horasFacturadas, 0),
@@ -108,11 +119,13 @@ export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean
       promedioDias,
       plazosPendientes: filtradas.reduce((s, f) => s + f.plazosPendientes, 0),
       tareasPendientes: filtradas.reduce((s, f) => s + f.tareasPendientes, 0),
+      pasaronPorPrejudicial: pasaronPorPrejudicial.length,
+      pctResueltoEnPrejudicial,
     }
   }, [filtradas])
 
   function limpiarFiltros() {
-    setDesde(''); setHasta(''); setMateria(''); setEtapaId(''); setAbogado(''); setCliente(''); setEstado('')
+    setDesde(''); setHasta(''); setMateria(''); setEtapaId(''); setAbogado(''); setCliente(''); setEstado(''); setPrejudicial('')
   }
 
   return (
@@ -174,6 +187,15 @@ export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean
             <option value="cerrado">Cerrados</option>
           </select>
         </div>
+        <div>
+          <label className="mb-1 block text-[10px] font-medium text-mute2">Prejudicial</label>
+          <select value={prejudicial} onChange={(e) => setPrejudicial(e.target.value as Prejudicial)}
+            className="rounded-[6px] border border-border bg-bg px-2.5 py-2 sm:px-2 sm:py-1.5 text-[12px] text-ink outline-none">
+            <option value="">Todos</option>
+            <option value="si">Pasaron por prejudicial</option>
+            <option value="no">No pasaron por prejudicial</option>
+          </select>
+        </div>
         <button onClick={limpiarFiltros} className="rounded-[6px] border border-border px-2.5 py-2 text-[12px] text-muted transition hover:bg-soft sm:py-1.5">
           Limpiar
         </button>
@@ -193,7 +215,7 @@ export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean
         <div className="rounded-[10px] border border-dashed border-border p-8 text-center text-[13px] text-mute2">Sin resultados para estos filtros.</div>
       ) : (
         <>
-          <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-7">
+          <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-8">
             <div className="rounded-[8px] border border-border bg-surface p-2.5 text-center">
               <div className="text-[16px] font-bold text-ink">{totales.casos}</div>
               <div className="text-[10px] text-mute2">Casos</div>
@@ -221,6 +243,10 @@ export function ReportesPanel({ soloMisCasos = false }: { soloMisCasos?: boolean
             <div className="rounded-[8px] border border-border bg-surface p-2.5 text-center">
               <div className="text-[16px] font-bold text-ink">{totales.tareasPendientes}</div>
               <div className="text-[10px] text-mute2">Tareas pendientes</div>
+            </div>
+            <div className="rounded-[8px] border border-border bg-surface p-2.5 text-center">
+              <div className="text-[16px] font-bold text-ink">{totales.pctResueltoEnPrejudicial != null ? `${totales.pctResueltoEnPrejudicial}%` : '—'}</div>
+              <div className="text-[10px] text-mute2">Resuelto en prejudicial ({totales.pasaronPorPrejudicial})</div>
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@/features/auth/AuthProvider'
-import { getCaso, updateCaso, updateEtapaCaso, deleteCaso } from '@/features/casos/api'
+import { getCaso, updateCaso, deleteCaso } from '@/features/casos/api'
 import { listPersonas, removePersona } from '@/features/casos/personasApi'
 import { listDocumentos, toggleVisibilidad, deleteDocumento, deleteDocumentosCaso, leerDocumentoAhora, registrarAccesoDocumento } from '@/features/casos/documentosApi'
 import { renameDriveFile } from '@/features/workspace/driveApi'
@@ -143,7 +143,19 @@ export function CaseDetail({
   const showNotas = puedeEditar
 
   async function onChangeEtapa(etapaId: string) {
-    const updated = await updateEtapaCaso(caso!.id, etapaId)
+    const etapaAnterior = etapas.find((e) => e.id === caso!.etapa_id)
+    const nuevaEtapa = etapas.find((e) => e.id === etapaId)
+    const patch: Partial<Caso> = { etapa_id: etapaId }
+    if (nuevaEtapa?.nombre === 'Prejudicial') {
+      patch.paso_por_prejudicial = true
+    }
+    if (etapaAnterior?.nombre === 'Prejudicial' && nuevaEtapa?.nombre !== 'Prejudicial' && !caso!.resultado_prejudicial) {
+      const fueAcuerdo = confirm(
+        '¿Este caso se resolvió con un acuerdo prejudicial, sin llegar a instancia judicial?\n\nAceptar = sí, acuerdo prejudicial.\nCancelar = no, pasa a proceso judicial.'
+      )
+      patch.resultado_prejudicial = fueAcuerdo ? 'acuerdo' : 'judicializado'
+    }
+    const updated = await updateCaso(caso!.id, patch)
     setCaso(updated)
     setHistorial(await listHistorial(caso!.id))
   }

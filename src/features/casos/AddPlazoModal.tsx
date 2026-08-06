@@ -142,6 +142,7 @@ export function AddPlazoModal({
               <option value="audiencia">Audiencia</option>
               <option value="plazo">Plazo</option>
               <option value="tarea">Tarea</option>
+              <option value="prejudicial">Gestión prejudicial</option>
               <option value="otro">Otro</option>
             </select>
           </div>
